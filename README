@@ -1,4 +1,6 @@
-This is just a placeholder file to keep the Distutils happy. Please proceed
-directly to the "index.php" file located in this directory for further
-instructions.
+= Introduction
 
+FXPy was a Python extension that provided an interface to the FOX GUI toolkit.
+It is no longer under development, but this most recent release is compatible
+with FOX 1.0 and Python 2.2. The source code is archived here for "historical
+purposes.
