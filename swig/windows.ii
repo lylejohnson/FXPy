@@ -1,0 +1,1179 @@
+/***********************************************************************
+ * $Id: windows.ii,v 1.26 2002/04/02 16:29:10 lyle Exp $
+ ***********************************************************************/
+
+%module windows
+
+%{
+#include "fx.h"
+#include "fx3d.h"
+#include "FXCURCursor.h"
+#include "FXJPGImage.h"
+#include "FXJPGIcon.h"
+#include "FXPNGIcon.h"
+#include "FXPNGImage.h"
+#include "FXTIFIcon.h"
+#include "FXTIFImage.h"
+#include "FXRGBIcon.h"
+#include "FXRGBImage.h"
+#include "FXICOIcon.h"
+#include "FXICOImage.h"
+#include "FXPyApp.h"
+#include "FXPy.h"
+%}
+
+%extern fxdefs.i
+
+%include typemaps.i
+%include my_typemaps.i
+
+%import misc.i
+
+%pragma(python) code = "import fox"
+
+
+// Popup internal orientation
+enum {
+  POPUP_VERTICAL   = 0,               // Vertical orientation
+  POPUP_HORIZONTAL = 0x00020000,      // Horizontal orientation
+  POPUP_SHRINKWRAP = 0x00040000       // Shrinkwrap to content
+  };
+
+
+/// Layout hints for child widgets
+enum {
+  LAYOUT_NORMAL      = 0,                                   /// Default layout mode
+  LAYOUT_SIDE_TOP    = 0,                                   /// Pack on top side (default)
+  LAYOUT_SIDE_BOTTOM = 0x00000001,                          /// Pack on bottom side
+  LAYOUT_SIDE_LEFT   = 0x00000002,                          /// Pack on left side
+  LAYOUT_SIDE_RIGHT  = LAYOUT_SIDE_LEFT|LAYOUT_SIDE_BOTTOM, /// Pack on right side
+  LAYOUT_FILL_COLUMN = 0x00000001,                          /// Matrix column is stretchable
+  LAYOUT_FILL_ROW    = 0x00000002,                          /// Matrix row is stretchable
+  LAYOUT_LEFT        = 0,                                   /// Stick on left (default)
+  LAYOUT_RIGHT       = 0x00000004,                          /// Stick on right
+  LAYOUT_CENTER_X    = 0x00000008,                          /// Center horizontally
+  LAYOUT_FIX_X       = LAYOUT_RIGHT|LAYOUT_CENTER_X,        /// X fixed
+  LAYOUT_TOP         = 0,                                   /// Stick on top (default)
+  LAYOUT_BOTTOM      = 0x00000010,                          /// Stick on bottom
+  LAYOUT_CENTER_Y    = 0x00000020,                          /// Center vertically
+  LAYOUT_FIX_Y       = LAYOUT_BOTTOM|LAYOUT_CENTER_Y,       /// Y fixed
+  LAYOUT_RESERVED_1  = 0x00000040,
+  LAYOUT_RESERVED_2  = 0x00000080,
+  LAYOUT_FIX_WIDTH   = 0x00000100,                          /// Width fixed
+  LAYOUT_FIX_HEIGHT  = 0x00000200,                          /// height fixed
+  LAYOUT_MIN_WIDTH   = 0,                                   /// Minimum width is the default
+  LAYOUT_MIN_HEIGHT  = 0,                                   /// Minimum height is the default
+  LAYOUT_FILL_X      = 0x00000400,                          /// Stretch horizontally
+  LAYOUT_FILL_Y      = 0x00000800,                          /// Stretch vertically
+  LAYOUT_EXPLICIT    = LAYOUT_FIX_X|LAYOUT_FIX_Y|LAYOUT_FIX_WIDTH|LAYOUT_FIX_HEIGHT   /// Explicit placement
+  };
+
+
+/// Frame border appearance styles (for subclasses)
+enum {
+  FRAME_NONE   = 0,                                     /// Default is no frame
+  FRAME_SUNKEN = 0x00001000,                            /// Sunken border
+  FRAME_RAISED = 0x00002000,                            /// Raised border
+  FRAME_THICK  = 0x00004000,                            /// Thick border
+  FRAME_GROOVE = FRAME_THICK,                           /// A groove or etched-in border
+  FRAME_RIDGE  = FRAME_THICK|FRAME_RAISED|FRAME_SUNKEN, /// A ridge or embossed border
+  FRAME_LINE   = FRAME_RAISED|FRAME_SUNKEN,             /// Simple line border
+  FRAME_NORMAL = FRAME_SUNKEN|FRAME_THICK               /// Regular raised/thick border
+  };
+
+
+// Packing style (for packers)
+enum {
+  PACK_NORMAL         = 0,              // Default is each its own size
+  PACK_UNIFORM_HEIGHT = 0x00008000,     // Uniform height
+  PACK_UNIFORM_WIDTH  = 0x00010000      // Uniform width
+  };
+
+
+// Generic window
+class FXWindow : public FXDrawable {
+public:
+
+  // Common DND types
+  static FXDragType deleteType;         // Delete request
+  static FXDragType textType;           // Ascii text request
+  static FXDragType stringType;         // Clipboard text type (pre-registered)
+  static FXDragType colorType;          // Color
+  static FXDragType urilistType;        // URI list
+
+public:
+  // Message handlers
+  long onPaint(FXObject*,FXSelector,void*);
+  long onMap(FXObject*,FXSelector,void*);
+  long onUnmap(FXObject*,FXSelector,void*);
+  long onConfigure(FXObject*,FXSelector,void*);
+  long onUpdate(FXObject*,FXSelector,void*);
+  long onMotion(FXObject*,FXSelector,void*);
+  long onMouseWheel(FXObject*,FXSelector,void*);
+  long onEnter(FXObject*,FXSelector,void*);
+  long onLeave(FXObject*,FXSelector,void*);
+  long onLeftBtnPress(FXObject*,FXSelector,void*);
+  long onLeftBtnRelease(FXObject*,FXSelector,void*);
+  long onMiddleBtnPress(FXObject*,FXSelector,void*);
+  long onMiddleBtnRelease(FXObject*,FXSelector,void*);
+  long onRightBtnPress(FXObject*,FXSelector,void*);
+  long onRightBtnRelease(FXObject*,FXSelector,void*);
+  long onBeginDrag(FXObject*,FXSelector,void*);
+  long onEndDrag(FXObject*,FXSelector,void*);
+  long onDragged(FXObject*,FXSelector,void*);
+  long onKeyPress(FXObject*,FXSelector,void*);
+  long onKeyRelease(FXObject*,FXSelector,void*);
+  long onUngrabbed(FXObject*,FXSelector,void*);
+  long onDestroy(FXObject*,FXSelector,void*);
+  long onFocusSelf(FXObject*,FXSelector,void*);
+  long onFocusIn(FXObject*,FXSelector,void*);
+  long onFocusOut(FXObject*,FXSelector,void*);
+  long onSelectionLost(FXObject*,FXSelector,void*);
+  long onSelectionGained(FXObject*,FXSelector,void*);
+  long onSelectionRequest(FXObject*,FXSelector,void*);
+  long onClipboardLost(FXObject*,FXSelector,void*);
+  long onClipboardGained(FXObject*,FXSelector,void*);
+  long onClipboardRequest(FXObject*,FXSelector,void*);
+  long onDNDEnter(FXObject*,FXSelector,void*);
+  long onDNDLeave(FXObject*,FXSelector,void*);
+  long onDNDMotion(FXObject*,FXSelector,void*);
+  long onDNDDrop(FXObject*,FXSelector,void*);
+  long onDNDRequest(FXObject*,FXSelector,void*);
+  long onCmdShow(FXObject*,FXSelector,void*);
+  long onCmdHide(FXObject*,FXSelector,void*);
+  long onUpdToggleShown(FXObject*,FXSelector,void*);
+  long onCmdToggleShown(FXObject*,FXSelector,void*);
+  long onCmdRaise(FXObject*,FXSelector,void*);
+  long onCmdLower(FXObject*,FXSelector,void*);
+  long onCmdEnable(FXObject*,FXSelector,void*);
+  long onCmdDisable(FXObject*,FXSelector,void*);
+  long onCmdUpdate(FXObject*,FXSelector,void*);
+  long onUpdYes(FXObject*,FXSelector,void*);
+  long onCmdDelete(FXObject*,FXSelector,void*);
+public:
+
+  // Message ID's common to most Windows
+  enum {
+    ID_NONE,
+    ID_HIDE,
+    ID_SHOW,
+    ID_TOGGLESHOWN,
+    ID_LOWER,
+    ID_RAISE,
+    ID_DELETE,
+    ID_DISABLE,
+    ID_ENABLE,
+    ID_UNCHECK,
+    ID_CHECK,
+    ID_UNKNOWN,
+    ID_UPDATE,
+    ID_AUTOSCROLL,
+    ID_HSCROLLED,
+    ID_VSCROLLED,
+    ID_SETVALUE,
+    ID_SETINTVALUE,
+    ID_SETREALVALUE,
+    ID_SETSTRINGVALUE,
+    ID_SETINTRANGE,
+    ID_SETREALRANGE,
+    ID_GETINTVALUE,
+    ID_GETREALVALUE,
+    ID_GETSTRINGVALUE,
+    ID_GETINTRANGE,
+    ID_GETREALRANGE,
+    ID_QUERY_TIP,
+    ID_QUERY_HELP,
+    ID_QUERY_MENU,
+    ID_HOTKEY,
+    ID_ACCEL,
+    ID_UNPOST,
+    ID_POST,
+    ID_MDI_TILEHORIZONTAL,
+    ID_MDI_TILEVERTICAL,
+    ID_MDI_CASCADE,
+    ID_MDI_MAXIMIZE,
+    ID_MDI_MINIMIZE,
+    ID_MDI_RESTORE,
+    ID_MDI_CLOSE,
+    ID_MDI_WINDOW,
+    ID_MDI_MENUWINDOW,
+    ID_MDI_MENUMINIMIZE,
+    ID_MDI_MENURESTORE,
+    ID_MDI_MENUCLOSE,
+    ID_MDI_NEXT,
+    ID_MDI_PREV,
+    ID_CLOSE_DOCUMENT,
+    ID_CLOSE_ALL_DOCUMENTS,
+    ID_LAST
+    };
+
+public:
+
+  // Common DND type names
+  // static const FXchar deleteTypeName[];
+  // static const FXchar textTypeName[];
+  // static const FXchar colorTypeName[];
+  // static const FXchar urilistTypeName[];
+
+public:
+  /// Constructor
+  FXWindow(FXComposite* p,FXuint opts=0,FXint x=0,FXint y=0,FXint w=0,FXint h=0);
+
+  /// Return a pointer to the parent window
+  FXWindow* getParent() const;
+
+  /// Return a pointer to the owner window
+  FXWindow* getOwner() const;
+
+  /// Return a pointer to the shell window
+  FXWindow* getShell() const;
+
+  /// Return a pointer to the root window
+  FXWindow* getRoot() const;
+
+  /// Return a pointer to the next (sibling) window, if any
+  FXWindow* getNext() const;
+
+  /// Return a pointer to the previous (sibling) window , if any
+  FXWindow* getPrev() const;
+
+  /// Return a pointer to this window's first child window , if any
+  FXWindow* getFirst() const;
+
+  /// Return a pointer to this window's last child window, if any
+  FXWindow* getLast() const;
+
+  /// Return a pointer to the currently focused child window
+  FXWindow* getFocus() const;
+
+  /// Change window key
+  void setKey(FXuint k);
+
+  /// Return window key
+  FXuint getKey() const;
+
+  /// Set the message target object for this window
+  void setTarget(FXObject *t);
+
+  /// Get the message target object for this window, if any
+  FXObject* getTarget() const;
+
+  /// Set the message identifier for this window
+  void setSelector(FXSelector sel);
+
+  /// Get the message identifier for this window
+  FXSelector getSelector() const;
+
+  /// Get this window's x-coordinate, in the parent's coordinate system
+  FXint getX() const;
+
+  /// Get this window's y-coordinate, in the parent's coordinate system
+  FXint getY() const;
+
+  /// Return the default width of this window
+  virtual FXint getDefaultWidth();
+
+  /// Return the default height of this window
+  virtual FXint getDefaultHeight();
+
+  /// Return width for given height
+  virtual FXint getWidthForHeight(FXint givenheight);
+
+  /// Return height for given width
+  virtual FXint getHeightForWidth(FXint givenwidth);
+
+  /// Set this window's x-coordinate, in the parent's coordinate system
+  void setX(FXint x);
+
+  /// Set this window's y-coordinate, in the parent's coordinate system
+  void setY(FXint y);
+
+  /// Set the window width
+  void setWidth(FXint w);
+
+  /// Set the window height
+  void setHeight(FXint h);
+
+  /// Set layout hints for this window
+  void setLayoutHints(FXuint lout);
+
+  /// Get layout hints for this window
+  FXuint getLayoutHints() const;
+
+  /// Return a pointer to the accelerator table
+  FXAccelTable* getAccelTable() const;
+
+  /// Set the accelerator table
+  void setAccelTable(FXAccelTable* acceltable);
+
+  /// Add a hot key
+  void addHotKey(FXHotKey code);
+
+  /// Remove a hot key
+  void remHotKey(FXHotKey code);
+
+  // Return true if window is a shell window
+  FXbool isShell() const;
+
+  /// Return true if specified window is this window's parent
+  FXbool isChildOf(const FXWindow* window) const;
+
+  /// Return true if specified window is a child of this window
+  FXbool containsChild(const FXWindow* child) const;
+
+  /// Return the child window at the specified coordinates
+  FXWindow* getChildAt(FXint x,FXint y) const;
+
+  /// Return the number of child windows for this window
+  FXint numChildren() const;
+
+  /**
+  * Return the index (starting from zero) of the specified child window,
+  * or -1 if the window is not a child or NULL
+  */
+  FXint indexOfChild(const FXWindow *window) const;
+
+  /**
+  * Return the child window at specified index,
+  * or NULL if the index is negative or out of range
+  */
+  FXWindow* childAtIndex(FXint index) const;
+
+  /// Return the common ancestor of window a and window b
+  static FXWindow* commonAncestor(FXWindow* a,FXWindow* b);
+
+  /// Set the default cursor for this window
+  void setDefaultCursor(FXCursor* cur);
+
+  /// Return the default cursor for this window
+  FXCursor* getDefaultCursor() const;
+
+  /// Set the drag cursor for this window
+  void setDragCursor(FXCursor* cur);
+
+  /// Return the drag cursor for this window
+  FXCursor* getDragCursor() const;
+
+  %addmethods {
+    /// Return the cursor position and mouse button-state
+    PyObject* getCursorPosition() const {
+      FXint x, y;
+      FXuint buttons;
+      self->getCursorPosition(x, y, buttons);
+      FXbool doSave=FXPyRestoreThread();
+      PyObject* tuple = PyTuple_New(3);
+      if (!tuple) {
+        FXPySaveThread(doSave);
+	return NULL;
+      }
+      if (PyTuple_SetItem(tuple, 0, PyInt_FromLong(x)) < 0) {
+	Py_DECREF(tuple);
+        FXPySaveThread(doSave);
+	return NULL;
+      }
+      if (PyTuple_SetItem(tuple, 1, PyInt_FromLong(y)) < 0) {
+	Py_DECREF(tuple);
+        FXPySaveThread(doSave);
+	return NULL;
+      }
+      if (PyTuple_SetItem(tuple, 2, PyInt_FromLong(buttons)) < 0) {
+	Py_DECREF(tuple);
+        FXPySaveThread(doSave);
+	return NULL;
+      }
+      FXPySaveThread(doSave);
+      return tuple;
+    }
+  }
+
+  /// Warp the cursor to the new position
+  FXint setCursorPosition(FXint x,FXint y);
+
+  /// Return true if this window is a control capable of receiving the focus
+  virtual FXbool canFocus() const;
+
+  /// Return true if this window is able to receive mouse and keyboard events
+  FXbool isEnabled() const;
+
+  /// Return true if the window is active
+  FXbool isActive() const;
+
+  /// Return true if this window has the focus
+  FXbool hasFocus() const;
+
+  /// Move the focus to this window
+  virtual void setFocus();
+
+  /// Remove the focus from this window
+  virtual void killFocus();
+
+  /**
+  * This changes the default window which responds to the Return
+  * key in a dialog. If enable is TRUE, this window becomes the default
+  * window; when enable is FALSE, this window will be no longer the
+  * default window.  Finally, when enable is MAYBE, the default window
+  * will revert to the initial default window.
+  */
+  virtual void setDefault(FXbool enable=TRUE);
+
+  /// Return true if this is the default window
+  FXbool isDefault() const;
+
+  /// Make this window the initial default window
+  void setInitial(FXbool enable=TRUE);
+
+  /// Return true if this is the initial default window
+  FXbool isInitial() const;
+
+  /// Enable the window to receive mouse and keyboard events
+  virtual void enable();
+
+  /// Disable the window from receiving mouse and keyboard events
+  virtual void disable();
+
+  /// Create all of the server-side resources for this window
+  virtual void create();
+
+  /// Detach the server-side resources for this window
+  virtual void detach();
+
+  /// Destroy the server-side resources for this window
+  virtual void destroy();
+
+  /// Raise this window to the top of the stacking order
+  // virtual void raise();
+
+  /// Lower this window to the bottom of the stacking order
+  virtual void lower();
+
+  /// Move this window to the specified position in the parent's coordinates
+  virtual void move(FXint x,FXint y);
+
+  /// Resize this window to the specified width and height
+  virtual void resize(FXint w,FXint h);
+
+  /// Move and resize this window in the parent's coordinates
+  virtual void position(FXint x,FXint y,FXint w,FXint h);
+
+  /// Mark this window's layout as dirty
+  virtual void recalc();
+
+  /// Force a GUI update of this window and its children
+  void forceRefresh();
+
+  /// Change the parent for this window
+  virtual void reparent(FXWindow* newparent);
+
+  /// Scroll rectangle x,y,w,h by a shift of dx,dy
+  void scroll(FXint x,FXint y,FXint w,FXint h,FXint dx,FXint dy);
+
+  /// Mark the specified rectangle dirty, i.e. to be repainted
+  %name(update2) void update(FXint x,FXint y,FXint w,FXint h);
+
+  /// Mark the entire window client area dirty
+  void update();
+
+  /// If marked but not yet painted, paint the given area
+  %name(repaint2) void repaint(FXint x,FXint y,FXint w,FXint h);
+
+  /// If marked but not yet painted, paint the entire window
+  void repaint();
+
+  /**
+  * Grab the mouse to this window; future mouse events will be
+  * reported to this window even while the cursor goes outside of this window
+  */
+  void grab();
+
+  /// Release the mouse grab
+  void ungrab();
+
+  /// Return true if the window has been grabbed
+  FXbool grabbed() const;
+
+  /// Grab keyboard device
+  void grabKeyboard();
+
+  /// Ungrab keyboard device
+  void ungrabKeyboard();
+
+  /// Return true if active grab is in effect
+  FXbool grabbedKeyboard() const;
+
+  /// Show this window
+  virtual void show();
+
+  /// Hide this window
+  virtual void hide();
+
+  /// Return true if the window is shown
+  FXbool shown() const;
+
+  /// Return true if the window is composite
+  virtual FXbool isComposite() const;
+
+  /// Return true if the window is under the cursor
+  FXbool underCursor() const;
+
+  /// Return true if this window owns the selection
+  FXbool hasSelection() const;
+
+  %addmethods {
+    /// Try to acquire the clipboard, given a list of drag types
+    PyObject *acquireSelection(PyObject *obj) {
+      FXbool doSave=FXPyRestoreThread();
+      if(!PyList_Check(obj)){
+	PyErr_SetString(PyExc_TypeError,"expected a list of drag types");
+        FXPySaveThread(doSave);
+	return NULL;
+	}
+
+      if(PyList_Size(obj) < 0) {
+        FXPySaveThread(doSave);
+        return NULL;
+        }
+
+      FXuint numtypes = (FXuint) PyList_Size(obj);
+      FXDragType *types;
+      if (FXMALLOC(&types, FXDragType, numtypes)) {
+        for (FXuint i = 0; i < numtypes; i++) {
+          PyObject *item = PyList_GetItem(obj, i);
+          if (!item) {
+            FXPySaveThread(doSave);
+	    FXFREE(&types);
+            return NULL;
+	    }
+	  types[i] = (FXDragType) PyInt_AsLong(item);
+	  }
+        FXbool result=self->acquireSelection(types, numtypes);
+        FXFREE(&types);
+        PyObject *resultobj=PyInt_FromLong((long) result);
+        FXPySaveThread(doSave);
+        return resultobj;
+        }
+      else {
+        PyErr_SetString(PyExc_MemoryError, "out of memory");
+        FXPySaveThread(doSave);
+	return NULL;
+        }
+      }
+    }
+
+  /// Release the selection
+  FXbool releaseSelection();
+
+  /// Return true if this window owns the clipboard
+  FXbool hasClipboard() const;
+
+  %addmethods {
+    /// Try to acquire the clipboard, given a list of drag types
+    PyObject *acquireClipboard(PyObject *obj) {
+      FXbool doSave=FXPyRestoreThread();
+      if(!PyList_Check(obj)){
+	PyErr_SetString(PyExc_TypeError,"expected a list of drag types");
+        FXPySaveThread(doSave);
+	return NULL;
+	}
+      FXDragType *types;
+      FXuint numtypes=(FXuint)PyList_Size(obj);
+      FXMALLOC(&types,FXDragType,numtypes);
+      for(FXuint i=0;i<numtypes;i++)
+	types[i]=(FXDragType)PyInt_AsLong(PyList_GetItem(obj,i));
+      FXbool result=self->acquireClipboard(types,numtypes);
+      FXFREE(&types);
+      PyObject* resultobj=PyInt_FromLong((long)result);
+      FXPySaveThread(doSave);
+      return resultobj;
+      }
+    }
+
+  /// Release the clipboard
+  FXbool releaseClipboard();
+
+  /// Enable this window to receive drops
+  void dropEnable();
+
+  /// Disable this window from receiving drops
+  void dropDisable();
+
+  /// Return true if this window is able to receive drops
+  FXbool isDropEnabled() const;
+
+  /// Return true if a drag operaion has been initiated from this window
+  FXbool isDragging() const;
+
+  %addmethods {
+    /// Initiate a drag operation with a list of previously registered drag types
+    PyObject *beginDrag(PyObject *obj) {
+      FXbool doSave=FXPyRestoreThread();
+      if(!PyList_Check(obj)){
+	PyErr_SetString(PyExc_TypeError,"expected a list of drag types");
+        FXPySaveThread(doSave);
+	return NULL;
+	}
+      FXDragType *types;
+      FXuint numtypes=(FXuint)PyList_Size(obj);
+      FXMALLOC(&types,FXDragType,numtypes);
+      for(FXuint i=0;i<numtypes;i++)
+	types[i]=(FXDragType)PyInt_AsLong(PyList_GetItem(obj,i));
+      FXbool result=self->beginDrag(types,numtypes);
+      FXFREE(&types);
+      PyObject *resultobj=PyInt_FromLong((long)result);
+      FXPySaveThread(doSave);
+      return resultobj;
+      }
+    }
+
+  /**
+  * When dragging, inform the drop-target of the new position and
+  * the drag action
+  */
+  FXbool handleDrag(FXint x,FXint y,FXDragAction action=DRAG_COPY);
+
+  /// Terminate the drag operation with or without actually dropping the data
+  FXbool endDrag(FXbool drop=TRUE);
+
+  /// Return true if this window is the target of a drop
+  FXbool isDropTarget() const;
+
+  /**
+  * When being dragged over, indicate that no further SEL_DND_MOTION messages
+  * are required while the cursor is inside the given rectangle
+  */
+  void setDragRectangle(FXint x,FXint y,FXint w,FXint h,FXbool wantupdates=TRUE);
+
+  /**
+  * When being dragged over, indicate we want to receive SEL_DND_MOTION messages
+  * every time the cursor moves
+  */
+  void clearDragRectangle();
+
+  /// When being dragged over, indicate acceptance or rejection of the dragged data
+  void acceptDrop(FXDragAction action=DRAG_ACCEPT);
+
+  /// The target accepted our drop
+  FXDragAction didAccept() const;
+
+  %addmethods {
+    /// When being dragged over, inquire the drag types which are being offered
+    PyObject *inquireDNDTypes(FXDNDOrigin origin){
+      FXDragType *types;
+      FXuint numtypes;
+      if(self->inquireDNDTypes(origin,types,numtypes)){
+        FXbool doSave=FXPyRestoreThread();
+	PyObject *list=PyList_New(numtypes);
+	if(!list){
+	  FXFREE(&types);
+          FXPySaveThread(doSave);
+	  return NULL;
+	  }
+	for(FXuint i=0;i<numtypes;i++){
+	  PyObject *item=PyInt_FromLong((long)types[i]);
+	  if (!item || PyList_SetItem(list,i,item) < 0){
+	    Py_DECREF(list);
+            FXPySaveThread(doSave);
+	    FXFREE(&types);
+	    return NULL;
+	    }
+	  }
+        FXPySaveThread(doSave);
+	FXFREE(&types);
+	return list;
+	}
+      else{
+	return NULL;
+	}
+      }
+    }
+
+
+  // When being dragged over: return true if we are offered the given drag type
+  FXbool offeredDNDType(FXDNDOrigin origin,FXDragType type);
+
+  // When being dragged over: return the drag action
+  FXDragAction inquireDNDAction() const;
+
+  /**
+  * Set DND data; the array must be allocated with FXMALLOC and ownership is
+  * transferred to the system
+  */
+  FXbool setDNDData(FXDNDOrigin origin,FXDragType type,FXuchar* data,FXuint  size);
+
+  %addmethods {
+    /**
+    * Get DND data; the caller becomes the owner of the array and must free it
+    * with FXFREE
+    */
+    PyObject* getDNDData(FXDNDOrigin origin,FXDragType type){
+      FXuchar* data;
+      FXuint size;
+      if(self->getDNDData(origin,type,data,size)==TRUE){
+        PyObject* s=PyString_FromStringAndSize((const char*)data,(int)size);
+        FXFREE(&data);
+        return s;
+        }
+      else{
+        Py_INCREF(Py_None);
+        return Py_None;
+        }
+      }
+    }
+
+  /// Return true if window logically contains the given point
+  virtual FXbool contains(FXint parentx,FXint parenty) const;
+
+  %addmethods {
+    /// Translate coordinates from fromwindow's coordinate space to this window's coordinate space
+    PyObject* translateCoordinatesFrom(FXWindow* fromWindow,FXint fromx,FXint fromy) const {
+      FXint tox, toy;
+      self->translateCoordinatesFrom(tox,toy,fromWindow,fromx,fromy);
+      FXbool doSave=FXPyRestoreThread();
+      PyObject* tuple = PyTuple_New(2);
+      PyTuple_SetItem(tuple, 0, PyInt_FromLong(tox));
+      PyTuple_SetItem(tuple, 1, PyInt_FromLong(toy));
+      FXPySaveThread(doSave);
+      return tuple;
+      }
+
+    /// Translate coordinates from this window's coordinate space to towindow's coordinate space
+    PyObject* translateCoordinatesTo(FXWindow* toWindow,FXint fromx,FXint fromy) const {
+      FXint tox, toy;
+      self->translateCoordinatesTo(tox,toy,toWindow,fromx,fromy);
+      FXbool doSave=FXPyRestoreThread();
+      PyObject* tuple = PyTuple_New(2);
+      PyTuple_SetItem(tuple, 0, PyInt_FromLong(tox));
+      PyTuple_SetItem(tuple, 1, PyInt_FromLong(toy));
+      FXPySaveThread(doSave);
+      return tuple;
+      }
+    }
+
+  /// Set window background color
+  virtual void setBackColor(FXColor clr);
+
+  /// Get background color
+  FXColor getBackColor() const;
+
+  /// Relink this window before sibling in the window list
+  void linkBefore(FXWindow* sibling);
+
+  /// Relink this window after sibling in the window list
+  void linkAfter(FXWindow* sibling);
+ 
+  virtual FXbool doesSaveUnder() const;
+  };
+
+
+class FXPyWindow : public FXWindow {
+public:
+  // Constructor
+  FXPyWindow(FXComposite* p,FXuint opts=0,FXint x=0,FXint y=0,FXint w=0,FXint h=0);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+
+public:
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  };
+
+
+// Base composite
+class FXComposite : public FXWindow {
+public:
+  long onKeyPress(FXObject*,FXSelector,void*);
+  long onKeyRelease(FXObject*,FXSelector,void*);
+  long onFocusNext(FXObject*,FXSelector,void*);
+  long onFocusPrev(FXObject*,FXSelector,void*);
+  long onCmdUpdate(FXObject*,FXSelector,void*);
+public:
+  /// Constructor
+  FXComposite(FXComposite* p,FXuint opts=0,FXint x=0,FXint y=0,FXint w=0,FXint h=0);
+
+  /// Return the width of the widest child window
+  FXint maxChildWidth() const;
+
+  /// Return the height of the tallest child window
+  FXint maxChildHeight() const;
+  };
+
+
+class FXPyComposite : public FXComposite {
+public:
+  /// Constructor
+  FXPyComposite(FXComposite* p,FXuint opts=0,FXint x=0,FXint y=0,FXint w=0,FXint h=0);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  };
+
+
+// Default padding
+#define DEFAULT_PAD   2
+
+// Base Frame
+class FXFrame : public FXWindow {
+public:
+  long onPaint(FXObject*,FXSelector,void*);
+public:
+  FXFrame(FXComposite* p,FXuint opts=FRAME_NORMAL,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=DEFAULT_PAD,FXint pr=DEFAULT_PAD,FXint pt=DEFAULT_PAD,FXint pb=DEFAULT_PAD);
+  void setFrameStyle(FXuint style);
+  FXuint getFrameStyle() const;
+  FXint getBorderWidth() const;
+  FXint getPadTop() const;
+  FXint getPadBottom() const;
+  FXint getPadLeft() const;
+  FXint getPadRight() const;
+  void setPadTop(FXint pt);
+  void setPadBottom(FXint pb);
+  void setPadLeft(FXint pl);
+  void setPadRight(FXint pr);
+  FXColor getHiliteColor() const;
+  FXColor getShadowColor() const;
+  FXColor getBorderColor() const;
+  FXColor getBaseColor() const;
+  void setHiliteColor(FXColor clr);
+  void setShadowColor(FXColor clr);
+  void setBorderColor(FXColor clr);
+  void setBaseColor(FXColor clr);
+  };
+
+
+class FXPyFrame : public FXFrame {
+public:
+  FXPyFrame(FXComposite* p,FXuint opts=FRAME_NORMAL,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=DEFAULT_PAD,FXint pr=DEFAULT_PAD,FXint pt=DEFAULT_PAD,FXint pb=DEFAULT_PAD);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  };
+
+
+// Root window
+class FXRootWindow : public FXComposite {
+public:
+  FXRootWindow(FXApp* a,FXVisual* vis);
+  };
+
+
+class FXPyRootWindow : public FXRootWindow {
+public:
+  FXPyRootWindow(FXApp* a,FXVisual* vis);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  };
+
+
+class FXCanvas : public FXWindow {
+public:
+  long onPaint(FXObject*,FXSelector,void*);
+  long onMotion(FXObject*,FXSelector,void*);
+  long onKeyPress(FXObject*,FXSelector,void*);
+  long onKeyRelease(FXObject*,FXSelector,void*);
+public:
+  FXCanvas(FXComposite* p,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=FRAME_NORMAL,FXint x=0,FXint y=0,FXint w=0,FXint h=0);
+  };
+
+
+class FXPyCanvas : public FXCanvas {
+public:
+  FXPyCanvas(FXComposite* p,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=FRAME_NORMAL,FXint x=0,FXint y=0,FXint w=0,FXint h=0);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  };
+
+
+// A child of the root window
+class FXShell : public FXComposite {
+protected:
+  FXShell(FXApp* a,FXuint opts,FXint x,FXint y,FXint w,FXint h);
+  // FXShell(FXWindow* own,FXuint opts,FXint x,FXint y,FXint w,FXint h);
+public:
+  long onConfigure(FXObject*,FXSelector,void*);
+  long onKeyPress(FXObject*,FXSelector,void*);
+  long onKeyRelease(FXObject*,FXSelector,void*);
+  long onFocusNext(FXObject*,FXSelector,void*);
+  long onFocusPrev(FXObject*,FXSelector,void*);
+  };
+
+
+class FXPyShell : public FXShell {
+protected:
+  FXPyShell(FXApp* a,FXuint opts,FXint x,FXint y,FXint w,FXint h);
+  // FXPyShell(FXWindow* own,FXuint opts,FXint x,FXint y,FXint w,FXint h);
+public:
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  };
+
+
+// Popup window
+class FXPopup : public FXShell {
+public:
+  long onFocusUp(FXObject*,FXSelector,void*);
+  long onFocusDown(FXObject*,FXSelector,void*);
+  long onFocusLeft(FXObject*,FXSelector,void*);
+  long onFocusRight(FXObject*,FXSelector,void*);
+  long onFocusNext(FXObject*,FXSelector,void*);
+  long onFocusPrev(FXObject*,FXSelector,void*);
+  long onEnter(FXObject*,FXSelector,void*);
+  long onLeave(FXObject*,FXSelector,void*);
+  long onMotion(FXObject*,FXSelector,void*);
+  long onMap(FXObject*,FXSelector,void*);
+  long onButtonPress(FXObject*,FXSelector,void*);
+  long onButtonRelease(FXObject*,FXSelector,void*);
+  long onUngrabbed(FXObject*,FXSelector,void*);
+  long onCmdUnpost(FXObject*,FXSelector,void*);
+  long onKeyPress(FXObject*,FXSelector,void*);
+  long onKeyRelease(FXObject*,FXSelector,void*);
+  long onCmdChoice(FXObject*,FXSelector,void*);
+public:
+  enum {
+    ID_CHOICE=FXShell::ID_LAST,
+    ID_LAST=ID_CHOICE+1000
+    };
+public:
+  // Constructor
+  FXPopup(FXWindow* owner,FXuint opts=POPUP_VERTICAL|FRAME_RAISED|FRAME_THICK,FXint x=0,FXint y=0,FXint w=0,FXint h=0);
+
+  // Change frame style
+  void setFrameStyle(FXuint style);
+
+  // Return frame style
+  FXuint getFrameStyle() const;
+
+  // Return border width
+  FXint getBorderWidth() const;
+
+  // Change highlight color
+  void setHiliteColor(FXColor clr);
+
+  // Return highlight color
+  FXColor getHiliteColor() const;
+
+  // Change shadow color
+  void setShadowColor(FXColor clr);
+
+  // Return shadow color
+  FXColor getShadowColor() const;
+
+  // Change border color
+  void setBorderColor(FXColor clr);
+
+  // Return border color
+  FXColor getBorderColor() const;
+
+  // Change base color
+  void setBaseColor(FXColor clr);
+
+  // Return base color
+  FXColor getBaseColor() const;
+
+  // Popup the menu and grab to the given owner
+  virtual void popup(FXWindow* grabto,FXint x,FXint y,FXint w=0,FXint h=0);
+
+  // Pop down the menu
+  virtual void popdown();
+
+  // Return current grab owner
+  FXWindow* getGrabOwner() const;
+
+  // Return popup orientation
+  FXuint getOrientation() const;
+
+  // Change popup orientation
+  void setOrientation(FXuint orient);
+
+  /// Return shrinkwrap mode
+  FXbool getShrinkWrap() const;
+
+  /// Change shrinkwrap mode
+  void setShrinkWrap(FXbool sw);
+  };
+
+
+class FXPyPopup : public FXPopup {
+public:
+  // Constructor
+  FXPyPopup(FXWindow* owner,FXuint opts=POPUP_VERTICAL|FRAME_RAISED|FRAME_THICK,FXint x=0,FXint y=0,FXint w=0,FXint h=0);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+
+public:
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  FXPOPUP_VIRTUALS
+  };
+
+
+// Decorations
+enum {
+  DECOR_NONE     = 0,                 // Borderless window
+  DECOR_TITLE    = 0x00020000,        // Window title
+  DECOR_MINIMIZE = 0x00040000,        // Minimize button
+  DECOR_MAXIMIZE = 0x00080000,        // Maximize button
+  DECOR_CLOSE    = 0x00100000,        // Close button
+  DECOR_BORDER   = 0x00200000,        // Border
+  DECOR_RESIZE   = 0x00400000,        // Resize handles
+  DECOR_MENU     = 0x00800000,        // Window menu
+  DECOR_ALL      = (DECOR_TITLE|DECOR_MINIMIZE|DECOR_MAXIMIZE|DECOR_CLOSE|DECOR_BORDER|DECOR_RESIZE|DECOR_MENU)
+  };
+
+
+/// Initial window placement
+enum {
+  PLACEMENT_DEFAULT,                  /// Place it at the default size and location
+  PLACEMENT_VISIBLE,                  /// Place window to be fully visible
+  PLACEMENT_CURSOR,                   /// Place it under the cursor position
+  PLACEMENT_OWNER,                    /// Place it centered on its owner
+  PLACEMENT_SCREEN,                   /// Place it centered on the screen
+  PLACEMENT_MAXIMIZED,                /// Place it maximized to the screen size
+  };
+
+
+// Top level window
+class FXTopWindow : public FXShell {
+public:
+  long onClose(FXObject*,FXSelector,void*);
+  long onCmdSetStringValue(FXObject*,FXSelector,void*);
+  long onCmdIconify(FXObject*,FXSelector,void*);
+  long onCmdDeiconify(FXObject*,FXSelector,void*);
+  long onFocusUp(FXObject*,FXSelector,void*);
+  long onFocusDown(FXObject*,FXSelector,void*);
+  long onFocusLeft(FXObject*,FXSelector,void*);
+  long onFocusRight(FXObject*,FXSelector,void*);
+public:
+  enum {
+    ID_ICONIFY=FXShell::ID_LAST,    /// Iconify the window
+    ID_DEICONIFY,                   /// Deiconify the window
+    ID_QUERY_DOCK,                  /// Toolbar asks to dock
+    ID_LAST
+    };
+public:
+  /// Show this window with given placement
+ %name(show2) virtual void show(FXuint placement);
+  
+  /// Position the window based on placement
+  void place(FXuint placement);
+
+  /// Iconify window
+  virtual void iconify();
+
+  /// Deiconify window
+  virtual void deiconify();
+
+  /// Return TRUE if window has been iconified
+  FXbool isIconified() const;
+
+  /// Change window title
+  void setTitle(const FXString& name);
+
+  /// Return window title
+  FXString getTitle() const;
+
+  /// Change top padding
+  void setPadTop(FXint pt);
+
+  /// Get top interior padding
+  FXint getPadTop() const { return padtop; }
+
+  /// Change bottom padding
+  void setPadBottom(FXint pb);
+
+  /// Get bottom interior padding
+  FXint getPadBottom() const { return padbottom; }
+
+  /// Change left padding
+  void setPadLeft(FXint pl);
+
+  /// Get left interior padding
+  FXint getPadLeft() const { return padleft; }
+
+  /// Change right padding
+  void setPadRight(FXint pr);
+
+  /// Get right interior padding
+  FXint getPadRight() const { return padright; }
+
+  /// Return horizontal spacing between children
+  FXint getHSpacing() const;
+
+  /// Return vertical spacing between children
+  FXint getVSpacing() const;
+
+  /// Change horizontal spacing between children
+  void setHSpacing(FXint hs);
+
+  /// Change vertical spacing between children
+  void setVSpacing(FXint vs);
+
+  /// Change packing hints for children
+  void setPackingHints(FXuint ph);
+
+  /// Return packing hints for children
+  FXuint getPackingHints() const;
+
+  /// Change title and border decorations
+  void setDecorations(FXuint decorations);
+
+  /// Return current title and border decorations
+  FXuint getDecorations() const;
+
+  /// Return window icon
+  FXIcon* getIcon() const;
+
+  /// Change window icon
+  void setIcon(FXIcon* ic);
+
+  /// Return window mini (title) icon
+  FXIcon* getMiniIcon() const;
+
+  /// Change window mini (title) icon
+  void setMiniIcon(FXIcon* ic);
+  };
+
+
+class FXPyTopWindow : public FXTopWindow {
+public:
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  TOPWINDOW_VIRTUALS
+  };
+
+
+// Main application window
+class FXMainWindow : public FXTopWindow {
+public:
+  long onClose(FXObject*,FXSelector,void*);
+public:
+  FXMainWindow(FXApp* app,const FXString& name,FXIcon *ic=NULL,FXIcon *mi=NULL,FXuint opts=DECOR_ALL,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint hs=4,FXint vs=4);
+  };
+
+
+class FXPyMainWindow : public FXMainWindow {
+public:
+  // Constructor
+  FXPyMainWindow(FXApp* app,const FXString& name,FXIcon *ic=NULL,FXIcon *mi=NULL,FXuint opts=DECOR_ALL,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=0,FXint pr=0,FXint pt=0,FXint pb=0,FXint hs=4,FXint vs=4);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  TOPWINDOW_VIRTUALS
+  };
+

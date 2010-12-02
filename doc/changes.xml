@@ -1,0 +1,65 @@
+<chapter id="changes">
+  <title>Change History</title>
+  <simplesect>
+    <title>Changes Since Version 0.99.174</title>
+    <itemizedlist mark="bullet">
+      <listitem><para>With the exception of a few documentation updates and the like, all of the work required to update FXPy from its last release to this one was handled by Bastian Kleineidam (<email>calvin@users.sourceforge.net</email>). This release probably would not have happened any time soon if it weren't for his hard work and it's much appreciated.</para></listitem>
+      <listitem><para>Added new contributed example programs by John Przybylski (<email>johnp9@bellatlantic.net</email>). See the <filename>gltest2.py</filename> and <filename>foxtail.py</filename> programs in the <filename class="directory">contrib</filename> directory.</para></listitem>
+      <listitem><para>Converted the documentation sources from DocBook/SGML to DocBook/XML format.</para></listitem>
+      <listitem><para>Converted all GIF image files to PNG format. For information on the reasons why, see <ulink url="http://burnallgifs.org">this site</ulink>.</para></listitem>
+      <listitem><para>Updated all APIs for consistency with <ulink url="http://www.fox-toolkit.org/ftp/fox-1.0.5.tar.gz">fox-1.0.5</ulink>.</para></listitem>
+    </itemizedlist>
+  </simplesect>
+  <simplesect>
+    <title>Changes Since Version 0.99.172</title>
+    <itemizedlist mark="bullet">
+      <listitem><para>Updated all APIs for consistency with <ulink url="ftp://ftp.cfdrc.com/pub/fox-0.99.174.tar.gz">fox-0.99.174</ulink>.</para></listitem>
+    </itemizedlist>
+  </simplesect>
+  <simplesect>
+    <title>Changes Since Version 0.99.167</title>
+    <itemizedlist mark="bullet">
+      <listitem><para>Added support for overriding the virtual functions for classes <classname>FXCursor</classname>, <classname>FXGLCanvas</classname>, <classname>FXGLContext</classname>, <classname>FXGLViewer</classname>, <classname>FXPopup</classname>, and <classname>FXShutter</classname>.</para></listitem>
+      <listitem><para>Updated all APIs for consistency with <ulink url="ftp://ftp.cfdrc.com/pub/fox-0.99.172.tar.gz">fox-0.99.172</ulink>.</para></listitem>
+    </itemizedlist>
+  </simplesect>
+  <simplesect>
+    <title>Changes Since Version 0.99.164</title>
+    <itemizedlist mark="bullet">
+      <listitem><para>Modified all of the example programs to work properly with the new scoping rules for Python 2.1. If your FXPy programs start with the line <userinput>from FXPy import *</userinput>, you will probably need to modify this to read <userinput>from FXPy.fox import *</userinput> for it to work properly with Python 2.1.</para></listitem>
+      <listitem><para>Added support for FOX data targets (the <classname>FXDataTarget</classname> class) and a new example program (<filename>datatarget.py</filename>) to demonstrate the basics of how they work. For more details about the purpose of data targets, please see the <ulink url="http://www.cfdrc.com/FOX/datatarget.html">standard FOX documentation</ulink>.</para></listitem>
+      <listitem><para>Added support for debug targets (the <classname>FXDebugTarget</classname> class).</para></listitem>
+      <listitem><para>Converted most of the FXPy documentation to <ulink url="http://www.docbook.org">DocBook</ulink> format. This should open up a few more options for printed output and so on in the future.</para></listitem>
+      <listitem><para>Moved the example programs to a new <filename class="directory">examples</filename> in preparation for filling up the <filename class="directory">tests</filename> with regression tests for FXPy. There's nothing there yet but I hope to start filling it in as time allows; it's the right thing to do.</para></listitem>
+      <listitem><para>Added a new example program (<filename>table.py</filename>) contributed by Robert Schweikert to demonstrate the <classname>FXTable</classname> widget. This one is similar to the table example provided in the standard FOX distribution.</para></listitem>
+      <listitem><para>Fixed a bug for the <methodname>FXMenubar.dock()</methodname> and <methodname>FXToolbar.dock()</methodname> methods, when the second argument (the window to dock "after") is <constant>NULL</constant>. Thanks to Bryan Mongeau for discovering and reporting this bug.</para></listitem>
+    </itemizedlist>
+  </simplesect>
+  <simplesect>
+    <title>Changes Since Version 0.99.160</title>
+    <itemizedlist mark="bullet">
+      <listitem><para>Finally fixed the overloaded <methodname>show()</methodname> method for class <classname>FXTopWindow</classname> and its subclasses, so that you can call it with or without the second <varname>placement</varname> argument. This immediately deprecates the <methodname>FXTopWindow.showPlaced()</methodname> method -- it's no longer there.</para></listitem>
+      <listitem><para>Corrected the type-mapping from a Python file object (or integer file descriptor) into an <type>FXInputHandle</type> usable with the functions <methodname>FXApp.addInput()</methodname> and <methodname>FXApp.removeInput()</methodname>.</para></listitem>
+      <listitem><para>Added a simple new example <filename>inputs.py</filename> to demonstrate how to use the <methodname>FXApp.addInput()</methodname> and <methodname>FXApp.removeInput()</methodname> methods for monitoring inputs.</para></listitem>
+      <listitem><para>Fixed some bugs in the <filename>glviewer.py</filename>, <filename>groupbox.py</filename>, and <filename>imageviewer.py</filename> examples related to calling <methodname>FXFileDialog.setPatternList()</methodname>. These examples were not updated when that API changed from an array of pattern descriptions and filters to just a single string.</para></listitem>
+      <listitem><para>Updated all APIs for consistency with FOX 0.99.164.</para></listitem>
+    </itemizedlist>
+  </simplesect>
+
+  <simplesect>
+    <title>Changes Since Version 0.99.147</title>
+    <itemizedlist>
+      <listitem><para>The overloaded constructors for <classname>FXCursor</classname> were not implemented correctly and so programs would crash as soon as you try to construct an <classname>FXCursor</classname>. This has been corrected.</para></listitem>
+      <listitem><para>Updated all APIs for consistency with FOX 0.99.160.</para></listitem>
+    </itemizedlist>
+  </simplesect>
+
+  <simplesect>
+    <title>Changes Since Version 0.99.145</title>
+    <itemizedlist>
+      <listitem><para>Corrected the message data sent from <classname>FXText</classname> to its message target. For the <constant>SEL_INSERTED</constant> and <constant>SEL_DELETED</constant> messages, the message data is a 2-tuple containing the start position and the number of characters inserted or deleted. For the <constant>SEL_REPLACED</constant> message, the data is a 3-tuple indicating the start position, the old number of characters and the new number of characters.</para></listitem>
+      <listitem><para>Updated the <filename>textedit.py</filename> example to more closely resemble the version from C++ FOX.</para></listitem>
+      <listitem><para>Updated all APIs for consistency with FOX 0.99.147.</para></listitem>
+    </itemizedlist>
+  </simplesect>
+</chapter>

@@ -1,0 +1,1927 @@
+/***********************************************************************
+ * $Id: misc.ii,v 1.34 2002/04/02 16:29:10 lyle Exp $
+ ***********************************************************************/
+
+%module misc
+
+%{
+#include "fx.h"
+#include "fx3d.h"
+#include "FXCURCursor.h"
+#include "FXJPGImage.h"
+#include "FXJPGIcon.h"
+#include "FXPNGIcon.h"
+#include "FXPNGImage.h"
+#include "FXTIFIcon.h"
+#include "FXTIFImage.h"
+#include "FXRGBIcon.h"
+#include "FXRGBImage.h"
+#include "FXICOIcon.h"
+#include "FXICOImage.h"
+#include "FXPyApp.h"
+#include "FXPy.h"
+%}
+
+%extern fxdefs.i
+
+%include typemaps.i
+%include my_typemaps.i
+%include renames.i
+
+%include structs.i
+
+extern void FXPyRegister(PyObject *pPyObject);
+
+%pragma(python) code = "import fox"
+
+// Base object
+class FXObject
+{
+public:
+  // Get class name of some object
+  const char* getClassName() const;
+
+  // Save object to stream
+  virtual void save(FXStream& store) const;
+
+  // Load object from stream
+  virtual void load(FXStream& store);
+
+  // Handle a message
+  virtual long handle(FXObject* sender,FXSelector sel,void* ptr);
+
+  // Default handler
+  virtual long onDefault(FXObject* sender,FXSelector sel,void* ptr);
+
+  %pragma(python) addtoclass = "
+    def _search(self, key):
+	try:
+            for (keylo, keyhi, func) in self.FXMSGMAP:
+                if keylo <= key and keyhi >= key:
+                    return func
+	except:
+	    pass
+        return None
+"
+  };
+
+
+class FXPyObject : public FXObject {
+public:
+  FXPyObject();
+  OBJECT_VIRTUALS
+  };
+
+
+// X-Object Identifier
+class FXId : public FXObject
+{
+protected:
+  // Make ID in an app
+  FXId(FXApp* a);
+
+public:
+  // Get application
+  FXApp* getApp() const;
+
+  // Get XID handle
+  FXID id() const;
+
+  // Create a resource
+  virtual void create();
+
+  // Detach a resource
+  virtual void detach();
+
+  // Destroy a resource
+  virtual void destroy();
+
+  /// Set user data pointer
+  void setUserData(void *ptr);
+
+  /// Get user data pointer
+  void* getUserData() const;
+  };
+
+
+class FXPyId : public FXId {
+protected:
+  FXPyId(FXApp*);
+public:
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  };
+
+
+// Something which can draw
+class FXDrawable : public FXId {
+protected:
+  // Constructor
+  FXDrawable(FXApp* a,FXint w,FXint h);
+public:
+  // Width of drawable
+  FXint getWidth() const;
+
+  // Height of drawable
+  FXint getHeight() const;
+
+  // Get the visual
+  FXVisual* getVisual() const;
+
+  // Change visual
+  void setVisual(FXVisual* vis);
+
+  // Resize to specified width & height
+  virtual void resize(FXint w,FXint h);
+  };
+
+
+class FXPyDrawable : public FXDrawable {
+protected:
+  FXPyDrawable(FXApp* a,FXint w,FXint h);
+public:
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  };
+
+
+/// File input modes for addInput
+enum FXInputMode {
+  INPUT_NONE   = 0,                 /// Inactive
+  INPUT_READ   = 1,                 /// Read input fd
+  INPUT_WRITE  = 2,                 /// Write input fd
+  INPUT_EXCEPT = 4                  /// Except input fd
+  };
+
+
+/// All ways of being modal
+enum FXModality {
+  MODAL_FOR_NONE,                 /// Non modal event loop (dispatch normally)
+  MODAL_FOR_WINDOW,               /// Modal dialog (beep if outside of modal dialog)
+  MODAL_FOR_POPUP                 /// Modal for popup (always dispatch to popup)
+  };
+
+
+/// Default cursors provided by the application
+enum FXDefaultCursor {
+  DEF_ARROW_CURSOR,                     /// Arrow cursor
+  DEF_RARROW_CURSOR,                    /// Reverse arrow cursor
+  DEF_TEXT_CURSOR,                      /// Text cursor
+  DEF_HSPLIT_CURSOR,                    /// Horizontal split cursor
+  DEF_VSPLIT_CURSOR,                    /// Vertical split cursor
+  DEF_XSPLIT_CURSOR,                    /// Cross split cursor
+  DEF_SWATCH_CURSOR,                    /// Color swatch drag cursor
+  DEF_MOVE_CURSOR,                      /// Move cursor
+  DEF_DRAGH_CURSOR,                     /// Resize horizontal edge
+  DEF_DRAGV_CURSOR,                     /// Resize vertical edge
+  DEF_DRAGTL_CURSOR,                    /// Resize upper-leftcorner
+  DEF_DRAGBR_CURSOR=DEF_DRAGTL_CURSOR,  /// Resize bottom-right corner
+  DEF_DRAGTR_CURSOR,                    /// Resize upper-right corner
+  DEF_DRAGBL_CURSOR=DEF_DRAGTR_CURSOR,  /// Resize bottom-left corner
+  DEF_DNDSTOP_CURSOR,                   /// Drag and drop stop
+  DEF_DNDCOPY_CURSOR,                   /// Drag and drop copy
+  DEF_DNDMOVE_CURSOR,                   /// Drag and drop move
+  DEF_DNDLINK_CURSOR,                   /// Drag and drop link
+  DEF_CROSSHAIR_CURSOR,                 /// Cross hair cursor
+  DEF_CORNERNE_CURSOR,                  /// North-east cursor
+  DEF_CORNERNW_CURSOR,                  /// North-west cursor
+  DEF_CORNERSE_CURSOR,                  /// South-east cursor
+  DEF_CORNERSW_CURSOR,                  /// South-west cursor
+  DEF_ROTATE_CURSOR                     /// Rotate cursor
+  };
+
+
+// Application Object
+class FXApp : public FXObject {
+public:
+  // Message handlers
+  long onCmdQuit(FXObject*,FXSelector,void*);
+  long onCmdDump(FXObject*,FXSelector,void*);
+
+public:
+  // Messages the application understands
+  enum{
+    ID_QUIT=0,
+    ID_DUMP,
+    ID_LAST
+    };
+
+public:
+  // Information
+  %addmethods {
+    // Copyright information (as a string)
+    PyObject *copyright(void) {
+      return PyString_FromString((const char *) FXApp::copyright);
+    }
+  }
+
+public:
+  // Constructor
+  FXApp(const FXchar* name="Application",const FXchar* vendor="FoxDefault");
+
+  // Get application name
+  const FXString& getAppName() const;
+
+  // Get vendor name
+  const FXString& getVendorName() const;
+
+  /// Connection to display; this is called by init()
+  FXbool openDisplay(const FXchar* dpyname=":0");
+  
+  /// Close connection to the display
+  FXbool closeDisplay();
+
+  // Get default visual
+  FXVisual* getDefaultVisual() const;
+
+  // Change default visual
+  void setDefaultVisual(FXVisual* vis);
+
+  // Get monochrome visual
+  FXVisual* getMonoVisual() const;
+
+  // Get root Window
+  FXRootWindow* getRoot() const;
+
+  // Get the window under the cursor, if any  
+  FXWindow *getCursorWindow() const;
+
+  // Get the window which has the focus, if any  
+  FXWindow *getFocusWindow() const;
+
+  // Get main window, if any
+  FXWindow *getMainWindow() const;
+
+  /// Find window from id
+  FXWindow* findWindowWithId(FXID xid) const;
+
+  /// Find window from root x,y, starting from given window
+  FXWindow* findWindowAt(FXint rx,FXint ry,FXID window=0) const;
+
+  // Add timeout
+  FXTimer* addTimeout(FXint ms,FXObject* tgt,FXSelector sel);
+
+  // Remove timeout, returns NULL
+  FXTimer* removeTimeout(FXTimer *t);
+  
+  // Add a chore
+  FXChore* addChore(FXObject* tgt,FXSelector sel);
+  
+  // Remove chore
+  FXChore* removeChore(FXChore *c);
+
+  /// Add signal processing message to be sent to target object when 
+  /// the signal sig is raised; flags are to be set as per POSIX definitions
+  /// When immediate is TRUE, the message will be sent to th target right away;
+  /// this should be used with extreme care as the application is interrupted
+  /// at an unknown point it its execution
+  void addSignal(FXint sig,FXObject* tgt,FXSelector sel,FXbool immediate=FALSE,FXuint flags=0);
+  
+  /// Remove signal message for signal sig
+  void removeSignal(FXint sig);
+
+  // Add input
+  FXbool addInput(FXInputHandle fd,FXuint mode,FXObject *tgt,FXSelector sel);
+  
+  // Remove input
+  FXbool removeInput(FXInputHandle fd,FXuint mode);
+
+  /// Create application's windows
+  virtual void create();
+
+  /// Destroy application's windows
+  virtual void destroy();
+
+  /// Detach application's windows
+  virtual void detach();
+  
+  // Peek to determine if there's an event
+  FXbool peekEvent();
+  
+  // Perform one event dispatch
+  void runOneEvent();
+  
+  // Run an event loop till some flag becomes non-zero
+  FXint runUntil(FXuint& condition);
+
+  /**
+  * Run event loop while there are events are available in the queue.
+  * Returns 1 when all events in the queue have been handled, and 0 when
+  * the event loop was terminated due to stop() or stopModal().
+  * Except for the modal window and its children, user input to all windows
+  * is blocked; if the modal window is NULL all user input is blocked.
+  */
+  FXint runWhileEvents(FXWindow* window=NULL);
+  
+  /**
+  * Run modal event loop, blocking keyboard and mouse events to all windows
+  * until stopModal is called.
+  */
+  FXint runModal();
+
+  /**
+  * Run a modal event loop for the given window, until stop() or stopModal() is
+  * called. Except for the modal window and its children, user input to all
+  * windows is blocked; if the modal window is NULL all user input is blocked.
+  */
+  FXint runModalFor(FXWindow* window);
+
+  /**
+  * Run modal while window is shown, or until stop() or stopModal() is called.
+  * Except for the modal window and its children, user input to all windows
+  * is blocked; if the modal window is NULL all user input is blocked.
+  */
+  FXint runModalWhileShown(FXWindow* window);
+      
+  /**
+  * Run popup menu while shown, until stop() or stopModal() is called.
+  * Also returns when entering previous cascading popup menu.
+  */
+  FXint runPopup(FXWindow* window);
+
+  /// True if the window is modal
+  FXbool isModal(FXWindow* window) const;
+
+  /// Return window of current modal loop
+  FXWindow* modalWindow() const;
+
+  /// Return mode of current modal loop
+  FXModality modalModality() const;
+
+  /**
+  * Terminate the outermost event loop, and all inner modal loops;
+  * All more deeper nested event loops will be terminated with code equal
+  * to 0, while the outermost event loop will return code equal to value.
+  */
+  void stop(FXint value=0);
+
+  /**
+  * Break out of the matching modal loop, returning code equal to value.
+  * All deeper nested event loops are terminated with code equal to 0.
+  */
+  void stopModal(FXWindow* window,FXint value=0);
+
+  /** 
+  * Break out of the innermost modal loop, returning code equal to value.
+  */
+  %name(stopModal2) void stopModal(FXint value=0);
+
+  // Force GUI refresh
+  void forceRefresh();
+  
+  /// Schedule a refresh
+  void refresh();
+
+  /// Flush pending repaints
+  void flush(FXbool sync=FALSE);
+
+  /**
+  * Paint all windows marked for repainting.
+  * On return all the applications windows have been painted.
+  */
+  void repaint();
+ 
+  /**
+  * Exit application.
+  * Closes the display and writes the registry.
+  */
+  virtual void exit(FXint code=0);
+
+  /// Get registry
+  FXRegistry& reg();
+
+  /// Register new DND type
+  FXDragType registerDragType(const FXString& name) const;
+  
+  // Get drag type name
+  FXString getDragTypeName(FXDragType type) const;
+  
+  // Beep
+  void beep();
+
+  // Return application instance
+  static inline FXApp* instance();
+
+  /// Change default font
+  void setNormalFont(FXFont* font);
+
+  /// Return default font
+  FXFont* getNormalFont() const;
+
+  /// Begin of wait-cursor block; wait-cursor blocks may be nested.
+  void beginWaitCursor();
+  
+  /// End of wait-cursor block
+  void endWaitCursor();
+  
+  /// Change to a new wait cursor
+  void setWaitCursor(FXCursor *cur);
+
+  /// Return current wait cursor  
+  FXCursor* getWaitCursor() const;
+
+  /// Obtain a default cursor
+  FXCursor* getDefaultCursor(FXDefaultCursor which) const { return cursor[which]; }
+
+  /// Change default cursor
+  void setDefaultCursor(FXDefaultCursor which,FXCursor* cur);
+
+  /// Obtain application-wide settings
+  FXuint getTypingSpeed() const { return typingSpeed; }
+  FXuint getClickSpeed() const { return clickSpeed; }
+  FXuint getScrollSpeed() const { return scrollSpeed; }
+  FXuint getScrollDelay() const { return scrollDelay; }
+  FXuint getBlinkSpeed() const { return blinkSpeed; }
+  FXuint getAnimSpeed() const { return animSpeed; }
+  FXuint getMenuPause() const { return menuPause; }
+  FXuint getTooltipPause() const { return tooltipPause; }
+  FXuint getTooltipTime() const { return tooltipTime; }
+  FXint getDragDelta() const { return dragDelta; }
+  FXint getWheelLines() const { return wheelLines; }
+
+  /// Change application-wide settings
+  void setTypingSpeed(FXuint speed);
+  void setClickSpeed(FXuint speed);
+  void setScrollSpeed(FXuint speed);
+  void setScrollDelay(FXuint delay);
+  void setBlinkSpeed(FXuint speed);
+  void setAnimSpeed(FXuint speed);
+  void setMenuPause(FXuint pause);
+  void setTooltipPause(FXuint pause);
+  void setTooltipTime(FXuint time);
+  void setDragDelta(FXint delta);
+  void setWheelLines(FXint lines);
+
+  /// Obtain default colors
+  FXColor getBorderColor() const { return borderColor; }
+  FXColor getBaseColor() const { return baseColor; }
+  FXColor getHiliteColor() const { return hiliteColor; }
+  FXColor getShadowColor() const { return shadowColor; }
+  FXColor getBackColor() const { return backColor; }
+  FXColor getForeColor() const { return foreColor; }
+  FXColor getSelforeColor() const { return selforeColor; }
+  FXColor getSelbackColor() const { return selbackColor; }
+  FXColor getTipforeColor() const;
+  FXColor getTipbackColor() const;
+
+  /// Change default colors
+  void setBorderColor(FXColor color);
+  void setBaseColor(FXColor color);
+  void setHiliteColor(FXColor color);
+  void setShadowColor(FXColor color);
+  void setBackColor(FXColor color);
+  void setForeColor(FXColor color);
+  void setSelforeColor(FXColor color);
+  void setSelbackColor(FXColor color);
+  void setTipforeColor(FXColor color);
+  void setTipbackColor(FXColor color);
+
+  // Dump widget information
+  void dumpWidgets() const;
+  };
+
+/* Convert input list (sys.argv) to a char** array */
+%typemap(python,in) char **argv {
+  if (PyList_Check($source)) {
+    int size = PyList_Size($source);
+    FXMALLOC(&$target,char*,size+1);
+    for (int i=0; i<size; i++) {
+      PyObject *o = PyList_GetItem($source,i);
+      if (PyString_Check(o))
+	$target[i] = PyString_AsString(PyList_GetItem($source,i));
+      else {
+	PyErr_SetString(PyExc_TypeError,"list must contain strings");
+	FXFREE(&$target);
+	return NULL;
+	}
+      }
+    $target[size] = 0;
+    }
+  else{
+    PyErr_SetString(PyExc_TypeError,"not a list");
+    return NULL;
+    }
+}
+
+/* Clean up same */
+%typemap(python,freearg) char **argv {
+  FXFREE(&$source);
+}
+
+%addmethods FXApp {
+  void init(char **argv,FXbool connect=TRUE) {
+    int argc = 0;
+    while (argv[argc]) argc++;
+    self->init(argc, argv, connect);
+  }
+};
+
+
+class FXPyApp : public FXApp {
+public:
+  // Constructor
+  FXPyApp(const FXchar* name="Application",const FXchar* vendor="FoxDefault");
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+
+  // Special for FX; enable event sharing with GNU readline module
+  void enableEventHook();
+
+  // Special for FX; disable event sharing with GNU readline module
+  void disableEventHook();
+
+  // Main application event loop
+  %name(run) PyObject* FXPyRunApp();
+
+  OBJECT_VIRTUALS
+  APP_VIRTUALS
+  };
+
+
+enum {
+  VISUAL_DEFAULT      = 0,            // Default visual
+  VISUAL_MONOCHROME   = 1,            // Must be monochrome visual
+  VISUAL_BEST         = 2,            // Best (deepest) visual
+  VISUAL_INDEXCOLOR   = 4,            // Palette visual
+  VISUAL_GRAYSCALE    = 8,            // Gray scale visual
+  VISUAL_TRUECOLOR    = 16,           // Must be true color visual
+  VISUAL_OWNCOLORMAP  = 32,           // Allocate private colormap
+  VISUAL_DOUBLEBUFFER = 64,           // Double-buffered [FXGLVisual]
+  VISUAL_STEREO       = 128,          // Stereo [FXGLVisual]
+  VISUAL_NOACCEL      = 256           // No hardware acceleration [for broken h/w]
+  };
+
+
+enum {
+  VISUALTYPE_UNKNOWN,                 // Undetermined visual type
+  VISUALTYPE_MONO,                    // Visual for drawing into 1-bpp surfaces
+  VISUALTYPE_TRUE,                    // True color
+  VISUALTYPE_INDEX,                   // Index [palette] color
+  VISUALTYPE_GRAY                     // Gray scale
+  };
+  
+
+// Visual describes pixel format of a drawable
+class FXVisual : public FXId {
+public:
+  
+  // Construct default visual
+  FXVisual(FXApp* a,FXuint flgs,FXuint d=32);
+
+  // Get flags
+  FXuint getFlags() const;
+
+  // Get depth
+  FXuint getDepth() const;
+
+  // Get number of colors
+  FXuint getNumColors() const;
+
+  // Get number of reds
+  FXuint getNumRed() const;
+
+  // Get number of greens
+  FXuint getNumGreen() const;
+
+  // Get number of blues
+  FXuint getNumBlue() const;
+
+  // Get device pixel value for color
+  FXPixel getPixel(FXColor clr);
+  
+  // Get color value for device pixel value
+  FXColor getColor(FXPixel pix);
+  
+  // Set maximum number of colors to allocate
+  void setMaxColors(FXuint maxcols);
+  
+  // Get maximum number of colors
+  FXuint getMaxColors() const;
+
+  // Get visual type
+  FXVisualType getType() const;
+  };
+
+
+class FXPyVisual : public FXVisual {
+public:
+  FXPyVisual(FXApp* a,FXuint flgs,FXuint d=32);
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  };
+
+
+// Font class
+class FXFont : public FXId {
+public:
+  // Construct from font description
+  FXFont(FXApp* a,const FXFontDesc& fontdesc);
+
+  // Get face name
+  FXString getName() const;
+
+  // Get size in deci-points
+  FXuint getSize() const;
+
+  // Get font weight
+  FXuint getWeight() const;
+
+  // Get slant
+  FXuint getSlant() const;
+
+  // Get character set encoding
+  FXuint getEncoding() const;
+
+  // Get setwidth
+  FXuint getSetWidth() const;
+
+  // Get hints
+  FXuint getHints() const;
+
+  // Get font description
+  // void getFontDesc(FXFontDesc& fontdesc);
+  %addmethods {
+    %new FXFontDesc* getFontDesc() const {
+      FXFontDesc* fontdesc = new FXFontDesc;
+      self->getFontDesc(*fontdesc);
+      return fontdesc;
+    }
+  }
+  
+  /// Change font description
+  void setFontDesc(const FXFontDesc& fontdesc);
+
+  // Find out if the font is monotype or proportional
+  FXbool isFontMono() const;
+  
+  // See if font has glyph for ch
+  FXbool hasChar(FXchar ch) const;
+  
+  /// Get first character glyph in font
+  FXint getMinChar() const;
+
+  /// Get first character glyph in font
+  FXint getMaxChar() const;
+
+  // Left bearing
+  FXint leftBearing(FXchar ch) const;
+  
+  // Right bearing
+  FXint rightBearing(FXchar ch) const;
+  
+  // Width of widest character in font
+  FXint getFontWidth() const;
+  
+  // Height of highest character in font
+  FXint getFontHeight() const;
+  
+  // Ascent from baseline
+  FXint getFontAscent() const;
+  
+  // Descent from baseline
+  FXint getFontDescent() const;
+  
+  // Get font leading [that is lead-ing as in Pb!]
+  FXint getFontLeading() const;
+  
+  // Get font line spacing
+  FXint getFontSpacing() const;
+
+  // Calculate width of given text in this font
+  FXint getTextWidth(const FXchar *text,FXuint n) const;
+  
+  // Calculate height of given text in this font
+  FXint getTextHeight(const FXchar *text,FXuint n) const;
+};
+
+
+class FXPyFont : public FXFont {
+public:
+  FXPyFont(FXApp* a,const FXFontDesc& fontdesc);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  };
+
+
+%inline %{
+  /// Construct font from font description
+  FXPyFont *CreateFont1(FXApp* a,const FXFontDesc& fontdesc) {
+    return new FXPyFont(a,fontdesc);
+    }
+
+  /// Construct a font with given face name, size in points(pixels), weight, slant, character set encoding, setwidth, and hints
+  FXPyFont *CreateFont2(FXApp* a,const FXString& face,FXuint sz,FXuint wt=FONTWEIGHT_NORMAL,FXuint sl=FONTSLANT_REGULAR,FXuint enc=FONTENCODING_DEFAULT,FXuint setw=FONTSETWIDTH_DONTCARE,FXuint h=0) {
+    return new FXPyFont(a,face,sz,wt,sl,enc,setw,h);
+    }
+
+  /// Construct a font with given X11 font string
+  FXPyFont *CreateFont3(FXApp* a,const FXString& nm) {
+    return new FXPyFont(a,nm);
+    }
+%}
+
+
+// Image rendering hints
+enum {
+  IMAGE_KEEP       = 0x00000001,      /// Keep pixel data in client
+  IMAGE_OWNED      = 0x00000002,      /// Pixel data is owned by image
+  IMAGE_DITHER     = 0,               /// Dither image to look better
+  IMAGE_NEAREST    = 0x00000004,      /// Turn off dithering and map to nearest color
+  IMAGE_ALPHA      = 0x00000008,      /// Data has alpha channel
+  IMAGE_OPAQUE     = 0x00000010,      /// Force opaque background
+  IMAGE_ALPHACOLOR = 0x00000020,      /// Override transparancy color
+  IMAGE_SHMI       = 0x00000040,      /// Using shared memory image
+  IMAGE_SHMP       = 0x00000080,      /// Using shared memory pixmap
+  IMAGE_ALPHAGUESS = 0x00000100       /// Guess transparency color from corners
+  };
+    
+
+// Image class
+class FXImage : public FXDrawable {
+public:
+  // Create an image
+  FXImage(FXApp* a,const void *pix=NULL,FXuint opts=0,FXint w=1,FXint h=1);
+
+  // To get to the pixel data
+  FXuchar* getData() const;
+  
+  // To get to the option flags
+  FXuint getOptions() const;
+
+  // Change options
+  void setOptions(FXuint opts);
+
+  /// Return number of channels, RGB or RGBA
+  FXint getChannels() const;
+
+  /// Get pixel at x,y
+  FXColor getPixel(FXint x,FXint y) const;
+
+  /// Change pixel at x,y
+  void setPixel(FXint x,FXint y,FXColor color);
+
+  // Virtual functions
+  virtual void restore();
+  virtual void render();
+  virtual void scale(FXint w,FXint h);
+  virtual void mirror(FXbool horizontal,FXbool vertical);
+  virtual void rotate(FXint degrees);
+  virtual void crop(FXint x,FXint y,FXint w,FXint h);
+  virtual void savePixels(FXStream& store) const;
+  virtual void loadPixels(FXStream& store);
+  };
+
+
+class FXPyImage : public FXImage {
+public:
+  FXPyImage(FXApp* a,const void *pix=NULL,FXuint opts=0,FXint w=1,FXint h=1);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  IMAGE_VIRTUALS
+  };
+
+
+// GIF Image class
+class FXGIFImage : public FXImage {
+public:
+  FXGIFImage(FXApp* a,const void *pix=NULL,FXuint opts=0,FXint w=1,FXint h=1);
+  };
+
+
+class FXPyGIFImage : public FXGIFImage {
+public:
+  FXPyGIFImage(FXApp* a,const void *pix=NULL,FXuint opts=0,FXint w=1,FXint h=1);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  IMAGE_VIRTUALS
+  };
+
+
+/// Microsoft Bitmap image
+class FXBMPImage : public FXImage {
+public:
+  /// Construct image from memory stream formatted in Microsoft BMP format
+  FXBMPImage(FXApp* a,const void *pix=NULL,FXuint opts=0,FXint w=1,FXint h=1);
+  };
+
+
+/// Microsoft Bitmap image
+class FXPyBMPImage : public FXBMPImage {
+public:
+  /// Construct image from memory stream formatted in Microsoft BMP format
+  FXPyBMPImage(FXApp* a,const void *pix=NULL,FXuint opts=0,FXint w=1,FXint h=1);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  IMAGE_VIRTUALS
+  };
+ 
+
+// PNG Image class
+class FXPNGImage : public FXImage {
+public:
+  FXPNGImage(FXApp* a,const void *pix=NULL,FXuint opts=0,FXint w=1,FXint h=1);
+  };
+
+
+class FXPyPNGImage : public FXPNGImage {
+public:
+  FXPyPNGImage(FXApp* a,const void *pix=NULL,FXuint opts=0,FXint w=1,FXint h=1);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  IMAGE_VIRTUALS
+  };
+
+
+/// JPEG Image class
+class FXJPGImage : public FXImage {
+public:
+  /// Construct an image from memory stream formatted in JPEG format
+  FXJPGImage(FXApp *a,const void *pix=NULL,FXuint opts=0,FXint w=1,FXint h=1);
+
+  /// Set image quality to save with
+  void setQuality(FXint q){ quality=q; }
+
+  /// Get image quality setting
+  FXint getQuality() const { return quality; }
+  };
+
+
+class FXPyJPGImage : public FXJPGImage {
+public:
+  FXPyJPGImage(FXApp* a,const void *pix=NULL,FXuint opts=0,FXint w=1,FXint h=1);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  IMAGE_VIRTUALS
+  };
+
+
+/// X Pixmap image
+class FXXPMImage : public FXImage {
+public:
+  /// Construct image from compiled-in X Pixmap format
+  FXXPMImage(FXApp* a,const FXchar **pix=NULL,FXuint opts=0,FXint w=1,FXint h=1);
+  };
+
+
+class FXPyXPMImage : public FXXPMImage {
+public:
+  FXPyXPMImage(FXApp* a,const FXchar **pix=NULL,FXuint opts=0,FXint w=1,FXint h=1);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  IMAGE_VIRTUALS
+  };
+
+
+/// PCX graphics file
+class FXPCXImage : public FXImage {
+protected:
+  FXPCXImage(){}
+public:
+  
+  /// Construct image from memory stream formatted in PCX file
+  FXPCXImage(FXApp* a,const void *pix=NULL,FXuint opts=0,FXint w=1,FXint h=1);
+
+  /// Destroy icon
+  virtual ~FXPCXImage();
+  };
+
+
+/// PCX graphics file
+class FXPyPCXImage : public FXPCXImage {
+public:
+  
+  /// Construct image from memory stream formatted in PCX file
+  FXPyPCXImage(FXApp* a,const void *pix=NULL,FXuint opts=0,FXint w=1,FXint h=1);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+
+public:
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  IMAGE_VIRTUALS
+  };
+
+
+/// TIFF graphics file
+class FXTIFImage : public FXImage {
+protected:
+  FXTIFImage(){}
+public:
+
+  /// Construct an image from memory stream formatted in TIFF format
+  FXTIFImage(FXApp *a,const void *pix=NULL,FXuint opts=0,FXint w=1,FXint h=1);
+
+  /// Set codec to save with
+  void setCodec(FXuint c);
+
+  /// Get codec setting
+  FXuint getCodec() const;
+
+  /// Destroy
+  virtual ~FXTIFImage();
+  };
+
+
+/// TIFF graphics file
+class FXPyTIFImage : public FXTIFImage {
+public:
+  
+  /// Construct an image from memory stream formatted in TIFF format
+  FXPyTIFImage(FXApp* a,const void *pix=NULL,FXuint opts=0,FXint w=1,FXint h=1);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+
+public:
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  IMAGE_VIRTUALS
+  };
+
+
+/// TGA graphics file
+class FXTGAImage : public FXImage {
+protected:
+  FXTGAImage(){}
+public:
+  
+  /// Construct image from memory stream formatted in TGA file
+  FXTGAImage(FXApp* a,const void *pix=NULL,FXuint opts=0,FXint w=1,FXint h=1);
+
+  /// Destroy icon
+  virtual ~FXTGAImage();
+  };
+
+
+/// TGA graphics file
+class FXPyTGAImage : public FXTGAImage {
+public:
+  
+  /// Construct image from memory stream formatted in TGA file
+  FXPyTGAImage(FXApp* a,const void *pix=NULL,FXuint opts=0,FXint w=1,FXint h=1);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+
+public:
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  IMAGE_VIRTUALS
+  };
+
+
+/// RGB graphics file
+
+class FXRGBImage : public FXImage {
+protected:
+  FXRGBImage(){}
+public:
+  
+  /// Construct image from memory stream formatted in RGB file
+  FXRGBImage(FXApp* a,const void *pix=NULL,FXuint opts=0,FXint w=1,FXint h=1);
+
+  /// Destroy icon
+  virtual ~FXRGBImage();
+  };
+
+
+/// RGB graphics file
+class FXPyRGBImage : public FXRGBImage {
+public:
+  
+  /// Construct image from memory stream formatted in RGB file
+  FXPyRGBImage(FXApp* a,const void *pix=NULL,FXuint opts=0,FXint w=1,FXint h=1);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+
+public:
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  IMAGE_VIRTUALS
+  };
+
+
+/// ICO graphics file
+class FXICOImage : public FXImage {
+protected:
+  FXICOImage(){}
+public:
+  
+  /// Construct image from memory stream formatted in ICO file
+  FXICOImage(FXApp* a,const void *pix=NULL,FXuint opts=0,FXint w=1,FXint h=1);
+
+  /// Destroy icon
+  virtual ~FXICOImage();
+  };
+
+
+/// ICO graphics file
+class FXPyICOImage : public FXICOImage {
+public:
+  
+  /// Construct image from memory stream formatted in ICO file
+  FXPyICOImage(FXApp* a,const void *pix=NULL,FXuint opts=0,FXint w=1,FXint h=1);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+
+public:
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  IMAGE_VIRTUALS
+  };
+
+
+// Basic icon
+class FXIcon : public FXImage {
+public:
+  FXIcon(FXApp* a,const void *pix=NULL,FXColor clr=0,FXuint opts=0,FXint w=1,FXint h=1);
+  };
+
+
+class FXPyIcon : public FXIcon {
+public:
+  FXPyIcon(FXApp* a,const void *pix=NULL,FXColor clr=0,FXuint opts=0,FXint w=1,FXint h=1);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  IMAGE_VIRTUALS
+  };
+
+
+// GIF Icon class
+class FXGIFIcon : public FXIcon {
+public:
+  FXGIFIcon(FXApp* a,const void *pix=NULL,FXColor clr=0,FXuint opts=0,FXint w=1,FXint h=1);
+  };
+
+
+class FXPyGIFIcon : public FXGIFIcon {
+public:
+  FXPyGIFIcon(FXApp* a,const void *pix=NULL,FXColor clr=0,FXuint opts=0,FXint w=1,FXint h=1);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  IMAGE_VIRTUALS
+  };
+
+
+/// Microsoft Bitmap icon
+class FXBMPIcon : public FXIcon {
+public:
+  /// Construct icon from memory stream formatted in Microsoft BMP format
+  FXBMPIcon(FXApp* a,const void *pix=NULL,FXColor clr=0,FXuint opts=0,FXint w=1,FXint h=1);
+  };
+
+
+/// Microsoft Bitmap icon
+class FXPyBMPIcon : public FXBMPIcon {
+public:
+  /// Construct icon from memory stream formatted in Microsoft BMP format
+  FXPyBMPIcon(FXApp* a,const void *pix=NULL,FXColor clr=0,FXuint opts=0,FXint w=1,FXint h=1);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  IMAGE_VIRTUALS
+  };
+
+
+// PNG icon
+class FXPNGIcon : public FXIcon {
+public:
+  FXPNGIcon(FXApp* a,const void *pix=NULL,FXColor clr=0,FXuint opts=0,FXint w=1,FXint h=1);
+  };
+
+
+class FXPyPNGIcon : public FXPNGIcon {
+public:
+  FXPyPNGIcon(FXApp* a,const void *pix=NULL,FXColor clr=0,FXuint opts=0,FXint w=1,FXint h=1);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  IMAGE_VIRTUALS
+  };
+
+
+/// JPEG Icon class
+class FXJPGIcon : public FXIcon {
+public:
+  /// Construct an icon from memory stream formatted in JPEG format
+  FXJPGIcon(FXApp *a,const void *pix=NULL,FXColor clr=0,FXuint opts=0,FXint w=1,FXint h=1);
+
+  /// Set image quality to save with
+  void setQuality(FXint q){ quality=q; }
+
+  /// Get image quality setting
+  FXint getQuality() const { return quality; }
+  };
+
+
+class FXPyJPGIcon : public FXJPGIcon {
+public:
+  FXPyJPGIcon(FXApp *a,const void *pix=NULL,FXColor clr=0,FXuint opts=0,FXint w=1,FXint h=1);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  IMAGE_VIRTUALS
+  };
+
+
+/// X Pixmap icon
+class FXXPMIcon : public FXIcon {
+public:
+  /// Construct icon from compiled-in X Pixmap format
+  FXXPMIcon(FXApp* a,const FXchar **pix=NULL,FXColor clr=0,FXuint opts=0,FXint w=1,FXint h=1);
+  };
+
+
+class FXPyXPMIcon : public FXXPMIcon {
+public:
+  // Constructor
+  FXPyXPMIcon(FXApp* a,const FXchar **pix=NULL,FXColor clr=0,FXuint opts=0,FXint w=1,FXint h=1);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+
+public:
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  IMAGE_VIRTUALS
+  };
+
+
+/// PCX icon
+class FXPCXIcon : public FXIcon {
+public:
+  
+  /// Construct icon from memory stream formatted in PCX file format
+  FXPCXIcon(FXApp* a,const void *pix=NULL,FXColor clr=0,FXuint opts=0,FXint w=1,FXint h=1);
+
+  /// Destroy icon
+  virtual ~FXPCXIcon();
+  };
+
+
+/// PCX icon
+class FXPyPCXIcon : public FXPCXIcon {
+public:
+  
+  /// Construct icon from memory stream formatted in PCX file format
+  FXPyPCXIcon(FXApp* a,const void *pix=NULL,FXColor clr=0,FXuint opts=0,FXint w=1,FXint h=1);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+
+  /// Destroy icon
+  virtual ~FXPyPCXIcon();
+
+public:
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  IMAGE_VIRTUALS
+  };
+
+
+/// TIFF icon
+class FXTIFIcon : public FXIcon {
+public:
+
+  /// Construct an icon from memory stream formatted in TIFF format
+  FXTIFIcon(FXApp *a,const void *pix=NULL,FXColor clr=0,FXuint opts=0,FXint w=1,FXint h=1);
+
+  /// Set codec to save with
+  void setCodec(FXuint c);
+
+  /// Get codec setting
+  FXuint getCodec() const;
+
+  /// Destroy
+  virtual ~FXTIFIcon();
+  };
+
+
+/// TIFF icon
+class FXPyTIFIcon : public FXTIFIcon {
+public:
+  
+  /// Construct an icon from memory stream formatted in TIFF format
+  FXPyTIFIcon(FXApp* a,const void *pix=NULL,FXColor clr=0,FXuint opts=0,FXint w=1,FXint h=1);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+
+  /// Destroy icon
+  virtual ~FXPyTIFIcon();
+
+public:
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  IMAGE_VIRTUALS
+  };
+
+
+/// TGA icon
+class FXTGAIcon : public FXIcon {
+public:
+
+  /// Construct an icon from memory stream formatted in TGA format
+  FXTGAIcon(FXApp *a,const void *pix=NULL,FXColor clr=0,FXuint opts=0,FXint w=1,FXint h=1);
+
+  /// Destroy
+  virtual ~FXTGAIcon();
+  };
+
+
+/// TGA icon
+class FXPyTGAIcon : public FXTGAIcon {
+public:
+  
+  /// Construct an icon from memory stream formatted in TGA format
+  FXPyTGAIcon(FXApp* a,const void *pix=NULL,FXColor clr=0,FXuint opts=0,FXint w=1,FXint h=1);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+
+  /// Destroy icon
+  virtual ~FXPyTGAIcon();
+  };
+  
+/// IRIS RGB icon
+
+class FXRGBIcon : public FXIcon {
+public:
+
+  /// Construct an icon from memory stream formatted in RGB format
+  FXRGBIcon(FXApp *a,const void *pix=NULL,FXColor clr=0,FXuint opts=0,FXint w=1,FXint h=1);
+
+  /// Destroy
+  virtual ~FXRGBIcon();
+  };
+
+
+/// RGB icon
+class FXPyRGBIcon : public FXRGBIcon {
+public:
+  
+  /// Construct an icon from memory stream formatted in RGB format
+  FXPyRGBIcon(FXApp* a,const void *pix=NULL,FXColor clr=0,FXuint opts=0,FXint w=1,FXint h=1);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+
+  /// Destroy icon
+  virtual ~FXPyRGBIcon();
+
+public:
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  IMAGE_VIRTUALS
+  };
+
+
+/// ICO icon
+class FXICOIcon : public FXIcon {
+public:
+
+  /// Construct an icon from memory stream formatted in ICO format
+  FXICOIcon(FXApp *a,const void *pix=NULL,FXColor clr=0,FXuint opts=0,FXint w=1,FXint h=1);
+
+  /// Destroy
+  virtual ~FXICOIcon();
+  };
+
+
+/// ICO icon
+class FXPyICOIcon : public FXICOIcon {
+public:
+  
+  /// Construct an icon from memory stream formatted in ICO format
+  FXPyICOIcon(FXApp* a,const void *pix=NULL,FXColor clr=0,FXuint opts=0,FXint w=1,FXint h=1);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+
+  /// Destroy icon
+  virtual ~FXPyICOIcon();
+
+public:
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  IMAGE_VIRTUALS
+  };
+
+
+// Accelerator table
+class FXAccelTable : public FXObject {
+public:
+  long onKeyPress(FXObject*,FXSelector,void*);
+  long onKeyRelease(FXObject*,FXSelector,void*);
+public:
+  FXAccelTable();
+  void addAccel(FXHotKey hotkey,FXObject* target=NULL,FXSelector seldn=0,FXSelector selup=0);
+
+  /// Return true if accelerator specified
+  FXbool hasAccel(FXHotKey hotkey) const;
+
+  /// Return target object of the given accelerator
+  FXObject* targetOfAccel(FXHotKey hotkey) const;
+
+  /// Remove mapping for specified hot key
+  void removeAccel(FXHotKey hotkey);
+  };
+
+
+class FXPyAccelTable : public FXAccelTable {
+public:
+  FXPyAccelTable();
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  };
+
+
+// Recently used files list
+class FXRecentFiles : public FXObject {
+public:
+  long onCmdClear(FXObject*,FXSelector,void*);
+  long onCmdFile(FXObject*,FXSelector,void*);
+  long onUpdFile(FXObject*,FXSelector,void*);
+  long onUpdAnyFiles(FXObject*,FXSelector,void*);
+public:
+  enum{
+    ID_CLEAR,
+    ID_ANYFILES,
+    ID_FILE_1,
+    ID_FILE_2,
+    ID_FILE_3,
+    ID_FILE_4,
+    ID_FILE_5,
+    ID_FILE_6,
+    ID_FILE_7,
+    ID_FILE_8,
+    ID_FILE_9,
+    ID_FILE_10
+    };
+public:
+  /// Make new Recent Files Group with default groupname
+  FXRecentFiles();
+
+  /// Make new Recent Files Group with groupname gp
+  // FXRecentFiles(const FXString& gp,FXObject *tgt=NULL,FXSelector sel=0);
+
+  /// Change number of files we're tracking
+  void setMaxFiles(FXint mx);
+  FXint getMaxFiles() const;
+
+  /// Set group name
+  void setGroupName(const FXString& name){ group=name; }
+
+  /// Return group name
+  FXString getGroupName() const { return group; }
+
+  /// Change the target
+  void setTarget(FXObject *t);
+  FXObject *getTarget() const;
+
+  /// Change the message
+  void setSelector(FXSelector sel);
+  FXSelector getSelector() const;
+
+  /// Append a file
+  void appendFile(const FXString& filename);
+
+  /// Remove a file
+  void removeFile(const FXString& filename);
+  
+  /// Clear the list of files
+  void clear();
+  
+  /// Destructor
+  virtual ~FXRecentFiles();
+  };
+
+
+class FXPyRecentFiles : public FXRecentFiles {
+public:
+  FXPyRecentFiles();
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  };
+
+%inline %{
+  /// Make new Recent Files Group with default groupname
+  FXPyRecentFiles *CreateRecentFiles1() {
+    return new FXPyRecentFiles();
+    }
+
+  /// Make new Recent Files Group with groupname gp
+  FXPyRecentFiles *CreateRecentFiles2(const FXString& gp,FXObject *tgt=NULL,FXSelector sel=0) {
+    return new FXPyRecentFiles(gp,tgt,sel);
+    }
+%}
+
+
+/**
+* FXSettings is a key-value database.  This is normally used as
+* part of FXRegistry, but can also be used separately in application
+* that need to maintain a key-value database of their own.
+*/
+class FXSettings {
+public:
+
+  /// Construct settings database.
+  FXSettings();
+
+  /// Parse a file containing a settings database.
+  FXbool parseFile(const FXString& filename,FXbool mark);
+  
+  /// Unparse settings database into given file.
+  FXbool unparseFile(const FXString& filename);
+
+  /// Obtain the string dictionary for the given section
+  FXStringDict* data(FXuint pos) const;
+
+  /// Find string dictionary for the given section
+  FXStringDict* find(const FXchar *section) const;
+
+  /// Read a string registry entry; if no value is found, the default value def is returned
+  const FXchar *readStringEntry(const FXchar *section,const FXchar *key,const FXchar *def=NULL);
+
+  /// Read a integer registry entry; if no value is found, the default value def is returned
+  FXint readIntEntry(const FXchar *section,const FXchar *key,FXint def=0);
+
+  /// Read a unsigned integer registry entry; if no value is found, the default value def is returned
+  FXuint readUnsignedEntry(const FXchar *section,const FXchar *key,FXuint def=0);
+
+  /// Read a double-precision floating point registry entry; if no value is found, the default value def is returned
+  FXdouble readRealEntry(const FXchar *section,const FXchar *key,FXdouble def=0.0);
+
+  /// Read a color value registry entry; if no value is found, the default value def is returned
+  FXColor readColorEntry(const FXchar *section,const FXchar *key,FXColor def=0);
+
+  /// Write a string registry entry
+  FXbool writeStringEntry(const FXchar *section,const FXchar *key,const FXchar *val);
+
+  /// Write a integer registry entry
+  FXbool writeIntEntry(const FXchar *section,const FXchar *key,FXint val);
+
+  /// Write a unsigned integer registry entry
+  FXbool writeUnsignedEntry(const FXchar *section,const FXchar *key,FXuint val);
+
+  /// Write a double-precision floating point registry entry
+  FXbool writeRealEntry(const FXchar *section,const FXchar *key,FXdouble val);
+
+  /// Write a color value entry
+  FXbool writeColorEntry(const FXchar *section,const FXchar *key,FXColor val);
+
+  /// Delete a registry entry
+  FXbool deleteEntry(const FXchar *section,const FXchar *key);
+
+  /// Delete section
+  FXbool deleteSection(const FXchar *section);
+
+  /// See if section exists
+  FXbool existingSection(const FXchar *section);
+
+  /// See if entry exists
+  FXbool existingEntry(const FXchar *section,const FXchar *key);
+
+  /// Clear all sections
+  FXbool clear();
+
+  /// Mark as changed
+  void setModified(FXbool mdfy=TRUE);
+
+  /// Is it modified
+  FXbool isModified() const;
+  };
+
+
+/**
+* The registry maintains a database of persistent settings for an application,
+* or suite of applications.
+*/
+class FXRegistry : public FXSettings {
+public:
+
+  /**
+  * Construct registry object; akey and vkey must be string constants.
+  * Regular applications SHOULD set a vendor key!
+  */
+  FXRegistry(const FXString& akey=FXString::null,const FXString& vkey=FXString::null);
+
+  /// Read registry
+  FXbool read();
+
+  /// Write registry
+  FXbool write();
+
+  /// Return application key
+  const FXString& getAppKey() const;
+
+  /// Return vendor key
+  const FXString& getVendorKey() const;
+
+  /**
+  * Set ASCII mode; under MS-Windows, this will switch the system to a
+  * file-based registry system, instead of using the System Registry API.
+  */
+  void setAsciiMode(FXbool asciiMode);
+
+  /// Get ASCII mode
+  FXbool getAsciiMode() const;
+  };
+
+
+// Stream data flow direction
+enum FXStreamDirection {
+  FXStreamDead=0,
+  FXStreamSave=1,
+  FXStreamLoad=2
+};
+
+
+// Stream status codes
+enum FXStreamStatus {
+  FXStreamOK=0,                 // OK
+  FXStreamEnd=1,                // Try read past end of stream
+  FXStreamFull=2,               // Filled up stream buffer or disk full
+  FXStreamNoWrite=3,            // Unable to open for write
+  FXStreamNoRead=4,             // Unable to open for read
+  FXStreamFormat=5,             // Stream format error
+  FXStreamUnknown=6,            // Trying to read unknown class
+  FXStreamAlloc=7               // Alloc failed
+  };
+
+
+class FXStream {
+public:
+  // Constructor
+  FXStream(const FXObject* container=NULL);
+
+  // Open archive return TRUE if OK
+  FXbool open(FXStreamDirection save_or_load);
+
+  // Close; return TRUE if OK
+  FXbool close();
+
+  // Get status code
+  FXStreamStatus status() const { return code; }
+
+  // Set status code
+  void setError(FXStreamStatus err);
+
+  // Obtain direction
+  FXStreamDirection direction() const;
+
+  // Get parent object
+  const FXObject* container() const;
+
+  // Get position
+  %name(getPosition) unsigned long position() const;
+
+  // Move to position
+  %name(setPosition) virtual FXbool position(unsigned long p);
+
+  // Change swap bytes flag
+  void swapBytes(FXbool s){ swap=s; }
+
+  // Get swap bytes flag
+  %name(bytesSwapped) FXbool swapBytes() const;
+
+  // Return implementation's endianness
+  static FXbool isLittleEndian();
+};
+
+
+class FXPyStream : public FXStream {
+public:
+  FXPyStream(const FXObject* container=NULL);
+  };
+
+
+// File store definition
+class FXFileStream : public FXStream {
+public:
+  // Create file store
+  FXFileStream(const FXObject *container=NULL);
+
+  // Open file store
+  FXbool open(const FXString& filename, FXStreamDirection save_or_load);
+  };
+
+
+class FXPyFileStream : public FXFileStream {
+public:
+  FXPyFileStream(const FXObject *container=NULL);
+  };
+
+
+// Pointer dictionary
+class FXDict : public FXObject {
+public:
+  FXDict();
+  %name(getSize) FXint size() const;
+  %name(setSize) void size(FXint m);
+  FXint no() const;
+  void* insert(const FXchar* ky,const void* ptr,FXbool mrk=FALSE);
+  void* replace(const FXchar* ky,const void* ptr,FXbool mark=FALSE);
+  void* remove(const FXchar* ky);
+  void* find(const FXchar* ky) const;
+  const FXchar* key(FXuint pos) const;
+  void* data(FXuint pos) const;
+  FXbool mark(FXuint pos) const;
+  FXint first() const;
+  FXint last() const;
+  FXint next(FXint pos) const;  
+  FXint prev(FXint pos) const;  
+  void clear();
+  };
+
+
+class FXPyDict : public FXDict {
+public:
+  FXPyDict();
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  };
+
+
+/**
+* String dictionary maps a character string to a character string.
+* The inserted strings are copied when they're inserted.
+*/
+class FXStringDict : public FXDict {
+public:
+  /// Construct a string dictionary
+  FXStringDict();
+
+  /// Insert a new string indexed by key, with given mark flag
+  const FXchar* insert(const FXchar* ky,const FXchar* str,FXbool mrk=FALSE);
+
+  /// Replace or insert a new string indexed by key, unless given mark is lower that the existing mark
+  const FXchar* replace(const FXchar* ky,const FXchar* str,FXbool mrk=FALSE);
+
+  /// Remove entry indexed by key
+  const FXchar* remove(const FXchar* ky);
+
+  /// Return the entry indexed by key, or return NULL if the key does not exist
+  const FXchar* find(const FXchar* ky) const;
+
+  /// Return the string at position pos
+  const FXchar* data(FXuint pos) const;
+  };
+
+
+class FXPyStringDict : public FXStringDict {
+public:
+  /// Construct a string dictionary
+  FXPyStringDict();
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  };
+
+
+/// Region
+class FXRegion {
+public:
+  /// Construct new empty region
+  // FXRegion();
+
+  /// Construct new region copied from region r
+  // FXRegion(const FXRegion& r);
+  
+  /// Construct new region set to given rectangle
+  FXRegion(FXint x,FXint y,FXint w,FXint h);
+  
+  /// Assign region r to this one
+  // FXRegion &operator=(const FXRegion& r);
+
+  /// Return TRUE if region is empty
+  FXbool empty() const;
+
+  /// Return TRUE if region contains point
+  %name(containsPoint) FXbool contains(FXint x,FXint y) const;
+
+  /// Return TRUE if region contains rectangle
+  %name(containsRectangle) FXbool contains(FXint x,FXint y,FXint w,FXint h) const;
+
+  /// Return bounding box
+  void bounds(FXRectangle& r) const;
+
+  /// Offset region by dx,dy
+  FXRegion& offset(FXint dx,FXint dy);
+
+  /// Union region r with this one
+  // FXRegion& operator+=(const FXRegion& r);
+  
+  /// Intersect region r with this one
+  // FXRegion& operator*=(const FXRegion& r);
+  
+  /// Substract region r from this one
+  // FXRegion& operator-=(const FXRegion& r);
+  
+  /// Xor region r with this one
+  // FXRegion& operator^=(const FXRegion& r);
+
+  /// Union of region r1 and region r2
+  // friend FXAPI FXRegion operator+(const FXRegion& r1,const FXRegion& r2);
+
+  /// Intersection of region r1 and region r2
+  // friend FXAPI FXRegion operator*(const FXRegion& r1,const FXRegion& r2);
+
+  /// Substract region r2 from region r1
+  // friend FXAPI FXRegion operator-(const FXRegion& r1,const FXRegion& r2);
+
+  /// Xor of region r1 and region r2
+  // friend FXAPI FXRegion operator^(const FXRegion& r1,const FXRegion& r2);
+  
+  /// Return TRUE if region equal to this one
+  // friend FXAPI FXbool operator==(const FXRegion& r1,const FXRegion& r2);
+  
+  /// Return TRUE if region not equal to this one
+  // friend FXAPI FXbool operator!=(const FXRegion& r1,const FXRegion& r2);
+  
+  /// Destroy region
+ ~FXRegion();
+  };
+
+
+class FXDelegator : public FXObject {
+public:
+  /// Construct a delegator 
+  FXDelegator(FXObject* target=NULL);
+
+  /// Return delegate object
+  FXObject* getDelegate() const;
+
+  /// Change delegate object
+  void setDelegate(FXObject* target);
+
+  /// For message forwarding
+  virtual long handle(FXObject* sender,FXSelector key,void* data);
+  };
+
+
+class FXPyDelegator : public FXDelegator {
+public:
+  FXPyDelegator(FXObject* target=NULL);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  };
+
+
+class FXDataTarget : public FXObject {
+public:
+  long onCmdValue(FXObject*,FXSelector,void*);
+  long onUpdValue(FXObject*,FXSelector,void*);
+  long onCmdOption(FXObject*,FXSelector,void*);
+  long onUpdOption(FXObject*,FXSelector,void*);
+
+public:
+  enum {
+    DT_VOID=0,
+    DT_CHAR,
+    DT_UCHAR,
+    DT_SHORT,
+    DT_USHORT,
+    DT_INT,
+    DT_UINT,
+    DT_FLOAT,
+    DT_DOUBLE,
+    DT_STRING,
+    DT_LAST
+    };
+
+public:
+  enum {
+    ID_VALUE=1,                   /// Will cause the FXDataTarget to ask sender for value
+    ID_OPTION=ID_VALUE+10001,     /// ID_OPTION+i will set the value to i where -10000<=i<=10000
+    ID_LAST=ID_OPTION+10000
+    };
+
+public:
+  // Construct and initialize
+  FXDataTarget();
+
+  /// Set the message target object for this data target
+  void setTarget(FXObject *t);
+
+  /// Get the message target object for this data target, if any
+  FXObject* getTarget() const;
+
+  /// Set the message identifier for this data target
+  void setSelector(FXSelector sel);
+
+  /// Get the message identifier for this data target
+  FXSelector getSelector() const;
+
+  /// Return type of data its connected to
+  FXuint getType() const;
+  };
+
+
+class FXPyDataTarget : public FXDataTarget {
+public:
+  // Construct and initialize with this value
+  FXPyDataTarget(PyObject* value=NULL,FXObject* tgt=NULL,FXSelector sel=0);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+
+  // Set the value for this data target
+  void setValue(PyObject* value);
+
+  // Return the current value
+  PyObject* getValue() const;
+
+  // Virtual function overrides
+  OBJECT_VIRTUALS
+  };
+
+
+/**
+* A DebugTarget prints out every message it receives.
+* To use it, simply make the DebugTarget a target of the widget
+* whose messages you want to see,
+*/
+class FXDebugTarget : public FXObject {
+protected:
+  FXObject   *lastsender;
+  FXSelector  lastsel;
+  FXuint      count;
+public:
+  long onMessage(FXObject*,FXSelector,void*);
+public:
+  /// Construct a debug target
+  FXDebugTarget();
+  };
+
+
+class FXPyDebugTarget : public FXDataTarget {
+public:
+  // Construct and initialize with this value
+  FXPyDebugTarget();
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+
+  // Virtual function overrides
+  OBJECT_VIRTUALS
+  };
+
+
+/// Base class for undoable commands
+class FXCommand {
+protected:
+  FXCommand();
+public:
+  /**
+  * Undo this command; this should save the
+  * information for a subsequent redo.
+  */
+  virtual void undo();
+
+  /**
+  * Redo this command; this should save the
+  * information for a subsequent undo.
+  */
+  virtual void redo();
+
+  /**
+  * Return the size of the information in the undo record.
+  * The undo list may be trimmed to limit memory usage to
+  * a certain limit.
+  */
+  virtual FXuint size() const;
+
+  /**
+  * Name of the undo command to be shown on a button;
+  * for example, "Undo Delete".
+  */
+  virtual FXString undoName() const;
+
+  /**
+  * Name of the redo command to be shown on a button;
+  * for example, "Redo Delete".
+  */
+  virtual FXString redoName() const;
+
+  /// Delete undo command
+  virtual ~FXCommand();
+  };
+
+
+class FXPyCommand : public FXCommand {
+protected:
+  FXPyCommand();
+public:
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  };
+
+

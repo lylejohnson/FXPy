@@ -1,0 +1,2808 @@
+/***********************************************************************
+ * $Id: controls.ii,v 1.36 2002/04/02 16:29:09 lyle Exp $
+ ***********************************************************************/
+
+%module controls
+
+%{
+#include "fx.h"
+#include "fx3d.h"
+#include "FXCURCursor.h"
+#include "FXJPGImage.h"
+#include "FXJPGIcon.h"
+#include "FXPNGIcon.h"
+#include "FXPNGImage.h"
+#include "FXTIFIcon.h"
+#include "FXTIFImage.h"
+#include "FXRGBIcon.h"
+#include "FXRGBImage.h"
+#include "FXICOIcon.h"
+#include "FXICOImage.h"
+#include "FXPyApp.h"
+#include "FXPy.h"
+%}
+
+%extern fxdefs.i
+%include typemaps.i
+%include my_typemaps.i
+
+%import misc.i
+%import windows.i
+%import containers.i
+
+%pragma(python) code = "import fox"
+
+// Justification modes
+enum {
+  JUSTIFY_NORMAL    = 0,
+  JUSTIFY_CENTER_X  = 0,
+  JUSTIFY_LEFT      = 0x00008000,
+  JUSTIFY_RIGHT     = 0x00010000,
+  JUSTIFY_HZ_APART  = (JUSTIFY_LEFT|JUSTIFY_RIGHT),
+  JUSTIFY_CENTER_Y  = 0,
+  JUSTIFY_TOP       = 0x00020000,
+  JUSTIFY_BOTTOM    = 0x00040000,
+  JUSTIFY_VT_APART  = (JUSTIFY_TOP|JUSTIFY_BOTTOM)
+  };
+
+
+// Relationship options for icon-labels
+enum {
+  ICON_UNDER_TEXT   = 0,
+  ICON_AFTER_TEXT   = 0x00080000,
+  ICON_BEFORE_TEXT  = 0x00100000,
+  ICON_ABOVE_TEXT   = 0x00200000,
+  ICON_BELOW_TEXT   = 0x00400000,
+  TEXT_OVER_ICON    = ICON_UNDER_TEXT,
+  TEXT_AFTER_ICON   = ICON_BEFORE_TEXT,
+  TEXT_BEFORE_ICON  = ICON_AFTER_TEXT,
+  TEXT_ABOVE_ICON   = ICON_BELOW_TEXT,
+  TEXT_BELOW_ICON   = ICON_ABOVE_TEXT
+  };
+
+
+/// Normal way to show label
+enum {
+  LABEL_NORMAL         = JUSTIFY_NORMAL|ICON_BEFORE_TEXT
+  };
+
+
+// Your basic label
+class FXLabel : public FXFrame {
+public:
+  long onPaint(FXObject*,FXSelector,void*);
+  long onHotKeyPress(FXObject*,FXSelector,void*);
+  long onHotKeyRelease(FXObject*,FXSelector,void*);
+  long onCmdGetStringValue(FXObject*,FXSelector,void*);
+  long onCmdSetStringValue(FXObject*,FXSelector,void*);
+  long onQueryHelp(FXObject*,FXSelector,void*);
+  long onQueryTip(FXObject*,FXSelector,void*);
+public:
+  FXLabel(FXComposite* p,const FXString& text,FXIcon* ic=0,FXuint opts=LABEL_NORMAL,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=DEFAULT_PAD,FXint pr=DEFAULT_PAD,FXint pt=DEFAULT_PAD,FXint pb=DEFAULT_PAD);
+  FXString getText() const;
+  void setText(const FXString& text);
+  void setIcon(FXIcon* ic);
+  FXIcon* getIcon() const;
+  void setFont(FXFont *fnt);
+  FXFont* getFont() const;
+  FXColor getTextColor() const;
+  void setTextColor(FXColor clr);
+  void setJustify(FXuint mode);
+  FXuint getJustify() const;
+  void setIconPosition(FXuint mode);
+  FXuint getIconPosition() const;
+  void setHelpText(const FXString& text);
+  FXString getHelpText() const;
+  void setTipText(const FXString& text);
+  FXString getTipText() const;
+};
+
+
+class FXPyLabel : public FXLabel {
+public:
+  FXPyLabel(FXComposite* p,const FXString& text,FXIcon* ic=0,FXuint opts=LABEL_NORMAL,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=DEFAULT_PAD,FXint pr=DEFAULT_PAD,FXint pt=DEFAULT_PAD,FXint pb=DEFAULT_PAD);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  };
+
+
+enum {
+  DIAL_VERTICAL   = 0,
+  DIAL_HORIZONTAL = 0x00008000,                   // Horizontal
+  DIAL_CYCLIC     = 0x00010000,                   // Value wraps around
+  DIAL_HAS_NOTCH  = 0x00020000,                   // Dial has center notch
+  DIAL_NORMAL     = DIAL_VERTICAL
+  };
+
+
+// Dial
+class FXDial : public FXFrame {
+public:
+  long onPaint(FXObject*,FXSelector,void*);
+  long onMotion(FXObject*,FXSelector,void*);
+  long onMouseWheel(FXObject*,FXSelector,void*);
+  long onLeftBtnPress(FXObject*,FXSelector,void* );
+  long onLeftBtnRelease(FXObject*,FXSelector,void*);
+  long onUngrabbed(FXObject*,FXSelector,void*);
+  long onCmdSetValue(FXObject*,FXSelector,void*);
+  long onCmdSetIntValue(FXObject*,FXSelector,void*);
+  long onCmdGetIntValue(FXObject*,FXSelector,void*);
+  long onCmdSetRealValue(FXObject*,FXSelector,void*);
+  long onCmdGetRealValue(FXObject*,FXSelector,void*);
+  long onCmdSetIntRange(FXObject*,FXSelector,void*);
+  long onCmdGetIntRange(FXObject*,FXSelector,void*);
+  long onCmdSetRealRange(FXObject*,FXSelector,void*);
+  long onCmdGetRealRange(FXObject*,FXSelector,void*);
+  long onQueryHelp(FXObject*,FXSelector,void*);
+  long onQueryTip(FXObject*,FXSelector,void*);
+public:
+  FXDial(FXComposite *p,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=DIAL_VERTICAL,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=DEFAULT_PAD,FXint pr=DEFAULT_PAD,FXint pt=DEFAULT_PAD,FXint pb=DEFAULT_PAD);
+  void setRange(FXint lo,FXint hi);
+  // void getRange(FXint& lo,FXint& hi) const;
+  %addmethods {
+    PyObject* getRange() const {
+      FXint lo,hi;
+      self->getRange(lo,hi);
+      FXbool doSave = FXPyRestoreThread();
+      PyObject* tuple = PyTuple_New(2);
+      if (tuple) {
+	PyObject *obj1 = PyInt_FromLong(lo);
+	if (!obj1 || PyTuple_SetItem(tuple, 0, obj1) < 0) {
+	  Py_DECREF(tuple);
+          FXPySaveThread(doSave);
+	  return NULL;
+	}
+	PyObject *obj2 = PyInt_FromLong(hi);
+	if (!obj2 || PyTuple_SetItem(tuple, 1, obj2) < 0) {
+	  Py_DECREF(tuple);
+          FXPySaveThread(doSave);
+	  return NULL;
+	}
+      }
+      FXPySaveThread(doSave);
+      return tuple;
+    }
+  }
+
+  /// Set the dial value
+  void setValue(FXint value);
+
+  /// Get the dial value
+  FXint getValue() const;
+
+  void setRevolutionIncrement(FXint i);
+  FXint getRevolutionIncrement() const;
+  void setNotchSpacing(FXint spacing);
+  FXint getNotchSpacing() const;
+  void setNotchOffset(FXint offset);
+  FXint getNotchOffset() const;
+  FXuint getDialStyle() const;
+  void setDialStyle(FXuint opts);
+  void setHelpText(const FXString& text);
+  FXString getHelpText() const;
+  void setTipText(const FXString& text);
+  FXString getTipText() const;
+  };
+
+
+class FXPyDial : public FXDial {
+public:
+  FXPyDial(FXComposite *p,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=DIAL_VERTICAL,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=DEFAULT_PAD,FXint pr=DEFAULT_PAD,FXint pt=DEFAULT_PAD,FXint pb=DEFAULT_PAD);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  };
+
+
+// Color Well Styles
+enum {
+  COLORWELL_OPAQUEONLY = 0x00008000,  /// Colors must be opaque
+  COLORWELL_SOURCEONLY = 0x00010000,  /// ColorWell is never a target
+  COLORWELL_NORMAL     = JUSTIFY_NORMAL
+  };
+
+
+// Color Well
+class FXColorWell : public FXFrame {
+public:
+  long onPaint(FXObject*,FXSelector,void*);
+  long onLeftBtnPress(FXObject*,FXSelector,void*);
+  long onLeftBtnRelease(FXObject*,FXSelector,void*);
+  long onMiddleBtnPress(FXObject*,FXSelector,void*);
+  long onMiddleBtnRelease(FXObject*,FXSelector,void*);
+  long onKeyPress(FXObject*,FXSelector,void*);
+  long onKeyRelease(FXObject*,FXSelector,void*);
+  long onUngrabbed(FXObject*,FXSelector,void*);
+  long onMotion(FXObject*,FXSelector,void*);
+  long onBeginDrag(FXObject*,FXSelector,void*);
+  long onEndDrag(FXObject*,FXSelector,void*);
+  long onDragged(FXObject*,FXSelector,void*);
+  long onFocusIn(FXObject*,FXSelector,void*);
+  long onFocusOut(FXObject*,FXSelector,void*);
+  long onDNDEnter(FXObject*,FXSelector,void*);
+  long onDNDLeave(FXObject*,FXSelector,void*);
+  long onDNDMotion(FXObject*,FXSelector,void*);
+  long onDNDDrop(FXObject*,FXSelector,void*);
+  long onDNDRequest(FXObject*,FXSelector,void*);
+  long onSelectionLost(FXObject*,FXSelector,void*);
+  long onSelectionGained(FXObject*,FXSelector,void*);
+  long onSelectionRequest(FXObject*,FXSelector,void*);
+  long onClicked(FXObject*,FXSelector,void*);
+  long onDoubleClicked(FXObject*,FXSelector,void*);
+  long onTripleClicked(FXObject*,FXSelector,void*);
+  long onQueryHelp(FXObject*,FXSelector,void*);
+  long onQueryTip(FXObject*,FXSelector,void*);
+  long onCmdSetValue(FXObject*,FXSelector,void*);
+  long onCmdColorWell(FXObject*,FXSelector,void*);
+  long onChgColorWell(FXObject*,FXSelector,void*);
+  long onCmdSetIntValue(FXObject*,FXSelector,void*);
+  long onCmdGetIntValue(FXObject*,FXSelector,void*);
+
+public:
+  enum{
+    ID_COLORDIALOG=FXFrame::ID_LAST,
+    ID_LAST
+    };
+public:
+
+  /// Construct color well with initial color clr
+  FXColorWell(FXComposite* p,FXColor clr=0,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=COLORWELL_NORMAL,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=DEFAULT_PAD,FXint pr=DEFAULT_PAD,FXint pt=DEFAULT_PAD,FXint pb=DEFAULT_PAD);
+
+  /// Set color
+  void setRGBA(FXColor clr);
+
+  /// Get color
+  FXColor getRGBA() const;
+
+  /// Set status line help text for this color well
+  void setHelpText(const FXString& text);
+
+  /// Get status line help text for this color well
+  FXString getHelpText() const;
+
+  /// Set tool tip message for this color well
+  void setTipText(const FXString& text);
+
+  /// Get tool tip message for this color well
+  FXString getTipText() const;
+
+  /// Return true if only opaque colors allowed
+  FXbool isOpaqueOnly() const;
+
+  /// Change opaque only mode
+  void setOpaqueOnly(FXbool opaque);
+  };
+
+
+class FXPyColorWell : public FXColorWell {
+public:
+  /// Construct color well with initial color clr
+  FXPyColorWell(FXComposite* p,FXColor clr=0,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=COLORWELL_NORMAL,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=DEFAULT_PAD,FXint pr=DEFAULT_PAD,FXint pt=DEFAULT_PAD,FXint pb=DEFAULT_PAD);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  };
+
+
+/// Textfield styles
+enum {
+  TEXTFIELD_PASSWD     = 0x00800000,      /// Password mode
+  TEXTFIELD_INTEGER    = 0x01000000,      /// Integer mode
+  TEXTFIELD_REAL       = 0x02000000,      /// Real mode
+  TEXTFIELD_READONLY   = 0x04000000,      /// NOT editable
+  TEXTFIELD_ENTER_ONLY = 0x08000000,      /// Only callback when enter hit
+  TEXTFIELD_LIMITED    = 0x10000000,      /// Limit entry to given number of columns
+  TEXTFIELD_OVERSTRIKE = 0x20000000,      /// Overstrike mode
+  TEXTFIELD_NORMAL     = FRAME_SUNKEN|FRAME_THICK
+  };
+
+
+class FXTextField : public FXFrame {
+public:
+  long onPaint(FXObject*,FXSelector,void*);
+  long onKeyPress(FXObject*,FXSelector,void*);
+  long onKeyRelease(FXObject*,FXSelector,void*);
+  long onLeftBtnPress(FXObject*,FXSelector,void*);
+  long onLeftBtnRelease(FXObject*,FXSelector,void*);
+  long onMiddleBtnPress(FXObject*,FXSelector,void*);
+  long onMiddleBtnRelease(FXObject*,FXSelector,void*);
+  long onVerify(FXObject*,FXSelector,void*);
+  long onMotion(FXObject*,FXSelector,void*);
+  long onSelectionLost(FXObject*,FXSelector,void*);
+  long onSelectionGained(FXObject*,FXSelector,void*);
+  long onSelectionRequest(FXObject*,FXSelector,void* ptr);
+  long onClipboardLost(FXObject*,FXSelector,void*);
+  long onClipboardGained(FXObject*,FXSelector,void*);
+  long onClipboardRequest(FXObject*,FXSelector,void*);
+  long onFocusSelf(FXObject*,FXSelector,void*);
+  long onFocusIn(FXObject*,FXSelector,void*);
+  long onFocusOut(FXObject*,FXSelector,void*);
+  long onBlink(FXObject*,FXSelector,void*);
+  long onAutoScroll(FXObject*,FXSelector,void*);
+  long onQueryHelp(FXObject*,FXSelector,void*);
+  long onQueryTip(FXObject*,FXSelector,void*);
+  long onCmdSetValue(FXObject*,FXSelector,void*);
+  long onCmdSetIntValue(FXObject*,FXSelector,void*);
+  long onCmdSetRealValue(FXObject*,FXSelector,void*);
+  long onCmdSetStringValue(FXObject*,FXSelector,void*);
+  long onCmdGetIntValue(FXObject*,FXSelector,void*);
+  long onCmdGetRealValue(FXObject*,FXSelector,void*);
+  long onCmdGetStringValue(FXObject*,FXSelector,void*);
+  long onCmdCursorHome(FXObject*,FXSelector,void*);
+  long onCmdCursorEnd(FXObject*,FXSelector,void*);
+  long onCmdCursorRight(FXObject*,FXSelector,void*);
+  long onCmdCursorLeft(FXObject*,FXSelector,void*);
+  long onCmdMark(FXObject*,FXSelector,void*);
+  long onCmdExtend(FXObject*,FXSelector,void*);
+  long onCmdSelectAll(FXObject*,FXSelector,void*);
+  long onCmdDeselectAll(FXObject*,FXSelector,void*);
+  long onCmdCutSel(FXObject*,FXSelector,void*);
+  long onCmdCopySel(FXObject*,FXSelector,void*);
+  long onCmdPasteSel(FXObject*,FXSelector,void*);
+  long onCmdDeleteSel(FXObject*,FXSelector,void*);
+  long onCmdOverstString(FXObject*,FXSelector,void*);
+  long onCmdInsertString(FXObject*,FXSelector,void*);
+  long onCmdBackspace(FXObject*,FXSelector,void*);
+  long onCmdDelete(FXObject*,FXSelector,void*);
+  long onCmdToggleEditable(FXObject*,FXSelector,void*);
+  long onUpdToggleEditable(FXObject*,FXSelector,void*);
+  long onCmdToggleOverstrike(FXObject*,FXSelector,void*);
+  long onUpdToggleOverstrike(FXObject*,FXSelector,void*);
+public:
+  enum{
+    ID_CURSOR_HOME=FXFrame::ID_LAST,
+    ID_CURSOR_END,
+    ID_CURSOR_RIGHT,
+    ID_CURSOR_LEFT,
+    ID_MARK,
+    ID_EXTEND,
+    ID_SELECT_ALL,
+    ID_DESELECT_ALL,
+    ID_CUT_SEL,
+    ID_COPY_SEL,
+    ID_PASTE_SEL,
+    ID_DELETE_SEL,
+    ID_OVERST_STRING,
+    ID_INSERT_STRING,
+    ID_BACKSPACE,
+    ID_DELETE,
+    ID_TOGGLE_EDITABLE,
+    ID_TOGGLE_OVERSTRIKE,
+    ID_BLINK,
+    ID_LAST
+    };
+public:
+
+  /// Construct text field wide enough to display ncols columns
+  FXTextField(FXComposite* p,FXint ncols,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=TEXTFIELD_NORMAL,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=DEFAULT_PAD,FXint pr=DEFAULT_PAD,FXint pt=DEFAULT_PAD,FXint pb=DEFAULT_PAD);
+
+  /// Return TRUE if text field may be edited
+  FXbool isEditable() const;
+
+  /// Change text field editability 
+  void setEditable(FXbool edit=TRUE);
+
+  /// Set cursor position
+  void setCursorPos(FXint pos);
+
+  /// Return cursor position
+  FXint getCursorPos() const { return cursor; }
+
+  /// Change anchor position
+  void setAnchorPos(FXint pos);
+
+  /// Return anchor position
+  FXint getAnchorPos() const { return anchor; }
+
+  /// Set the text for this label
+  void setText(const FXString& text);
+
+  /// Get the text for this label
+  FXString getText() const { return contents; }
+
+  /// Set the text font
+  void setFont(FXFont* fnt);
+
+  /// Get the text font
+  FXFont* getFont() const { return font; }
+
+  /// Change text color
+  void setTextColor(FXColor clr);
+
+  /// Return text color
+  FXColor getTextColor() const { return textColor; }
+
+  /// Change selected background color
+  void setSelBackColor(FXColor clr);
+
+  /// Return selected background color
+  FXColor getSelBackColor() const { return selbackColor; }
+
+  /// Change selected text color
+  void setSelTextColor(FXColor clr);
+
+  /// Return selected text color
+  FXColor getSelTextColor() const { return seltextColor; }
+
+  /// Change width of text field in terms of number of columns * `m'
+  void setNumColumns(FXint cols);
+
+  /// Return number of columns
+  FXint getNumColumns() const { return columns; }
+
+  /// Change text justification mode
+  void setJustify(FXuint mode);
+
+  /// Return text justification mode
+  FXuint getJustify() const;
+
+  /// Set the status line help text for this label
+  void setHelpText(const FXString& text);
+
+  /// Get the status line help text for this label
+  FXString getHelpText() const { return help; }
+
+  /// Set the tool tip message for this text field
+  void setTipText(const FXString& text);
+
+  /// Get the tool tip message for this text field
+  FXString getTipText() const { return tip; }
+
+  /// Change text style
+  void setTextStyle(FXuint style);
+
+  /// Return text style
+  FXuint getTextStyle() const;
+
+  /// Select all text
+  FXbool selectAll();
+
+  /// Select len characters starting at given position pos
+  FXbool setSelection(FXint pos,FXint len);
+
+  /// Extend the selection from the anchor to the given position
+  FXbool extendSelection(FXint pos);
+
+  /// Unselect the text
+  FXbool killSelection();
+
+  /// Return TRUE if position pos is selected
+  FXbool isPosSelected(FXint pos) const;
+
+  /// Return TRUE if position is fully visible
+  FXbool isPosVisible(FXint pos) const;
+
+  /// Scroll text to make the given position visible
+  void makePositionVisible(FXint pos);
+  };
+
+
+class FXPyTextField : public FXTextField {
+public:
+  FXPyTextField(FXComposite* p,FXint cols,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=TEXTFIELD_NORMAL,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=DEFAULT_PAD,FXint pr=DEFAULT_PAD,FXint pt=DEFAULT_PAD,FXint pb=DEFAULT_PAD);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  };
+
+
+// Button state bits
+enum {
+  STATE_UP        = 0,
+  STATE_DOWN      = 1,
+  STATE_ENGAGED   = 2,
+  STATE_UNCHECKED = STATE_UP,
+  STATE_CHECKED   = STATE_ENGAGED
+  };
+
+// Button flags
+enum {
+  BUTTON_AUTOGRAY = 0x00800000,   /// Automatically gray out when not updated
+  BUTTON_AUTOHIDE = 0x01000000,   /// Automatically hide button when not updated
+  BUTTON_TOOLBAR  = 0x02000000,   /// Toolbar style button [flat look]
+  BUTTON_DEFAULT  = 0x04000000,   /// May become default button when receiving focus
+  BUTTON_INITIAL   = 0x08000000,  /// This button is the initial default button
+  BUTTON_NORMAL   = (FRAME_RAISED|FRAME_THICK|JUSTIFY_NORMAL|ICON_BEFORE_TEXT)
+  };
+
+
+// Your basic button
+class FXButton : public FXLabel {
+public:
+  long onPaint(FXObject*,FXSelector,void*);
+  long onUpdate(FXObject*,FXSelector,void*);
+  long onEnter(FXObject*,FXSelector,void*);
+  long onLeave(FXObject*,FXSelector,void*);
+  long onFocusIn(FXObject*,FXSelector,void*);
+  long onFocusOut(FXObject*,FXSelector,void*);
+  long onUngrabbed(FXObject*,FXSelector,void*);
+  long onLeftBtnPress(FXObject*,FXSelector,void*);
+  long onLeftBtnRelease(FXObject*,FXSelector,void*);
+  long onKeyPress(FXObject*,FXSelector,void*);
+  long onKeyRelease(FXObject*,FXSelector,void*);
+  long onHotKeyPress(FXObject*,FXSelector,void*);
+  long onHotKeyRelease(FXObject*,FXSelector,void*);
+  long onCheck(FXObject*,FXSelector,void*);
+  long onUncheck(FXObject*,FXSelector,void*);
+  long onCmdSetValue(FXObject*,FXSelector,void*);
+  long onCmdSetIntValue(FXObject*,FXSelector,void*);
+  long onCmdGetIntValue(FXObject*,FXSelector,void*);
+public:
+  /// Construct button with text and icon
+  FXButton(FXComposite* p,const FXString& text,FXIcon* ic=NULL,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=BUTTON_NORMAL,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=DEFAULT_PAD,FXint pr=DEFAULT_PAD,FXint pt=DEFAULT_PAD,FXint pb=DEFAULT_PAD);
+
+  /// Set the button state
+  void setState(FXuint s);
+
+  /// Get the button state
+  FXuint getState() const;
+
+  /// Set the button style flags
+  void setButtonStyle(FXuint style);
+
+  /// Get the button style flags
+  FXuint getButtonStyle() const;
+};
+
+
+class FXPyButton : public FXButton {
+public:
+  /// Construct button with text and icon
+  FXPyButton(FXComposite* p,const FXString& text,FXIcon* ic=NULL,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=BUTTON_NORMAL,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=DEFAULT_PAD,FXint pr=DEFAULT_PAD,FXint pt=DEFAULT_PAD,FXint pb=DEFAULT_PAD);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+
+public:
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  };
+
+
+// Button flags
+enum {
+  TOGGLEBUTTON_AUTOGRAY = 0x00800000,
+  TOGGLEBUTTON_AUTOHIDE = 0x01000000,
+  TOGGLEBUTTON_TOOLBAR  = 0x02000000,
+  TOGGLEBUTTON_NORMAL   = FRAME_RAISED|FRAME_THICK|JUSTIFY_NORMAL|ICON_BEFORE_TEXT
+  };
+
+
+// Toggle button
+class FXToggleButton : public FXLabel {
+public:
+  long onPaint(FXObject*,FXSelector,void*);
+  long onUpdate(FXObject*,FXSelector,void*);
+  long onEnter(FXObject*,FXSelector,void*);
+  long onLeave(FXObject*,FXSelector,void*);
+  long onFocusIn(FXObject*,FXSelector,void*);
+  long onFocusOut(FXObject*,FXSelector,void*);
+  long onUngrabbed(FXObject*,FXSelector,void*);
+  long onLeftBtnPress(FXObject*,FXSelector,void*);
+  long onLeftBtnRelease(FXObject*,FXSelector,void*);
+  long onKeyPress(FXObject*,FXSelector,void*);
+  long onKeyRelease(FXObject*,FXSelector,void*);
+  long onHotKeyPress(FXObject*,FXSelector,void*);
+  long onHotKeyRelease(FXObject*,FXSelector,void*);
+  long onCheck(FXObject*,FXSelector,void*);
+  long onUncheck(FXObject*,FXSelector,void*);
+  long onQueryHelp(FXObject*,FXSelector,void*);
+  long onQueryTip(FXObject*,FXSelector,void*);
+  long onCmdSetValue(FXObject*,FXSelector,void*);
+  long onCmdSetIntValue(FXObject*,FXSelector,void*);
+  long onCmdGetIntValue(FXObject*,FXSelector,void*);
+public:
+  FXToggleButton(FXComposite* p,const FXString& text1,const FXString& text2,FXIcon* ic1=NULL,FXIcon* ic2=NULL,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=TOGGLEBUTTON_NORMAL,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=DEFAULT_PAD,FXint pr=DEFAULT_PAD,FXint pt=DEFAULT_PAD,FXint pb=DEFAULT_PAD);
+  void setState(FXbool s=TRUE);
+  FXbool getState() const;
+  void setAltText(const FXString& text);
+  FXString getAltText() const;
+  void setAltIcon(FXIcon* ic);
+  FXIcon* getAltIcon() const;
+  void setAltHelpText(const FXString& text);
+  FXString getAltHelpText() const;
+  void setAltTipText(const FXString& text);
+  FXString getAltTipText() const;
+  };
+
+
+class FXPyToggleButton : public FXToggleButton {
+public:
+  FXPyToggleButton(FXComposite* p,const FXString& text1,const FXString& text2,FXIcon* ic1=NULL,FXIcon* ic2=NULL,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=TOGGLEBUTTON_NORMAL,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=DEFAULT_PAD,FXint pr=DEFAULT_PAD,FXint pt=DEFAULT_PAD,FXint pb=DEFAULT_PAD);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  };
+
+
+// RadioButton flags
+enum {
+  RADIOBUTTON_AUTOGRAY = 0x00800000,
+  RADIOBUTTON_AUTOHIDE = 0x01000000,
+  RADIOBUTTON_NORMAL   = JUSTIFY_NORMAL|ICON_BEFORE_TEXT
+  };
+
+
+// Radio button
+class FXRadioButton : public FXLabel {
+public:
+  long onPaint(FXObject*,FXSelector,void*);
+  long onUpdate(FXObject*,FXSelector,void*);
+  long onEnter(FXObject*,FXSelector,void*);
+  long onLeave(FXObject*,FXSelector,void*);
+  long onFocusIn(FXObject*,FXSelector,void*);
+  long onFocusOut(FXObject*,FXSelector,void*);
+  long onUngrabbed(FXObject*,FXSelector,void*);
+  long onLeftBtnPress(FXObject*,FXSelector,void*);
+  long onLeftBtnRelease(FXObject*,FXSelector,void*);
+  long onKeyPress(FXObject*,FXSelector,void*);
+  long onKeyRelease(FXObject*,FXSelector,void*);
+  long onHotKeyPress(FXObject*,FXSelector,void*);
+  long onHotKeyRelease(FXObject*,FXSelector,void*);
+  long onUncheckRadio(FXObject*,FXSelector,void*);
+  long onCheck(FXObject*,FXSelector,void*);
+  long onUncheck(FXObject*,FXSelector,void*);
+  long onUnknown(FXObject*,FXSelector,void*);
+  long onCmdSetValue(FXObject*,FXSelector,void*);
+  long onCmdSetIntValue(FXObject*,FXSelector,void*);
+  long onCmdGetIntValue(FXObject*,FXSelector,void*);
+public:
+  FXRadioButton(FXComposite* p,const FXString& text,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=RADIOBUTTON_NORMAL,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=DEFAULT_PAD,FXint pr=DEFAULT_PAD,FXint pt=DEFAULT_PAD,FXint pb=DEFAULT_PAD);
+  void setCheck(FXbool s=TRUE);
+  FXbool getCheck() const;
+  void setRadioButtonStyle(FXuint style);
+  FXuint getRadioButtonStyle() const;
+  FXColor getRadioColor() const;
+  void setRadioColor(FXColor clr);
+  };
+
+
+class FXPyRadioButton : public FXRadioButton {
+public:
+  FXPyRadioButton(FXComposite* p,const FXString& text,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=RADIOBUTTON_NORMAL,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=DEFAULT_PAD,FXint pr=DEFAULT_PAD,FXint pt=DEFAULT_PAD,FXint pb=DEFAULT_PAD);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  };
+
+
+// CheckButton flags
+enum {
+  CHECKBUTTON_AUTOGRAY = 0x00800000,
+  CHECKBUTTON_AUTOHIDE = 0x01000000,
+  CHECKBUTTON_NORMAL   = JUSTIFY_NORMAL|ICON_BEFORE_TEXT
+  };
+
+
+// Check button
+class FXCheckButton : public FXLabel {
+public:
+  long onPaint(FXObject*,FXSelector,void*);
+  long onUpdate(FXObject*,FXSelector,void*);
+  long onEnter(FXObject*,FXSelector,void*);
+  long onLeave(FXObject*,FXSelector,void*);
+  long onFocusIn(FXObject*,FXSelector,void*);
+  long onFocusOut(FXObject*,FXSelector,void*);
+  long onUngrabbed(FXObject*,FXSelector,void*);
+  long onLeftBtnPress(FXObject*,FXSelector,void*);
+  long onLeftBtnRelease(FXObject*,FXSelector,void*);
+  long onKeyPress(FXObject*,FXSelector,void*);
+  long onKeyRelease(FXObject*,FXSelector,void*);
+  long onHotKeyPress(FXObject*,FXSelector,void*);
+  long onHotKeyRelease(FXObject*,FXSelector,void*);
+  long onCheck(FXObject*,FXSelector,void*);
+  long onUncheck(FXObject*,FXSelector,void*);
+  long onUnknown(FXObject*,FXSelector,void*);
+  long onCmdSetValue(FXObject*,FXSelector,void*);
+  long onCmdSetIntValue(FXObject*,FXSelector,void*);
+  long onCmdGetIntValue(FXObject*,FXSelector,void*);
+public:
+  // Constructor
+  FXCheckButton(FXComposite* p,const FXString& text,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=CHECKBUTTON_NORMAL,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=DEFAULT_PAD,FXint pr=DEFAULT_PAD,FXint pt=DEFAULT_PAD,FXint pb=DEFAULT_PAD);
+
+  void setCheck(FXbool state=TRUE);
+  FXbool getCheck() const;
+
+  FXColor getBoxColor() const;
+  void setBoxColor(FXColor clr);
+
+  void setCheckButtonStyle(FXuint style);
+  FXuint getCheckButtonStyle() const;
+  };
+
+
+class FXPyCheckButton : public FXCheckButton {
+public:
+  FXPyCheckButton(FXComposite* p,const FXString& text,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=CHECKBUTTON_NORMAL,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=DEFAULT_PAD,FXint pr=DEFAULT_PAD,FXint pt=DEFAULT_PAD,FXint pb=DEFAULT_PAD);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  };
+
+
+// Arrow options
+enum {
+  ARROW_NONE     = 0,
+  ARROW_UP       = 0x00080000,
+  ARROW_DOWN     = 0x00100000,
+  ARROW_LEFT     = 0x00200000,
+  ARROW_RIGHT    = 0x00400000,
+  ARROW_REPEAT   = 0x00800000,
+  ARROW_AUTOGRAY = 0x01000000,
+  ARROW_AUTOHIDE = 0x02000000,
+  ARROW_TOOLBAR  = 0x04000000,
+  ARROW_NORMAL   = FRAME_RAISED|FRAME_THICK|ARROW_UP
+  };
+
+
+// Button with an arrow
+class FXArrowButton : public FXFrame {
+public:
+  long onPaint(FXObject*,FXSelector,void*);
+  long onUpdate(FXObject*,FXSelector,void*);
+  long onEnter(FXObject*,FXSelector,void*);
+  long onLeave(FXObject*,FXSelector,void*);
+  long onLeftBtnPress(FXObject*,FXSelector,void*);
+  long onLeftBtnRelease(FXObject*,FXSelector,void*);
+  long onUngrabbed(FXObject*,FXSelector,void*);
+  long onRepeat(FXObject*,FXSelector,void*);
+  long onKeyPress(FXObject*,FXSelector,void*);
+  long onKeyRelease(FXObject*,FXSelector,void*);
+  long onHotKeyPress(FXObject*,FXSelector,void*);
+  long onHotKeyRelease(FXObject*,FXSelector,void*);
+  long onQueryHelp(FXObject*,FXSelector,void*);
+  long onQueryTip(FXObject*,FXSelector,void*);
+public:
+  enum {
+    ID_REPEAT=FXFrame::ID_LAST,
+    ID_LAST
+    };
+public:
+  /// Construct arrow button
+  FXArrowButton(FXComposite* p,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=ARROW_NORMAL,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=DEFAULT_PAD,FXint pr=DEFAULT_PAD,FXint pt=DEFAULT_PAD,FXint pb=DEFAULT_PAD);
+
+  /// Set the button state (where TRUE means the button is down)
+  void setState(FXbool s);
+
+  /// Get the button state (where TRUE means the button is down)
+  FXbool getState() const;
+
+  /// Set status line help text for this arrow button
+  void setHelpText(const FXString& text);
+
+  /// Get status line help text for this arrow button
+  FXString getHelpText() const;
+
+  /// Set tool tip message for this arrow button
+  void setTipText(const FXString& text);
+
+  /// Get tool tip message for this arrow button
+  FXString getTipText() const;
+
+   /// Set the arrow style flags
+  void setArrowStyle(FXuint style);
+
+  /// Get the arrow style flags
+  FXuint getArrowStyle() const;
+
+  /// Set the default arrow size
+  void setArrowSize(FXint size);
+
+  /// Get the default arrow size
+  FXint getArrowSize() const;
+
+  /// Set the current justification mode.
+  void setJustify(FXuint mode);
+
+  /// Get the current justification mode.
+  FXuint getJustify() const;
+
+  /// Get the fill color for the arrow
+  FXColor getArrowColor() const;
+
+  /// Set the fill color for the arrow
+  void setArrowColor(FXColor clr);
+  };
+
+
+class FXPyArrowButton : public FXArrowButton {
+public:
+  /// Construct arrow button
+  FXPyArrowButton(FXComposite* p,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=ARROW_NORMAL,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=DEFAULT_PAD,FXint pr=DEFAULT_PAD,FXint pt=DEFAULT_PAD,FXint pb=DEFAULT_PAD);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  };
+
+
+//  Options
+enum {
+  SPIN_NORMAL  =  0,
+  SPIN_CYCLIC  =  0x00008000,       // Cyclic spinner
+  SPIN_NOTEXT  =  0x00010000,       // No text visible
+  SPIN_NOMAX   =  0x00020000,       // Spin all the way up to infinity
+  SPIN_NOMIN   =  0x00040000        // Spin all the way down to -infinity
+  };
+
+/**
+* A picker button allows you to identify an arbitrary
+* location on the screen.
+*/
+class FXPicker : public FXButton {
+public:
+  long onMotion(FXObject*,FXSelector,void*);
+  long onLeftBtnPress(FXObject*,FXSelector,void*);
+  long onLeftBtnRelease(FXObject*,FXSelector,void*);
+  long onEnter(FXObject*,FXSelector,void*);
+  long onLeave(FXObject*,FXSelector,void*);
+public:
+  FXPicker(FXComposite* p,const FXString& text,FXIcon* ic=NULL,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=BUTTON_NORMAL,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=DEFAULT_PAD,FXint pr=DEFAULT_PAD,FXint pt=DEFAULT_PAD,FXint pb=DEFAULT_PAD);
+  };
+
+
+class FXPyPicker : public FXPicker {
+public:
+  FXPyPicker(FXComposite* p,const FXString& text,FXIcon* ic=NULL,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=BUTTON_NORMAL,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=DEFAULT_PAD,FXint pr=DEFAULT_PAD,FXint pt=DEFAULT_PAD,FXint pb=DEFAULT_PAD);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  };
+
+
+//  Spinner control
+class FXSpinner : public FXPacker {
+public:
+  long onUpdIncrement(FXObject*,FXSelector,void*);
+  long onCmdIncrement(FXObject*,FXSelector,void*);
+  long onUpdDecrement(FXObject*,FXSelector,void*);
+  long onCmdDecrement(FXObject*,FXSelector,void*);
+  long onCmdEntry(FXObject*,FXSelector,void*);
+  long onChgEntry(FXObject*,FXSelector,void*);
+  long onKeyPress(FXObject*,FXSelector,void*);
+  long onKeyRelease(FXObject*,FXSelector,void*);
+  long onCmdSetValue(FXObject*,FXSelector,void*);
+  long onCmdSetIntValue(FXObject*,FXSelector,void*);
+  long onCmdGetIntValue(FXObject*,FXSelector,void*);
+  long onCmdSetIntRange(FXObject*,FXSelector,void*);
+  long onCmdGetIntRange(FXObject*,FXSelector,void*);
+public:
+  enum {
+    ID_INCREMENT=FXPacker::ID_LAST,
+    ID_DECREMENT,
+    ID_ENTRY,
+    ID_LAST
+    };
+public:
+  FXSpinner(FXComposite *p,FXint cols,FXObject *tgt=NULL,FXSelector sel=0,FXuint opts=SPIN_NORMAL,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=DEFAULT_PAD,FXint pr=DEFAULT_PAD,FXint pt=DEFAULT_PAD,FXint pb=DEFAULT_PAD);
+  void increment();
+  void decrement();
+  FXbool isCyclic() const;
+  void setCyclic(FXbool cyclic);
+  FXbool isTextVisible() const;
+  void setTextVisible(FXbool shown);
+  void setValue(FXint value);
+  FXint getValue() const;
+
+  /// Change the spinner's range
+  void setRange(FXint lo,FXint hi);
+
+  // void getRange(FXint& lo,FXint& hi) const;
+  %addmethods {
+    PyObject* getRange() const {
+      FXint lo,hi;
+      self->getRange(lo,hi);
+      FXbool doSave = FXPyRestoreThread();
+      PyObject* tuple=PyTuple_New(2);
+      if (tuple) {
+	PyObject *obj1 = PyInt_FromLong(lo);
+	if (!obj1 || PyTuple_SetItem(tuple, 0, obj1) < 0) {
+	  Py_DECREF(tuple);
+          FXPySaveThread(doSave);
+	  return NULL;
+	}
+	PyObject *obj2 = PyInt_FromLong(hi);
+	if (!obj2 || PyTuple_SetItem(tuple, 1, obj2) < 0) {
+	  Py_DECREF(tuple);
+          FXPySaveThread(doSave);
+	  return NULL;
+	}
+      }
+      FXPySaveThread(doSave);
+      return tuple;
+    }
+  }
+
+  void setIncrement(FXint increment);
+  FXint getIncrement() const;
+  void setFont(FXFont *fnt);
+  FXFont *getFont() const;
+  void setHelpText(const FXString& text);
+  FXString getHelpText() const;
+  void setTipText(const FXString& text);
+  FXString getTipText() const;
+
+  /// Change spinner style
+  void setSpinnerStyle(FXuint style);
+  
+  /// Return current spinner style
+  FXuint getSpinnerStyle() const;
+
+  /// Allow editing of the text field
+  void setEditable(FXbool edit=TRUE);
+  
+  /// Return TRUE if text field is editable
+  FXbool isEditable() const;
+  };
+
+
+class FXPySpinner : public FXSpinner {
+public:
+  FXPySpinner(FXComposite *p,FXint cols,FXObject *tgt=NULL,FXSelector sel=0,FXuint opts=SPIN_NORMAL,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=DEFAULT_PAD,FXint pr=DEFAULT_PAD,FXint pt=DEFAULT_PAD,FXint pb=DEFAULT_PAD);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  };
+
+
+/// Tooltip styles
+enum {
+  TOOLTIP_NORMAL     = 0,              /// Normal tooltip
+  TOOLTIP_PERMANENT  = 0x00020000,     /// Tooltip stays up indefinitely
+  TOOLTIP_VARIABLE   = 0x00040000      /// Tooltip stays up variable time, depending on the length of the string
+  };
+
+
+class FXTooltip : public FXShell {
+public:
+  long onPaint(FXObject*,FXSelector,void*);
+  long onUpdate(FXObject*,FXSelector,void*);
+  long onTipShow(FXObject*,FXSelector,void*);
+  long onTipHide(FXObject*,FXSelector,void*);
+  long onCmdGetStringValue(FXObject*,FXSelector,void*);
+  long onCmdSetStringValue(FXObject*,FXSelector,void*);
+public:
+  enum {
+    ID_TIP_SHOW=FXShell::ID_LAST,
+    ID_TIP_HIDE,
+    ID_LAST
+    };
+public:
+  FXTooltip(FXApp* a,FXuint opts=TOOLTIP_NORMAL,FXint x=0,FXint y=0,FXint w=0,FXint h=0);
+  void setText(const FXString& text);
+  FXString getText() const;
+  void setFont(FXFont *fnt);
+  FXFont* getFont() const;
+  FXColor getTextColor() const;
+  void setTextColor(FXColor clr);
+};
+
+
+class FXPyTooltip : public FXTooltip {
+public:
+  FXPyTooltip(FXApp* a,FXuint opts=0,FXint x=0,FXint y=0,FXint w=0,FXint h=0);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  };
+
+
+// Option
+class FXOption : public FXLabel {
+public:
+  long onPaint(FXObject*,FXSelector,void*);
+  long onEnter(FXObject*,FXSelector,void*);
+  long onLeave(FXObject*,FXSelector,void*);
+  long onLeftBtnPress(FXObject*,FXSelector,void*);
+  long onLeftBtnRelease(FXObject*,FXSelector,void*);
+  long onKeyPress(FXObject*,FXSelector,void*);
+  long onKeyRelease(FXObject*,FXSelector,void*);
+  long onHotKeyPress(FXObject*,FXSelector,void*);
+  long onHotKeyRelease(FXObject*,FXSelector,void*);
+public:
+  FXOption(FXComposite* p,const FXString& text,FXIcon* ic=NULL,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=JUSTIFY_NORMAL|ICON_BEFORE_TEXT|MENUBUTTON_DOWN,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=DEFAULT_PAD,FXint pr=DEFAULT_PAD,FXint pt=DEFAULT_PAD,FXint pb=DEFAULT_PAD);
+  };
+
+
+class FXPyOption : public FXOption {
+public:
+  FXPyOption(FXComposite* p,const FXString& text,FXIcon* ic=NULL,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=JUSTIFY_NORMAL|ICON_BEFORE_TEXT|MENUBUTTON_DOWN,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=DEFAULT_PAD,FXint pr=DEFAULT_PAD,FXint pt=DEFAULT_PAD,FXint pb=DEFAULT_PAD);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  };
+
+  
+// Option Menu button
+class FXOptionMenu : public FXLabel {
+public:
+  long onPaint(FXObject*,FXSelector,void*);
+  long onLeftBtnPress(FXObject*,FXSelector,void*);
+  long onLeftBtnRelease(FXObject*,FXSelector,void*);
+  long onFocusIn(FXObject*,FXSelector,void*);
+  long onFocusOut(FXObject*,FXSelector,void*);
+  long onMotion(FXObject*,FXSelector,void*);
+  long onKeyPress(FXObject*,FXSelector,void*);
+  long onKeyRelease(FXObject*,FXSelector,void*);
+  long onCmdPost(FXObject*,FXSelector,void*);
+  long onCmdUnpost(FXObject*,FXSelector,void*);
+  long onQueryHelp(FXObject*,FXSelector,void*);
+  long onQueryTip(FXObject*,FXSelector,void*);
+  long onCmdSetValue(FXObject*,FXSelector,void*);
+  long onCmdSetIntValue(FXObject*,FXSelector,void*);
+  long onCmdGetIntValue(FXObject*,FXSelector,void*);
+public:
+  FXOptionMenu(FXComposite* p,FXPopup* pup=NULL,FXuint opts=JUSTIFY_NORMAL|ICON_BEFORE_TEXT,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=DEFAULT_PAD,FXint pr=DEFAULT_PAD,FXint pt=DEFAULT_PAD,FXint pb=DEFAULT_PAD);
+  void setCurrent(FXOption *win);
+  FXOption* getCurrent() const;
+  void setCurrentNo(FXint no);
+  FXint getCurrentNo() const;
+  void setPopup(FXPopup *pup);
+  FXPopup* getPopup() const;
+  FXbool isPopped() const;
+  };
+
+
+class FXPyOptionMenu : public FXOptionMenu {
+public:
+  FXPyOptionMenu(FXComposite* p,FXPopup* pup=NULL,FXuint opts=JUSTIFY_NORMAL|ICON_BEFORE_TEXT,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=DEFAULT_PAD,FXint pr=DEFAULT_PAD,FXint pt=DEFAULT_PAD,FXint pb=DEFAULT_PAD);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  };
+
+
+// Tab Item orientations which affect border
+enum {
+  TAB_TOP          = 0,           // Top side tabs
+  TAB_LEFT         = 0x00800000,  // Left side tabs
+  TAB_RIGHT        = 0x01000000,  // Right side tabs
+  TAB_BOTTOM       = 0x01800000,  // Bottom side tabs
+  TAB_TOP_NORMAL   = JUSTIFY_NORMAL|ICON_BEFORE_TEXT|TAB_TOP|FRAME_RAISED|FRAME_THICK,
+  TAB_BOTTOM_NORMAL= JUSTIFY_NORMAL|ICON_BEFORE_TEXT|TAB_BOTTOM|FRAME_RAISED|FRAME_THICK,
+  TAB_LEFT_NORMAL  = JUSTIFY_LEFT|JUSTIFY_CENTER_Y|ICON_BEFORE_TEXT|TAB_LEFT|FRAME_RAISED|FRAME_THICK,
+  TAB_RIGHT_NORMAL = JUSTIFY_LEFT|JUSTIFY_CENTER_Y|ICON_BEFORE_TEXT|TAB_RIGHT|FRAME_RAISED|FRAME_THICK
+  };
+
+
+// Tab Book options
+enum {
+  TABBOOK_TOPTABS    = 0,                                   // Tabs on top (default)
+  TABBOOK_BOTTOMTABS = 0x00020000,                          // Tabs on bottom
+  TABBOOK_SIDEWAYS   = 0x00040000,                          // Tabs on left
+  TABBOOK_LEFTTABS   = TABBOOK_SIDEWAYS|TABBOOK_TOPTABS,    // Tabs on left
+  TABBOOK_RIGHTTABS  = TABBOOK_SIDEWAYS|TABBOOK_BOTTOMTABS, // Tabs on right
+  TABBOOK_NORMAL     = TABBOOK_TOPTABS
+  };
+
+
+/**
+* The tab bar layout manager arranges tab items side by side,
+* and raises the active tab item above the neighboring tab items.
+* The tab bar can be have the tab items on the top or
+* bottom for horizontal arrangement, or on the left or right
+* for vertical arrangement.
+*/
+class FXTabBar : public FXPacker {
+public:
+  long onPaint(FXObject*,FXSelector,void*);
+  long onFocusNext(FXObject*,FXSelector,void*);
+  long onFocusPrev(FXObject*,FXSelector,void*);
+  long onFocusUp(FXObject*,FXSelector,void*);
+  long onFocusDown(FXObject*,FXSelector,void*);
+  long onFocusLeft(FXObject*,FXSelector,void*);
+  long onFocusRight(FXObject*,FXSelector,void*);
+  long onCmdOpenItem(FXObject*,FXSelector,void*);
+  long onCmdSetValue(FXObject*,FXSelector,void*);
+  long onCmdSetIntValue(FXObject*,FXSelector,void*);
+  long onCmdGetIntValue(FXObject*,FXSelector,void*);
+  long onCmdOpen(FXObject*,FXSelector,void*);
+  long onUpdOpen(FXObject*,FXSelector,void*);
+public:
+  enum{
+    ID_OPEN_ITEM=FXPacker::ID_LAST,   // Only sent by FXTabItems
+    ID_OPEN_FIRST,                    // Switch to panel ID_OPEN_FIRST+i
+    ID_OPEN_SECOND,
+    ID_OPEN_THIRD,
+    ID_OPEN_FOURTH,
+    ID_OPEN_FIFTH,
+    ID_OPEN_SIXTH,
+    ID_OPEN_SEVENTH,
+    ID_OPEN_EIGHTH,
+    ID_OPEN_NINETH,
+    ID_OPEN_TENTH,
+    ID_OPEN_LAST=ID_OPEN_FIRST+100,
+    ID_LAST
+    };
+public:
+  /// Construct a tab bar
+  FXTabBar(FXComposite* p,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=TABBOOK_NORMAL,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=DEFAULT_SPACING,FXint pr=DEFAULT_SPACING,FXint pt=DEFAULT_SPACING,FXint pb=DEFAULT_SPACING);
+
+  /**
+  * Change currently active tab item;
+  * this raises the active tab item slightly above the neighboring
+  * tab items.
+  */
+  virtual void setCurrent(FXint panel,FXbool notify=FALSE);
+  
+  /// Return the currently active tab item
+  FXint getCurrent() const;
+  
+  /// Return tab bar style
+  FXuint getTabStyle() const;
+  
+  /// Change tab bar style
+  void setTabStyle(FXuint style);
+  };
+
+
+class FXPyTabBar : public FXTabBar {
+public:
+  /// Construct a tab bar
+  FXPyTabBar(FXComposite* p,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=TABBOOK_NORMAL,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=DEFAULT_SPACING,FXint pr=DEFAULT_SPACING,FXint pt=DEFAULT_SPACING,FXint pb=DEFAULT_SPACING);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  FXTABBAR_VIRTUALS
+  };
+
+
+/**
+* A tab item is placed in a tab bar or tab book.
+* When selected, the tab item sends a message to its
+* parent, and causes itself to become the active tab,
+* and raised slightly above the other tabs.
+* In the tab book, activating a tab item also causes
+* the corresponding panel to be raised to the top.
+*/
+class FXTabItem : public FXLabel {
+public:
+  long onPaint(FXObject*,FXSelector,void*);
+  long onFocusIn(FXObject*,FXSelector,void*);
+  long onFocusOut(FXObject*,FXSelector,void*);
+  long onUngrabbed(FXObject*,FXSelector,void*);
+  long onLeftBtnPress(FXObject*,FXSelector,void*);
+  long onLeftBtnRelease(FXObject*,FXSelector,void*);
+  long onKeyPress(FXObject*,FXSelector,void*);
+  long onKeyRelease(FXObject*,FXSelector,void*);
+  long onHotKeyPress(FXObject*,FXSelector,void*);
+  long onHotKeyRelease(FXObject*,FXSelector,void*);
+public:
+  /// Construct a tab item
+  FXTabItem(FXTabBar* p,const FXString& text,FXIcon* ic=0,FXuint opts=TAB_TOP_NORMAL,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=DEFAULT_PAD,FXint pr=DEFAULT_PAD,FXint pt=DEFAULT_PAD,FXint pb=DEFAULT_PAD);
+  
+  /// Return current tab item orientation
+  FXuint getTabOrientation() const;
+  
+  // Change tab item orientation
+  void setTabOrientation(FXuint style);
+  };
+
+
+class FXPyTabItem : public FXTabItem {
+public:
+  /// Construct a tab item
+  FXPyTabItem(FXTabBar* p,const FXString& text,FXIcon* ic=0,FXuint opts=TAB_TOP_NORMAL,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=DEFAULT_PAD,FXint pr=DEFAULT_PAD,FXint pt=DEFAULT_PAD,FXint pb=DEFAULT_PAD);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  };
+
+
+/**
+* The tab book layout manager arranges pairs of children;
+* the even numbered children (0,2,4,...) are usually tab items,
+* and are placed on the top.  The odd numbered children are
+* usually layout managers, and are placed below; all the odd
+* numbered children are placed on top of each other, similar
+* to the switcher widget.  When the user presses one of the
+* tab items, the tab item is raised above the neighboring tabs,
+* and the corresponding panel is raised to the top.
+* Thus, a tab book can be used to present many GUI controls
+* in a small space by placing several panels on top of each
+* other and using tab items to select the desired panel.
+*/
+class FXTabBook : public FXTabBar {
+public:
+  long onPaint(FXObject*,FXSelector,void*);
+  long onFocusNext(FXObject*,FXSelector,void*);
+  long onFocusPrev(FXObject*,FXSelector,void*);
+  long onFocusUp(FXObject*,FXSelector,void*);
+  long onFocusDown(FXObject*,FXSelector,void*);
+  long onFocusLeft(FXObject*,FXSelector,void*);
+  long onFocusRight(FXObject*,FXSelector,void*);
+  long onCmdOpenItem(FXObject*,FXSelector,void*);
+public:
+  /// Construct tab book
+  FXTabBook(FXComposite* p,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=TABBOOK_NORMAL,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=DEFAULT_SPACING,FXint pr=DEFAULT_SPACING,FXint pt=DEFAULT_SPACING,FXint pb=DEFAULT_SPACING);
+  };
+
+
+class FXPyTabBook : public FXTabBook {
+public:
+  /// Construct tab book
+  FXPyTabBook(FXComposite* p,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=TABBOOK_NORMAL,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=DEFAULT_SPACING,FXint pr=DEFAULT_SPACING,FXint pt=DEFAULT_SPACING,FXint pb=DEFAULT_SPACING);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  FXTABBAR_VIRTUALS
+  };
+
+
+// Scrollbar options
+enum {
+  SCROLLBAR_HORIZONTAL = 0x00020000,	// Horizontally oriented
+  SCROLLBAR_VERTICAL   = 0		// Vertically oriented
+  };
+
+
+// Scroll bar
+class FXScrollbar : public FXWindow {
+public:
+  long onPaint(FXObject*,FXSelector,void*);
+  long onMotion(FXObject*,FXSelector,void*);
+  long onMouseWheel(FXObject*,FXSelector,void*);
+  long onLeftBtnPress(FXObject*,FXSelector,void*);
+  long onLeftBtnRelease(FXObject*,FXSelector,void*);
+  long onMiddleBtnPress(FXObject*,FXSelector,void*);
+  long onMiddleBtnRelease(FXObject*,FXSelector,void*);
+  long onRightBtnPress(FXObject*,FXSelector,void*);
+  long onRightBtnRelease(FXObject*,FXSelector,void*);
+  long onUngrabbed(FXObject*,FXSelector,void*);
+  long onTimeIncPix(FXObject*,FXSelector,void*);
+  long onTimeIncLine(FXObject*,FXSelector,void*);
+  long onTimeIncPage(FXObject*,FXSelector,void*);
+  long onTimeDecPix(FXObject*,FXSelector,void*);
+  long onTimeDecLine(FXObject*,FXSelector,void*);
+  long onTimeDecPage(FXObject*,FXSelector,void*);
+  long onTimeWheel(FXObject*,FXSelector,void*);
+  long onCmdSetValue(FXObject*,FXSelector,void*);
+  long onCmdSetIntValue(FXObject*,FXSelector,void*);
+  long onCmdGetIntValue(FXObject*,FXSelector,void*);
+  long onCmdSetIntRange(FXObject*,FXSelector,void*);
+  long onCmdGetIntRange(FXObject*,FXSelector,void*);
+public:
+  enum{
+    ID_TIMEWHEEL=FXWindow::ID_LAST,
+    ID_AUTOINC_LINE,
+    ID_AUTODEC_LINE,
+    ID_AUTOINC_PAGE,
+    ID_AUTODEC_PAGE,
+    ID_AUTOINC_PIX,
+    ID_AUTODEC_PIX,
+    ID_LAST
+    };
+public:
+  FXScrollbar(FXComposite* p,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=SCROLLBAR_VERTICAL,FXint x=0,FXint y=0,FXint w=0,FXint h=0);
+
+  void setRange(FXint r);
+  FXint getRange() const;
+
+  void setPage(FXint p);
+  FXint getPage() const;
+
+  void setLine(FXint l);
+  FXint getLine() const;
+
+  void setPosition(FXint p);
+  FXint getPosition() const;
+
+  void setHiliteColor(FXColor clr);
+  FXColor getHiliteColor() const;
+
+  void setShadowColor(FXColor clr);
+  FXColor getShadowColor() const;
+
+  FXColor getBorderColor() const;
+  void setBorderColor(FXColor clr);
+
+  FXuint getScrollbarStyle() const;
+  void setScrollbarStyle(FXuint style);
+  };
+
+
+class FXPyScrollbar : public FXScrollbar {
+public:
+  FXPyScrollbar(FXComposite* p,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=SCROLLBAR_VERTICAL,FXint x=0,FXint y=0,FXint w=0,FXint h=0);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  };
+
+
+// Corner between scroll bars
+class FXScrollCorner : public FXWindow {
+public:
+  long onPaint(FXObject*,FXSelector,void*);
+public:
+  FXScrollCorner(FXComposite* p);
+  };
+
+
+class FXPyScrollCorner : public FXScrollCorner {
+public:
+  FXPyScrollCorner(FXComposite* p);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  };
+
+
+// List options
+enum {
+  LIST_EXTENDEDSELECT = 0,                // Extended selection mode
+  LIST_SINGLESELECT   = 0x00100000,       // At most one selected item
+  LIST_BROWSESELECT   = 0x00200000,       // Always exactly one selected item
+  LIST_MULTIPLESELECT = LIST_SINGLESELECT|LIST_BROWSESELECT,  // Multiple selection mode
+  LIST_AUTOSELECT        = 0x00400000,    // Automatically select under cursor
+  LIST_NORMAL         = LIST_EXTENDEDSELECT
+  };
+
+
+// List item
+class FXListItem : public FXObject {
+public:
+  FXListItem(const FXString& text,FXIcon* ic=NULL,void* ptr=NULL);
+  FXString getText() const;
+  virtual void setText(const FXString& text);
+  FXIcon* getIcon() const;
+  virtual void setIcon(FXIcon* ic);
+  %addmethods {
+    void setData(PyObject* ptr) {
+      FXPySetData(self, ptr);
+    }
+    PyObject* getData() const {
+      return FXPyGetData(self);
+    }
+  }
+  FXbool hasFocus() const;
+  virtual void setFocus(FXbool focus);
+
+  FXbool isSelected() const;
+  virtual void setSelected(FXbool selected);
+
+  FXbool isEnabled() const;
+  virtual void setEnabled(FXbool enabled);
+
+  FXbool isDraggable() const;
+  virtual void setDraggable(FXbool draggable);
+
+  FXuint isIconOwned() const;
+  // virtual void setIconOwned(FXuint owned=ICONOWNED);
+  virtual void setIconOwned(FXuint owned=16);
+
+  virtual FXint getWidth(const FXList* list) const;
+  virtual FXint getHeight(const FXList* list) const;
+
+  virtual void create();
+  virtual void detach();
+  virtual void destroy();
+  };
+
+
+class FXPyListItem : public FXListItem {
+public:
+  FXPyListItem(const FXString& text,FXIcon* ic=NULL,void* ptr=NULL);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  LISTITEM_VIRTUALS
+  };
+
+
+// Base of list
+class FXList : public FXScrollArea {
+public:
+  long onPaint(FXObject*,FXSelector,void*);
+  long onEnter(FXObject*,FXSelector,void*);
+  long onLeave(FXObject*,FXSelector,void*);
+  long onUngrabbed(FXObject*,FXSelector,void*);
+  long onKeyPress(FXObject*,FXSelector,void*);
+  long onKeyRelease(FXObject*,FXSelector,void*);
+  long onLeftBtnPress(FXObject*,FXSelector,void*);
+  long onLeftBtnRelease(FXObject*,FXSelector,void*);
+  long onRightBtnPress(FXObject*,FXSelector,void*);
+  long onRightBtnRelease(FXObject*,FXSelector,void*);
+  long onMotion(FXObject*,FXSelector,void*);
+  long onFocusIn(FXObject*,FXSelector,void*);
+  long onFocusOut(FXObject*,FXSelector,void*);
+  long onAutoScroll(FXObject*,FXSelector,void*);
+  long onClicked(FXObject*,FXSelector,void*);
+  long onDoubleClicked(FXObject*,FXSelector,void*);
+  long onTripleClicked(FXObject*,FXSelector,void*);
+  long onQueryTip(FXObject*,FXSelector,void*);
+  long onQueryHelp(FXObject*,FXSelector,void*);
+  long onCommand(FXObject*,FXSelector,void*);
+  long onTipTimer(FXObject*,FXSelector,void*);
+  long onLookupTimer(FXObject*,FXSelector,void*);
+  long onCmdSetValue(FXObject*,FXSelector,void*);
+  long onCmdGetIntValue(FXObject*,FXSelector,void*);
+  long onCmdSetIntValue(FXObject*,FXSelector,void*);
+public:
+  enum {
+    ID_TIPTIMER=FXScrollArea::ID_LAST,
+    ID_LOOKUPTIMER,
+    ID_LAST
+    };
+public:
+  FXList(FXComposite *p,FXuint nvis,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=LIST_NORMAL,FXint x=0,FXint y=0,FXint w=0,FXint h=0);
+  FXuint getNumItems() const;
+  FXuint getNumVisible() const;
+  void setNumVisible(FXuint nitems);
+  FXListItem *retrieveItem(FXint index) const;
+
+  FXint insertItem(FXint index,FXListItem* item,FXbool notify=FALSE);
+  %name(insertItemStr) FXint insertItem(FXint index,const FXString& text,FXIcon *icon=NULL,void* ptr=NULL,FXbool notify=FALSE);
+
+  FXint replaceItem(FXint index,FXListItem* item,FXbool notify=FALSE);
+  %name(replaceItemStr) FXint replaceItem(FXint index,const FXString& text,FXIcon *icon=NULL,void* ptr=NULL,FXbool notify=FALSE);
+
+  FXint appendItem(FXListItem* item,FXbool notify=FALSE);
+  %name(appendItemStr) FXint appendItem(const FXString& text,FXIcon *icon=NULL,void* ptr=NULL,FXbool notify=FALSE);
+
+  FXint prependItem(FXListItem* item,FXbool notify=FALSE);
+  %name(prependItemStr) FXint prependItem(const FXString& text,FXIcon *icon=NULL,void* ptr=NULL,FXbool notify=FALSE);
+
+  void removeItem(FXint index,FXbool notify=FALSE);
+  void clearItems(FXbool notify=FALSE);
+  /// Return item width
+  FXint getItemWidth(FXint index) const;
+ 
+  /// Return item height
+  FXint getItemHeight(FXint index) const;
+
+  /// Return index of item at x,y, if any
+  FXint getItemAt(FXint x,FXint y) const;
+  FXint hitItem(FXint index,FXint x,FXint y) const;
+
+  FXint findItem(const FXString& text,FXint start=-1,FXuint flags=SEARCH_FORWARD|SEARCH_WRAP) const;
+
+  void makeItemVisible(FXint index);
+  void updateItem(FXint index);
+  void setItemText(FXint index,const FXString& text);
+  FXString getItemText(FXint index) const;
+  void setItemIcon(FXint index,FXIcon* icon);
+  FXIcon* getItemIcon(FXint index) const;
+  void setItemData(FXint index,void* ptr);
+  void* getItemData(FXint index) const;
+  FXbool isItemSelected(FXint index) const;
+  FXbool isItemCurrent(FXint index) const;
+  FXbool isItemVisible(FXint index) const;
+  FXbool isItemEnabled(FXint index) const;
+  FXbool enableItem(FXint index);
+  FXbool disableItem(FXint index);
+  FXbool selectItem(FXint index,FXbool notify=FALSE);
+  FXbool deselectItem(FXint index,FXbool notify=FALSE);
+  FXbool toggleItem(FXint index,FXbool notify=FALSE);
+  void setCurrentItem(FXint index,FXbool notify=FALSE);
+  FXint getCurrentItem() const;
+  void setAnchorItem(FXint index);
+  FXint getAnchorItem() const;
+  FXint getCursorItem() const;
+  FXbool extendSelection(FXint index,FXbool notify=FALSE);
+  FXbool killSelection(FXbool notify=FALSE);
+  void setFont(FXFont* fnt);
+  FXFont* getFont() const;
+  FXColor getTextColor() const;
+  void setTextColor(FXColor clr);
+  FXColor getSelBackColor() const;
+  void setSelBackColor(FXColor clr);
+  FXColor getSelTextColor() const;
+  void setSelTextColor(FXColor clr);
+  FXListSortFunc getSortFunc() const;
+  void setSortFunc(FXListSortFunc func);
+  FXuint getListStyle() const;
+  void setListStyle(FXuint style);
+  void setHelpText(const FXString& text);
+  FXString getHelpText() const;
+  };
+
+
+class FXPyList : public FXList {
+public:
+  FXPyList(FXComposite *p,FXuint nvis,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=LIST_NORMAL,FXint x=0,FXint y=0,FXint w=0,FXint h=0);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  SCROLLAREA_VIRTUALS
+  };
+
+
+// ComboBox styles
+enum {
+  COMBOBOX_NO_REPLACE     = 0,                  // Leave the list the same
+  COMBOBOX_REPLACE        = 0x00020000,         // Replace current item with typed text
+  COMBOBOX_INSERT_BEFORE  = 0x00040000,         // Typed text inserted before current
+  COMBOBOX_INSERT_AFTER   = 0x00060000,         // Typed text inserted after current
+  COMBOBOX_INSERT_FIRST   = 0x00080000,         // Typed text inserted at begin of list
+  COMBOBOX_INSERT_LAST    = 0x00090000,         // Typed text inserted at end of list
+  COMBOBOX_STATIC         = 0x00100000,         // Unchangable text box
+  COMBOBOX_NORMAL         = 0                   // Can type text but list is not changed
+  };
+
+
+// Combobox
+class FXComboBox : public FXPacker {
+public:
+  long onFocusUp(FXObject*,FXSelector,void*);
+  long onFocusDown(FXObject*,FXSelector,void*);
+  long onTextButton(FXObject*,FXSelector,void*);
+  long onTextChanged(FXObject*,FXSelector,void*);
+  long onTextCommand(FXObject*,FXSelector,void*);
+  long onListClicked(FXObject*,FXSelector,void*);
+  long onFwdToText(FXObject*,FXSelector,void*);
+  long onUpdFmText(FXObject*,FXSelector,void*);
+public:
+  enum{
+    ID_LIST=FXPacker::ID_LAST,
+    ID_TEXT,
+    ID_LAST
+    };
+public:
+  /// Constructor
+  FXComboBox(FXComposite *p,FXint cols,FXint nvis,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=COMBOBOX_NORMAL,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=DEFAULT_PAD,FXint pr=DEFAULT_PAD,FXint pt=DEFAULT_PAD,FXint pb=DEFAULT_PAD);
+
+  /// Return true if combobox is editable
+  FXbool isEditable() const;
+
+  /// Set editable state
+  void setEditable(FXbool edit=TRUE);
+
+  /// Set the text
+  void setText(const FXString& text);
+
+  /// Get the text
+  FXString getText() const;
+
+  /// Set the number of columns
+  void setNumColumns(FXint cols);
+
+  /// Get the number of columns
+  FXint getNumColumns() const;
+
+  /// Return the number of items in the list
+  FXint getNumItems() const;
+
+  /// Return the number of visible items
+  FXint getNumVisible() const;
+
+  /// Set the number of visible items
+  void setNumVisible(FXint nitems);
+
+  /// Return true if current item
+  FXbool isItemCurrent(FXint index) const;
+
+  /// Set the current item (index is zero-based)
+  void setCurrentItem(FXint index);
+
+  /// Get the current item's index
+  FXint getCurrentItem() const;
+
+  /// Return the item at the given index
+  FXString retrieveItem(FXint index) const;
+
+  /// Replace the item at the given index
+  void replaceItem(FXint index,const FXString& text,void* ptr=NULL);
+
+  /// Insert a new item at index
+  void insertItem(FXint index,const FXString& text,void* ptr=NULL);
+
+  /// Append an item to the end of the list
+  void appendItem(const FXString& text,void* ptr=NULL);
+
+  /// Prepend an item to the list
+  void prependItem(const FXString& text,void* ptr=NULL);
+
+  /// Remove this item from the list
+  void removeItem(FXint index);
+
+  /// Remove all items from the list
+  void clearItems();
+
+  /// Set text for specified item
+  void setItemText(FXint index,const FXString& text);
+
+  /// Get text for specified item
+  FXString getItemText(FXint index) const;
+
+  /// Set data pointer for specified item
+  void setItemData(FXint index,void* ptr) const;
+
+  /// Get data pointer for specified item
+  void* getItemData(FXint index) const;
+
+  /// Is the pane shown
+  FXbool isPaneShown() const;
+
+  /// Sort items using current sort function
+  void sortItems();
+
+  /// Set text font
+  void setFont(FXFont* fnt);
+
+  /// Get text font
+  FXFont* getFont() const;
+
+  /// Set the combobox style.
+  void setComboStyle(FXuint mode);
+
+  /// Get the combobox style.
+  FXuint getComboStyle() const;
+
+  /// Set window background color
+  virtual void setBackColor(FXColor clr);
+  
+  /// Get background color
+  FXColor getBackColor() const;
+
+  /// Change text color
+  void setTextColor(FXColor clr);
+  
+  /// Return text color
+  FXColor getTextColor() const;
+
+  /// Change selected background color
+  void setSelBackColor(FXColor clr);
+  
+  /// Return selected background color
+  FXColor getSelBackColor() const;
+
+  /// Change selected text color
+  void setSelTextColor(FXColor clr);
+  
+  /// Return selected text color
+  FXColor getSelTextColor() const;
+
+  /// Return sort function
+  FXListSortFunc getSortFunc() const;
+
+  /// Change sort function
+  void setSortFunc(FXListSortFunc func);
+
+  /// Set the combobox help text
+  void setHelpText(const FXString& txt);
+
+  /// Get the combobox help text
+  FXString getHelpText() const;
+
+  /// Set the tool tip message for this combobox
+  void setTipText(const FXString& txt);
+
+  /// Get the tool tip message for this combobox
+  FXString getTipText() const;
+  };
+
+
+class FXPyComboBox : public FXComboBox {
+public:
+  FXPyComboBox(FXComposite *p,FXint cols,FXint nvis,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=COMBOBOX_NORMAL,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=DEFAULT_PAD,FXint pr=DEFAULT_PAD,FXint pt=DEFAULT_PAD,FXint pb=DEFAULT_PAD);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  };
+
+
+enum {
+  STATUSBAR_WITH_DRAGCORNER = 0x00020000
+  };
+
+
+// Drag corner
+class FXDragCorner : public FXWindow {
+public:
+  long onPaint(FXObject*,FXSelector,void*);
+  long onLeftBtnPress(FXObject*,FXSelector,void*);
+  long onLeftBtnRelease(FXObject*,FXSelector,void*);
+  long onMotion(FXObject*,FXSelector,void*);
+public:
+  FXDragCorner(FXComposite* parent);
+  FXColor getHiliteColor() const;
+  void setHiliteColor(FXColor);
+  FXColor getShadowColor() const;
+  void setShadowColor(FXColor);
+  };
+
+
+class FXPyDragCorner : public FXDragCorner {
+public:
+  FXPyDragCorner(FXComposite* parent);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  };
+
+
+// Status line
+class FXStatusline : public FXFrame {
+public:
+  long onPaint(FXObject*,FXSelector,void*);
+  long onUpdate(FXObject*,FXSelector,void*);
+  long onCmdGetStringValue(FXObject*,FXSelector,void*);
+  long onCmdSetStringValue(FXObject*,FXSelector,void*);
+public:
+  FXStatusline(FXComposite*,FXObject*,FXSelector);
+  void setText(const FXString& text);
+  void setNormalText(const FXString& text);
+  FXString getNormalText() const;
+  FXString getText() const;
+  void setFont(FXFont*);
+  FXFont* getFont() const;
+  FXColor getTextColor() const;
+  void setTextColor(FXColor);
+  FXColor getTextHighlightColor() const;
+  void setTextHighlightColor(FXColor);
+  };
+
+
+class FXPyStatusline : public FXStatusline {
+public:
+  FXPyStatusline(FXComposite*,FXObject*,FXSelector);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  };
+
+
+// Status bar
+class FXStatusbar : public FXHorizontalFrame {
+public:
+  FXStatusbar(FXComposite* p,FXuint opts=0,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=3,FXint pr=3,FXint pt=2,FXint pb=2,FXint hs=4,FXint vs=0);
+
+  /// Show or hide the drag corner
+  void setCornerStyle(FXbool withcorner=TRUE);
+  
+  /// Return TRUE if drag corner shown
+  FXbool getCornerStyle() const;
+
+  FXStatusline* getStatusline() const;
+  FXDragCorner* getDragCorner() const;
+  };
+
+
+class FXPyStatusbar : public FXStatusbar {
+public:
+  FXPyStatusbar(FXComposite* p,FXuint opts=0,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=3,FXint pr=3,FXint pt=2,FXint pb=2,FXint hs=4,FXint vs=0);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  };
+
+
+// Default sizes looks nice
+#define SLIDERBAR_SIZE   5
+#define SLIDERHEAD_SIZE  7
+
+
+// Sliderbar options
+enum {
+  SLIDER_HORIZONTAL  = 0,
+  SLIDER_VERTICAL    = 0x00008000,
+  SLIDER_ARROW_UP    = 0x00010000,
+  SLIDER_ARROW_DOWN  = 0x00020000,
+  SLIDER_ARROW_LEFT  = SLIDER_ARROW_UP,
+  SLIDER_ARROW_RIGHT = SLIDER_ARROW_DOWN,
+  SLIDER_INSIDE_BAR  = 0x00040000,
+  SLIDER_TICKS_TOP    = 0x00080000,               /// Ticks on the top of horizontal slider
+  SLIDER_TICKS_BOTTOM = 0x00100000,               /// Ticks on the bottom of horizontal slider
+  SLIDER_TICKS_LEFT   = SLIDER_TICKS_TOP,         /// Ticks on the left of vertical slider
+  SLIDER_TICKS_RIGHT  = SLIDER_TICKS_BOTTOM,      /// Ticks on the right of vertical slider
+  SLIDER_NORMAL      = SLIDER_HORIZONTAL
+  };
+ 
+ 
+// Slider
+class FXSlider : public FXFrame {
+public:
+  long onPaint(FXObject*,FXSelector,void*);
+  long onLeftBtnPress(FXObject*,FXSelector,void*);
+  long onLeftBtnRelease(FXObject*,FXSelector,void*);
+  long onMiddleBtnPress(FXObject*,FXSelector,void*);
+  long onMiddleBtnRelease(FXObject*,FXSelector,void*);
+  long onUngrabbed(FXObject*,FXSelector,void*);
+  long onMotion(FXObject*,FXSelector,void*);
+  long onTimeInc(FXObject*,FXSelector,void*);
+  long onTimeDec(FXObject*,FXSelector,void*);
+  long onCmdSetValue(FXObject*,FXSelector,void*);
+  long onCmdSetIntValue(FXObject*,FXSelector,void*);
+  long onCmdGetIntValue(FXObject*,FXSelector,void*);
+  long onCmdSetRealValue(FXObject*,FXSelector,void*);
+  long onCmdGetRealValue(FXObject*,FXSelector,void*);
+  long onCmdSetIntRange(FXObject*,FXSelector,void*);
+  long onCmdGetIntRange(FXObject*,FXSelector,void*);
+  long onCmdSetRealRange(FXObject*,FXSelector,void*);
+  long onCmdGetRealRange(FXObject*,FXSelector,void*);
+  long onQueryHelp(FXObject*,FXSelector,void*);
+  long onQueryTip(FXObject*,FXSelector,void*);
+public:
+  enum{
+    ID_AUTOINC=FXFrame::ID_LAST,
+    ID_AUTODEC,
+    ID_LAST
+    };
+public:
+  FXSlider(FXComposite* p,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=SLIDER_NORMAL,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=0,FXint pr=0,FXint pt=0,FXint pb=0);
+  void setRange(FXint lo,FXint hi);
+
+  // void getRange(FXint& lo,FXint& hi) const;
+  %addmethods {
+    PyObject* getRange() const {
+      FXint lo,hi;
+      self->getRange(lo,hi);
+      FXbool doSave=FXPyRestoreThread();
+      PyObject* tuple=PyTuple_New(2);
+      if (tuple) {
+	PyObject *obj1 = PyInt_FromLong(lo);
+	if (!obj1 || PyTuple_SetItem(tuple, 0, obj1) < 0) {
+	  Py_DECREF(tuple);
+          FXPySaveThread(doSave);
+	  return NULL;
+	}
+	PyObject *obj2 = PyInt_FromLong(hi);
+	if (!obj2 || PyTuple_SetItem(tuple, 1, obj2) < 0) {
+	  Py_DECREF(tuple);
+          FXPySaveThread(doSave);
+	  return NULL;
+	}
+      }
+      FXPySaveThread(doSave);
+      return tuple;
+    }
+  }
+
+  /// Change slider value
+  void setValue(FXint value);
+  
+  /// Return slider value
+  FXint getValue() const { return pos; }
+
+  FXuint getSliderStyle() const;
+  void setSliderStyle(FXuint style);
+
+  FXint getHeadSize() const;
+  void setHeadSize(FXint hs);
+
+  FXint getSlotSize() const;
+  void setSlotSize(FXint bs);
+
+  FXint getIncrement() const;
+  void setIncrement(FXint inc);
+
+  /// Change the delta between ticks
+  void setTickDelta(FXint dist);
+
+  /// Get delta between ticks
+  FXint getTickDelta() const;
+
+  FXColor getSlotColor() const;
+  void setSlotColor(FXColor clr);
+
+  FXColor getHiliteColor() const;
+  void setHiliteColor(FXColor clr);
+
+  FXColor getShadowColor() const;
+  void setShadowColor(FXColor clr);
+
+  FXColor getBorderColor() const;
+  void setBorderColor(FXColor clr);
+
+  FXColor getBaseColor() const;
+  void setBaseColor(FXColor clr);
+
+  FXString getHelpText() const;
+  void setHelpText(const FXString& text);
+
+  FXString getTipText() const;
+  void setTipText(const FXString& text);
+  };
+
+
+class FXPySlider : public FXSlider {
+public:
+  FXPySlider(FXComposite* p,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=SLIDER_NORMAL,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=0,FXint pr=0,FXint pt=0,FXint pb=0);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  };
+
+
+/// Header style options
+enum {
+  HEADER_BUTTON     = 0x00008000,     /// Button style can be clicked
+  HEADER_HORIZONTAL = 0,              /// Horizontal header control (default)
+  HEADER_VERTICAL   = 0x00010000,     /// Vertical header control
+  HEADER_TRACKING   = 0x00020000,     /// Tracks continuously while moving
+  HEADER_NORMAL     = HEADER_HORIZONTAL|FRAME_NORMAL
+  };
+
+
+// Header item
+class FXHeaderItem : public FXObject {
+public:
+  FXHeaderItem(const FXString& text,FXIcon* ic=NULL,FXint s=0,void* ptr=NULL);
+  FXString getText() const;
+  virtual void setText(const FXString& text);
+  FXIcon* getIcon() const;
+  virtual void setIcon(FXIcon* ic);
+  %addmethods {
+    void setData(PyObject* ptr) {
+      FXPySetData(self, ptr);
+    }
+    PyObject* getData() const {
+      return FXPyGetData(self);
+    }
+  }
+
+  // Change size
+  void setSize(FXint s);
+
+  // Obtain current size
+  FXint getSize() const;
+
+  // Change sort direction (FALSE, TRUE, or MAYBE)
+  void setArrowDir(FXuint dir=MAYBE);
+
+  // Return sort direction (FALSE, TRUE or MAYBE)
+  FXuint getArrowDir() const;
+
+  virtual FXint getWidth(const FXHeader* header) const;
+  virtual FXint getHeight(const FXHeader* header) const;
+  virtual void create();
+  virtual void detach();
+  virtual void destroy();
+  };
+
+
+class FXPyHeaderItem : public FXHeaderItem {
+public:
+  FXPyHeaderItem(const FXString& text,FXIcon* ic=NULL,FXint s=0,void* ptr=NULL);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  HEADERITEM_VIRTUALS
+  };
+
+
+// Header
+class FXHeader : public FXFrame {
+public:
+  long onPaint(FXObject*,FXSelector,void*);
+  long onLeftBtnPress(FXObject*,FXSelector,void*);
+  long onLeftBtnRelease(FXObject*,FXSelector,void*);
+  long onUngrabbed(FXObject*,FXSelector,void*);
+  long onMotion(FXObject*,FXSelector,void*);
+  long onTipTimer(FXObject*,FXSelector,void*);
+  long onQueryTip(FXObject*,FXSelector,void*);
+  long onQueryHelp(FXObject*,FXSelector,void*);
+public:
+  enum {
+    ID_TIPTIMER=FXFrame::ID_LAST,
+    ID_LAST
+    };
+public:
+
+  /// Construct new header control
+  FXHeader(FXComposite* p,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=HEADER_NORMAL,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=DEFAULT_PAD,FXint pr=DEFAULT_PAD,FXint pt=DEFAULT_PAD,FXint pb=DEFAULT_PAD);
+
+  /// Return number of items
+  FXint getNumItems() const { return nitems; }
+
+  /// Return item at given index
+  FXHeaderItem *retrieveItem(FXint index) const;
+
+  /// Replace the item with a [possibly subclassed] item
+  FXint replaceItem(FXint index,FXHeaderItem* item,FXbool notify=FALSE);
+
+  /// Replace items text, icon, and user-data pointer
+  %name(replaceItem2) FXint replaceItem(FXint index,const FXString& text,FXIcon *icon=NULL,FXint size=0,void* ptr=NULL,FXbool notify=FALSE);
+
+  /// Insert a new [possibly subclassed] item at the give index
+  FXint insertItem(FXint index,FXHeaderItem* item,FXbool notify=FALSE);
+
+  /// Insert item at index with given text, icon, and user-data pointer
+  %name(insertItem2) FXint insertItem(FXint index,const FXString& text,FXIcon *icon=NULL,FXint size=0,void* ptr=NULL,FXbool notify=FALSE);
+
+  /// Append a [possibly subclassed] item to the list
+  FXint appendItem(FXHeaderItem* item,FXbool notify=FALSE);
+
+  /// Append new item with given text and optional icon, and user-data pointer
+  %name(appendItem2) FXint appendItem(const FXString& text,FXIcon *icon=NULL,FXint size=0,void* ptr=NULL,FXbool notify=FALSE);
+
+  /// Prepend a [possibly subclassed] item to the list
+  FXint prependItem(FXHeaderItem* item,FXbool notify=FALSE);
+
+  /// Prepend new item with given text and optional icon, and user-data pointer
+  %name(prependItem2) FXint prependItem(const FXString& text,FXIcon *icon=NULL,FXint size=0,void* ptr=NULL,FXbool notify=FALSE);
+
+  /// Remove item at index
+  void removeItem(FXint index,FXbool notify=FALSE);
+
+  /// Remove all items
+  void clearItems(FXbool notify=FALSE);
+
+  /// Return item-index given pixel-offset from left
+  FXint getItemAt(FXint offset) const;
+
+  /// Change text label for item at index
+  void setItemText(FXint index,const FXString& text);
+
+  /// Get text of item at index
+  FXString getItemText(FXint index) const;
+
+  /// Change icon of item at index
+  void setItemIcon(FXint index,FXIcon* icon);
+
+  /// Return icon of item at index
+  FXIcon* getItemIcon(FXint index) const;
+
+  /// Change size of item at index
+  void setItemSize(FXint index,FXint size);
+
+  /// Return size of item at index
+  FXint getItemSize(FXint index) const;
+
+  /// Compute offset from the left side of item at index
+  FXint getItemOffset(FXint index) const;
+
+  /// Change data of item at index
+  void setItemData(FXint index,void* ptr);
+
+  /// Return data of item at index 
+  void* getItemData(FXint index) const;
+
+  /// Change text font
+  void setFont(FXFont* fnt);
+
+  /// return text font
+  FXFont* getFont() const { return font; }
+
+  /// Return text color
+  FXColor getTextColor() const { return textColor; }
+
+  /// Change text color
+  void setTextColor(FXColor clr);
+
+  /// Set header style options
+  void setHeaderStyle(FXuint style);
+
+  /// Get header style options
+  FXuint getHeaderStyle() const;
+
+  /// Set the status line help text for this header
+  void setHelpText(const FXString& text);
+
+  /// Get the status line help text for this header
+  FXString getHelpText() const { return help; }
+  };
+
+
+class FXPyHeader : public FXHeader {
+public:
+  FXPyHeader(FXComposite* p,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=HEADER_NORMAL,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=DEFAULT_PAD,FXint pr=DEFAULT_PAD,FXint pt=DEFAULT_PAD,FXint pb=DEFAULT_PAD);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  };
+
+
+/// Progress bar styles
+enum {
+  PROGRESSBAR_HORIZONTAL = 0,             /// Horizontal display
+  PROGRESSBAR_VERTICAL   = 0x00008000,    /// Vertical display
+  PROGRESSBAR_PERCENTAGE = 0x00010000,    /// Show percentage done
+  PROGRESSBAR_DIAL       = 0x00020000,    /// Show as a dial instead of bar
+  PROGRESSBAR_NORMAL     = FRAME_SUNKEN|FRAME_THICK
+  };
+
+
+// Progress bar widget
+class FXProgressBar : public FXFrame {
+public:
+  long onPaint(FXObject*,FXSelector,void*);
+  long onCmdSetValue(FXObject*,FXSelector,void*);
+  long onCmdSetIntValue(FXObject*,FXSelector,void*);
+  long onCmdGetIntValue(FXObject*,FXSelector,void*);
+public:
+  FXProgressBar(FXComposite* p,FXObject* target=NULL,FXSelector sel=0,FXuint opts=PROGRESSBAR_NORMAL,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=DEFAULT_PAD,FXint pr=DEFAULT_PAD,FXint pt=DEFAULT_PAD,FXint pb=DEFAULT_PAD);
+  void setProgress(FXuint value);
+  FXuint getProgress() const;
+  void setTotal(FXuint value);
+  FXuint getTotal() const;
+  void increment(FXuint value);
+  void hideNumber();
+  void showNumber();
+  void setBarSize(FXint size);
+  FXint getBarSize() const;
+  void setBarBGColor(FXColor clr);
+  FXColor getBarBGColor() const;
+  void setBarColor(FXColor clr);
+  FXColor getBarColor() const;
+  void setTextColor(FXColor clr);
+  FXColor getTextColor() const;
+  void setTextAltColor(FXColor clr);
+  FXColor getTextAltColor() const;
+  void setFont(FXFont *fnt);
+  FXFont* getFont() const;
+
+  /// Change progress bar style
+  void setBarStyle(FXuint style);
+  
+  /// Return current progress bar style
+  FXuint getBarStyle() const;
+  };
+
+
+class FXPyProgressBar : public FXProgressBar {
+public:
+  FXPyProgressBar(FXComposite* p,FXObject* target=NULL,FXSelector sel=0,FXuint opts=PROGRESSBAR_NORMAL,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=DEFAULT_PAD,FXint pr=DEFAULT_PAD,FXint pt=DEFAULT_PAD,FXint pb=DEFAULT_PAD);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  };
+
+
+// Toolbar Tab styles
+enum {
+  TOOLBARTAB_HORIZONTAL = 0,              // Default is for horizontal toolbar
+  TOOLBARTAB_VERTICAL   = 0x00008000      // For vertical toolbar
+  };
+
+
+// Your basic button
+class FXToolbarTab : public FXFrame {
+public:
+  long onPaint(FXObject*,FXSelector,void*);
+  long onUpdate(FXObject*,FXSelector,void*);
+  long onEnter(FXObject*,FXSelector,void*);
+  long onLeave(FXObject*,FXSelector,void*);
+  long onUngrabbed(FXObject*,FXSelector,void*);
+  long onLeftBtnPress(FXObject*,FXSelector,void*);
+  long onLeftBtnRelease(FXObject*,FXSelector,void*);
+  long onKeyPress(FXObject*,FXSelector,void*);
+  long onKeyRelease(FXObject*,FXSelector,void*);
+  long onCmdCollapse(FXObject*,FXSelector,void*);
+  long onUpdCollapse(FXObject*,FXSelector,void*);
+  long onCmdUncollapse(FXObject*,FXSelector,void*);
+  long onUpdUncollapse(FXObject*,FXSelector,void*);
+public:
+  enum{
+    ID_COLLAPSE=FXFrame::ID_LAST,
+    ID_UNCOLLAPSE,
+    ID_LAST
+    };
+public:
+  FXToolbarTab(FXComposite* p,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=FRAME_RAISED,FXint x=0,FXint y=0,FXint w=0,FXint h=0);
+
+  /// Collapse or uncollapse the toolbar
+  void collapse(FXbool c=TRUE);
+
+  /// Return true if the toolbar is collapsed
+  FXbool isCollapsed() const;
+
+  /// Change the tab style
+  void setTabStyle(FXuint style);
+
+  /// Get current tab style
+  FXuint getTabStyle() const;
+
+  /// Get the active color
+  FXColor getActiveColor() const;
+
+  /// Set the active color
+  void setActiveColor(FXColor clr);
+  };
+
+
+class FXPyToolbarTab : public FXToolbarTab {
+public:
+  FXPyToolbarTab(FXComposite* p,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=FRAME_RAISED,FXint x=0,FXint y=0,FXint w=0,FXint h=0);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  };
+
+
+/**
+* Toolbar control.
+*/
+class FXToolbar : public FXPacker {
+public:
+  long onCmdUndock(FXObject*,FXSelector,void*);
+  long onUpdUndock(FXObject*,FXSelector,void*);
+  long onCmdDockTop(FXObject*,FXSelector,void*);
+  long onUpdDockTop(FXObject*,FXSelector,void*);
+  long onCmdDockBottom(FXObject*,FXSelector,void*);
+  long onUpdDockBottom(FXObject*,FXSelector,void*);
+  long onCmdDockLeft(FXObject*,FXSelector,void*);
+  long onUpdDockLeft(FXObject*,FXSelector,void*);
+  long onCmdDockRight(FXObject*,FXSelector,void*);
+  long onUpdDockRight(FXObject*,FXSelector,void*);
+  long onBeginDragGrip(FXObject*,FXSelector,void*);
+  long onEndDragGrip(FXObject*,FXSelector,void*);
+  long onDraggedGrip(FXObject*,FXSelector,void*);
+public:
+  enum {
+    ID_UNDOCK=FXPacker::ID_LAST,  /// Undock the toolbar
+    ID_DOCK_TOP,                  /// Dock on the top
+    ID_DOCK_BOTTOM,               /// Dock on the bottom
+    ID_DOCK_LEFT,                 /// Dock on the left
+    ID_DOCK_RIGHT,                /// Dock on the right
+    ID_TOOLBARGRIP,               /// Notifications from toolbar grip
+    ID_LAST
+    };
+public:
+  /**
+  * Set parent when docked.
+  * If it was docked, reparent under the new docking window.
+  */
+  void setDryDock(FXComposite* dry);
+
+  /**
+  * Set parent when floating.
+  * If it was undocked, then reparent under the new floating window.
+  */
+  void setWetDock(FXComposite* wet);
+
+  /// Return parent when docked
+  FXComposite* getDryDock() const;
+
+  /// Return parent when floating
+  FXComposite* getWetDock() const;
+
+  /// Return true if toolbar is docked
+  FXbool isDocked() const;
+
+  /**
+   * Dock the bar against the given side, after some other widget.
+   * However, if after is -1, it will be docked as the innermost bar just before
+   * the work-area, while if after is 0, if will be docked as the outermost bar.
+   */
+  virtual void dock(FXuint side=LAYOUT_SIDE_TOP,FXWindow* after=-1);
+
+  /**
+   * Undock or float the bar.
+   * The initial position of the wet dock is a few pixels
+   * below and to the right of the original docked position.
+   */
+  virtual void undock();
+
+  /// Set docking side 
+  void setDockingSide(FXuint side=LAYOUT_SIDE_TOP);
+
+  /// Return docking side
+  FXuint getDockingSide() const;
+  };
+
+
+class FXPyToolbar : public FXToolbar {
+public:
+  FXPyToolbar(FXComposite* p,FXComposite* q,FXuint opts=LAYOUT_TOP|LAYOUT_LEFT|LAYOUT_FILL_X,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=3,FXint pr=3,FXint pt=2,FXint pb=2,FXint hs=DEFAULT_SPACING,FXint vs=DEFAULT_SPACING);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  TOOLBAR_VIRTUALS
+  };
+
+
+%inline %{
+  /**
+  * Construct a floatable toolbar 
+  * Normally, the toolbar is docked under window p.
+  * When floated, the toolbar can be docked under window q, which is
+  * typically an FXToolbarShell window.
+  */
+  FXPyToolbar *CreateFloatingToolbar(FXComposite* p,FXComposite* q,FXuint opts=LAYOUT_TOP|LAYOUT_LEFT|LAYOUT_FILL_X,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=3,FXint pr=3,FXint pt=2,FXint pb=2,FXint hs=DEFAULT_SPACING,FXint vs=DEFAULT_SPACING) {
+    return new FXPyToolbar(p,q,opts,x,y,w,h,pl,pr,pt,pb,hs,vs);
+  }
+
+  /**
+  * Construct a non-floatable toolbar.
+  * The toolbar can not be undocked.
+  */
+  FXPyToolbar* CreateNonFloatingToolbar(FXComposite* p,FXuint opts=LAYOUT_TOP|LAYOUT_LEFT|LAYOUT_FILL_X,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=2,FXint pr=3,FXint pt=3,FXint pb=2,FXint hs=DEFAULT_SPACING,FXint vs=DEFAULT_SPACING) {
+    return new FXPyToolbar(p,opts,x,y,w,h,pl,pr,pt,pb,hs,vs);
+  }
+%}
+
+
+/**
+* A Tool bar shell is a widget floating around over the Main Window.
+* It typically contains an undocked tool bar.
+*/
+class FXToolbarShell : public FXTopWindow {
+public:
+  long onPaint(FXObject*,FXSelector,void*);
+public:
+  /// Construct a toolbar shell
+  FXToolbarShell(FXWindow* owner,FXuint opts=FRAME_RAISED|FRAME_THICK,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint hs=4,FXint vs=4);
+
+  /// Change frame style
+  void setFrameStyle(FXuint style);
+  
+  /// Get current frame style
+  FXuint getFrameStyle() const;
+
+  /// Get border width
+  FXint getBorderWidth() const;
+
+  /// Change highlight color
+  void setHiliteColor(FXColor clr);
+
+  /// Get highlight color
+  FXColor getHiliteColor() const;
+
+  /// Change shadow color
+  void setShadowColor(FXColor clr);
+
+  /// Get shadow color
+  FXColor getShadowColor() const;
+
+  /// Change border color
+  void setBorderColor(FXColor clr);
+
+  /// Get border color
+  FXColor getBorderColor() const;
+
+  /// Change base gui color
+  void setBaseColor(FXColor clr);
+  
+  /// Get base gui color
+  FXColor getBaseColor() const;
+  };
+
+
+class FXPyToolbarShell : public FXToolbarShell {
+public:
+  FXPyToolbarShell(FXWindow* owner,FXuint opts=FRAME_RAISED|FRAME_THICK,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint hs=4,FXint vs=4);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  TOPWINDOW_VIRTUALS
+  };
+
+
+/// Toolbar Grip styles
+enum {
+  TOOLBARGRIP_SINGLE     = 0,             /// Single bar mode for movable toolbars
+  TOOLBARGRIP_DOUBLE     = 0x00008000,    /// Double bar mode for dockable toolbars
+  TOOLBARGRIP_SEPARATOR  = 0x00010000     /// Separator mode
+  };
+
+
+/**
+* A toolbar grip is used to move its parent [an FXToolbar]. 
+* The grip draws either a single or double bar; it is customary
+* to use the single bar grip for toolbar-rearrangements only,
+* and use the double-bar when the toolbar needs to be floated
+* or docked.
+* The toolbar grip is automatically oriented properly by the
+* the toolbar widget.
+*/
+class FXToolbarGrip : public FXWindow {
+public:
+  long onPaint(FXObject*,FXSelector,void*);
+  long onLeftBtnPress(FXObject*,FXSelector,void*);
+  long onLeftBtnRelease(FXObject*,FXSelector,void*);
+  long onMotion(FXObject*,FXSelector,void*);
+  long onEnter(FXObject*,FXSelector,void*);
+  long onLeave(FXObject*,FXSelector,void*);
+public:
+  
+  /// Construct toolbar grip 
+  FXToolbarGrip(FXToolbar* p,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=TOOLBARGRIP_SINGLE,FXint x=0,FXint y=0,FXint w=0,FXint h=0);
+
+  /// Change toolbar grip to double
+  void setDoubleBar(FXbool dbl=TRUE);
+
+  /// Return toolbar grip to double
+  FXuint getDoubleBar() const;
+  
+  /// Change highlight color
+  void setHiliteColor(FXColor clr);
+
+  /// Get highlight color
+  FXColor getHiliteColor() const { return hiliteColor; }
+
+  /// Change shadow color
+  void setShadowColor(FXColor clr);
+
+  /// Get shadow color
+  FXColor getShadowColor() const { return shadowColor; }
+
+  /// Set the active color
+  // void setActiveColor(FXColor clr);
+
+  /// Get the active color
+  FXColor getActiveColor() const { return activeColor; }
+  };
+
+
+class FXPyToolbarGrip : public FXToolbarGrip {
+public:
+  FXPyToolbarGrip(FXToolbar* p,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=TOOLBARGRIP_SINGLE,FXint x=0,FXint y=0,FXint w=0,FXint h=0);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  };
+
+
+/// List Box styles
+enum {
+  LISTBOX_NORMAL         = 0          // Normal style
+  };
+  
+
+/// List Box
+class FXListBox : public FXPacker {
+public:
+  long onFocusUp(FXObject*,FXSelector,void*);
+  long onFocusDown(FXObject*,FXSelector,void*);
+  long onFieldButton(FXObject*,FXSelector,void*);
+  long onListUpdate(FXObject*,FXSelector,void*);
+  long onListChanged(FXObject*,FXSelector,void*);
+  long onListClicked(FXObject*,FXSelector,void*);
+  long onCmdSetValue(FXObject*,FXSelector,void*);public:
+  long onCmdGetIntValue(FXObject*,FXSelector,void*);
+  long onCmdSetIntValue(FXObject*,FXSelector,void*);
+public:
+  enum {
+    ID_LIST=FXPacker::ID_LAST,
+    ID_FIELD,
+    ID_LAST
+    };
+public:
+
+  /// Constructor
+  FXListBox(FXComposite *p,FXint nvis,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=FRAME_SUNKEN|FRAME_THICK|LISTBOX_NORMAL,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=DEFAULT_PAD,FXint pr=DEFAULT_PAD,FXint pt=DEFAULT_PAD,FXint pb=DEFAULT_PAD);
+
+  /// Return the number of items in the list
+  FXint getNumItems() const;
+
+  /// Return the number of visible items
+  FXint getNumVisible() const;
+
+  /// Set the number of visible items
+  void setNumVisible(FXint nvis);
+
+  /// Return true if current item
+  FXbool isItemCurrent(FXint index) const;
+
+  /// Set the current item (index is zero-based)
+  void setCurrentItem(FXint index);
+
+  /// Get the current item's index
+  FXint getCurrentItem() const;
+
+  /// Return the item at the given index
+  FXString retrieveItem(FXint index) const;
+
+  /// Replace the item at index
+  void replaceItem(FXint index,const FXString& text,FXIcon* icon=NULL,void* ptr=NULL);
+
+  /// Insert a new item at index
+  void insertItem(FXint index,const FXString& text,FXIcon* icon=NULL,void* ptr=NULL);
+
+  /// Add an item to the end of the list
+  void appendItem(const FXString& text,FXIcon* icon=NULL,void* ptr=NULL);
+
+  /// Prepend an item to the list
+  void prependItem(const FXString& text,FXIcon* icon=NULL,void* ptr=NULL);
+
+  /// Remove this item from the list
+  void removeItem(FXint index);
+
+  /// Remove all items from the list
+  void clearItems();
+
+  /**
+  * Search items for item by name, starting from start item; the
+  * flags argument controls the search direction, and case sensitivity.
+  */
+  FXint findItem(const FXString& text,FXint start=-1,FXuint flags=SEARCH_FORWARD|SEARCH_WRAP) const;
+
+  /// Set text for specified item
+  void setItemText(FXint index,const FXString& text);
+
+  /// Get text for specified item
+  FXString getItemText(FXint index) const;
+
+  /// Change item icon
+  void setItemIcon(FXint index,FXIcon* icon);
+  
+  /// Return icon of item at index
+  FXIcon* getItemIcon(FXint index) const;
+  
+  /// Set data pointer for specified item
+  void setItemData(FXint index,void* ptr) const;
+
+  /// Get data pointer for specified item
+  void* getItemData(FXint index) const;
+
+  /// Is the pane shown
+  FXbool isPaneShown() const;
+
+  /// Sort items using current sort function
+  void sortItems();
+
+  /// Set text font
+  void setFont(FXFont* fnt);
+
+  /// Get text font
+  FXFont* getFont() const;
+
+  /// Set window background color
+  void setBackColor(FXColor clr);
+  
+  /// Get background color
+  FXColor getBackColor() const;
+
+  /// Change text color
+  void setTextColor(FXColor clr);
+  
+  /// Return text color
+  FXColor getTextColor() const;
+
+  /// Change selected background color
+  void setSelBackColor(FXColor clr);
+  
+  /// Return selected background color
+  FXColor getSelBackColor() const;
+
+  /// Change selected text color
+  void setSelTextColor(FXColor clr);
+  
+  /// Return selected text color
+  FXColor getSelTextColor() const;
+
+  /// Return sort function
+  FXListSortFunc getSortFunc() const;
+
+  /// Change sort function
+  void setSortFunc(FXListSortFunc func);
+
+  /// Set the combobox help text
+  void setHelpText(const FXString& txt);
+
+  /// Get the combobox help text
+  FXString getHelpText() const;
+
+  /// Set the tool tip message for this combobox
+  void setTipText(const FXString& txt);
+
+  /// Get the tool tip message for this combobox
+  FXString getTipText() const;
+  };
+
+
+class FXPyListBox : public FXListBox {
+public:
+  FXPyListBox(FXComposite *p,FXint nvis,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=FRAME_SUNKEN|FRAME_THICK|LISTBOX_NORMAL,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=DEFAULT_PAD,FXint pr=DEFAULT_PAD,FXint pt=DEFAULT_PAD,FXint pb=DEFAULT_PAD);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  };
+
+
+/// Directory Box
+class FXDriveBox : public FXListBox {
+public:
+  long onListChanged(FXObject*,FXSelector,void*);
+  long onListClicked(FXObject*,FXSelector,void*);
+  long onCmdSetValue(FXObject*,FXSelector,void*);
+  long onCmdSetStringValue(FXObject*,FXSelector,void*);
+  long onCmdGetStringValue(FXObject*,FXSelector,void*);
+public:
+  
+  /// Constructor
+  FXDriveBox(FXComposite *p,FXint nvis,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=FRAME_SUNKEN|FRAME_THICK|LISTBOX_NORMAL,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=DEFAULT_PAD,FXint pr=DEFAULT_PAD,FXint pt=DEFAULT_PAD,FXint pb=DEFAULT_PAD);
+
+  /// Set current drive
+  FXbool setDrive(const FXString& drive);
+  
+  /// Return current drive
+  FXString getDrive() const;
+  };
+
+
+class FXPyDriveBox : public FXDriveBox {
+public:
+  FXPyDriveBox(FXComposite *p,FXint nvis,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=FRAME_SUNKEN|FRAME_THICK|LISTBOX_NORMAL,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=DEFAULT_PAD,FXint pr=DEFAULT_PAD,FXint pt=DEFAULT_PAD,FXint pb=DEFAULT_PAD);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  };
+
+
+/// Color bar orientation
+enum {
+  COLORBAR_HORIZONTAL = 0,            /// Color bar shown horizontally
+  COLORBAR_VERTICAL   = 0x00008000    /// Color bar shown vertically
+  };
+
+/**
+* A color bar is a widget which controls the brightness (value) of a
+* color by means of the hue, saturation, value specification system.
+*/
+class FXColorBar : public FXFrame {
+public:
+  long onPaint(FXObject*,FXSelector,void*);
+  long onLeftBtnPress(FXObject*,FXSelector,void*);
+  long onLeftBtnRelease(FXObject*,FXSelector,void*);
+  long onMotion(FXObject*,FXSelector,void*);
+  long onQueryHelp(FXObject*,FXSelector,void*);
+  long onQueryTip(FXObject*,FXSelector,void*);
+public:
+
+  /// Construct color well with initial color clr
+  FXColorBar(FXComposite* p,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=FRAME_NORMAL,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=DEFAULT_PAD,FXint pr=DEFAULT_PAD,FXint pt=DEFAULT_PAD,FXint pb=DEFAULT_PAD);
+
+  /// Change hue
+  void setHue(FXfloat h);
+
+  /// Return hue
+  FXfloat getHue() const;
+
+  /// Change saturation
+  void setSat(FXfloat s);
+
+  /// Return saturation
+  FXfloat getSat() const;
+
+  /// Change value
+  void setVal(FXfloat v);
+
+  /// Return value
+  FXfloat getVal() const;
+
+  /// Change the color bar style
+  FXuint getBarStyle() const;
+
+  /// Get the color bar style
+  void setBarStyle(FXuint style);
+
+  /// Set status line help text for this color well
+  void setHelpText(const FXString& text);
+
+  /// Get status line help text for this color well
+  FXString getHelpText() const;
+
+  /// Set tool tip message for this color well
+  void setTipText(const FXString& text);
+
+  /// Get tool tip message for this color well
+  FXString getTipText() const;
+  };
+
+
+class FXPyColorBar : public FXColorBar {
+public:
+  /// Construct color well with initial color clr
+  FXPyColorBar(FXComposite* p,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=FRAME_NORMAL,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=DEFAULT_PAD,FXint pr=DEFAULT_PAD,FXint pt=DEFAULT_PAD,FXint pb=DEFAULT_PAD);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  };
+
+
+/**
+* A color wheel is a widget which controls a color by means
+* of the hue, saturation, value color specification system.
+*/
+class FXColorWheel : public FXFrame {
+public:
+  long onPaint(FXObject*,FXSelector,void*);
+  long onLeftBtnPress(FXObject*,FXSelector,void*);
+  long onLeftBtnRelease(FXObject*,FXSelector,void*);
+  long onMotion(FXObject*,FXSelector,void*);
+  long onQueryHelp(FXObject*,FXSelector,void*);
+  long onQueryTip(FXObject*,FXSelector,void*);
+public:
+
+  /// Construct color wheel with initial color clr
+  FXColorWheel(FXComposite* p,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=FRAME_NORMAL,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=DEFAULT_PAD,FXint pr=DEFAULT_PAD,FXint pt=DEFAULT_PAD,FXint pb=DEFAULT_PAD);
+
+  /// Change hue
+  void setHue(FXfloat h);
+
+  /// Return hue
+  FXfloat getHue() const;
+
+  /// Change saturation
+  void setSat(FXfloat s);
+
+  /// Return saturation
+  FXfloat getSat() const;
+
+  /// Change value
+  void setVal(FXfloat v);
+
+  /// Return value
+  FXfloat getVal() const;
+
+  /// Set status line help text for this color wheel
+  void setHelpText(const FXString& text);
+
+  /// Get status line help text for this color wheel
+  FXString getHelpText() const;
+
+  /// Set tool tip message for this color wheel
+  void setTipText(const FXString& text);
+
+  /// Get tool tip message for this color wheel
+  FXString getTipText() const;
+  };
+
+
+class FXPyColorWheel : public FXColorWheel {
+public:
+  /// Construct color wheel with initial color clr
+  FXPyColorWheel(FXComposite* p,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=FRAME_NORMAL,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=DEFAULT_PAD,FXint pr=DEFAULT_PAD,FXint pt=DEFAULT_PAD,FXint pb=DEFAULT_PAD);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  };

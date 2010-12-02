@@ -1,0 +1,92 @@
+<demos>
+  <demo file="button.py" title="Button">
+    This example primarily exists to demonstrate the different alignment
+    options for the FXButton class, but also demonstrates how to assign
+    tooltips to FOX widgets that support them.
+  </demo>
+  <demo file="datatarget.py" title="Data Targets">
+    This example demonstrates how to construct and use data targets
+    in FOX applications.
+  </demo>
+  <demo file="dialog.py" title="Dialogs">
+    This example demonstrates how to construct and use modal and non-modal
+    dialogs in FOX applications.
+  </demo>
+  <demo file="dirlist.py" title="Directory List">
+    This example demonstrates the FXDirList widget.
+  </demo>
+  <demo file="foursplit.py" title="Four-Way Splitter">
+    This example demonstrates the FX4Splitter widget.
+  </demo>
+  <demo file="gltest.py" title="OpenGL Canvas">
+    This program provides a simple example of how to use the OpenGL
+    canvas widget (FXGLCanvas) but also demonstrates how to use chores and
+    timers in FOX applications.
+  </demo>
+  <demo file="glviewer.py" title="OpenGL Viewer">
+    This example is a model for a full-featured FOX application and in
+    particular showcases the FXGLViewer widget. This application demonstrates
+    how to set up a main window with a menu bar, toolbar and multiple
+    document interface (MDI) for handling multiple OpenGL viewer windows.
+  </demo>
+  <demo file="groupbox.py" title="GroupBox">
+    Demonstrates the FXGroupBox widget.
+  </demo>
+  <demo file="header.py" title="Header">
+    This example demonstrates the FXHeader widget. Try turning on and off
+    the "Continuous Tracking" option and then resizing the header columns to
+    see the effect of this setting.
+  </demo>
+  <demo file="hello.py" title="Hello, World!">
+    The minimalist FOX application.
+  </demo>
+  <demo file="hello2.py" title="Hello, World 2!">
+    This "cadillac" version of "Hello, World" adds an icon and a tooltip
+    to the button seen in the previous example.
+  </demo>
+  <demo file="iconlist.py" title="IconList">
+    This example demonstrates the FXIconList widget.
+  </demo>
+  <demo file="imagetest.py" title="Image Test">
+    Test for image widgets.
+  </demo>
+  <demo file="imageviewer.py" title="Image Viewer">
+    This example provides the model for a full-featured image viewing and
+    manipulation application, and showcases the FXImageViewer widget. Try
+    out the various options under the "Manipulation" menu to see how
+    you can easily transform GIF/BMP/JPEG/PNG images used in your FOX apps.
+  </demo>
+  <demo file="mditest.py" title="MDI Test">
+    This example demonstrates the basics of setting up a multiple document
+    interface (MDI) application in FOX.
+  </demo>
+  <demo file="neko.py" title="Neko">
+    This example doesn't really introduce anything new but gave me an excuse
+    to port one of my favorite Windows time-wasters to FOX.
+  </demo>
+  <demo file="scribble.py" title="Scribble">
+    This is a nice example to demonstrate the basics of drawing into FOX
+    device contexts and how to intercept mouse events. It also shows one way
+    to make effective use of FOX's GUI update mechanism.
+  </demo>
+  <demo file="shutter.py" title="Shutter">
+    Demonstrates the FXShutter widget, a Microsoft Outlook-inspired widget.
+  </demo>
+  <demo file="splitter.py" title="Splitter">
+    Demonstrates the FXSplitter widget.
+  </demo>
+  <demo file="tabbook.py" title="Tabbed Book">
+    Demonstrates the FXTabBook widget.
+  </demo>
+  <demo file="weather.py" title="Weather Report">
+    Look up the local weather report anywhere in the world!
+  </demo>
+  <demo file="window.py" title="Periodic Table">
+    This example provides a birds-eye view of many of the FOX widgets.
+  </demo>
+  <!--
+  <demo file="textedit.py" title="Textedit">
+    A simple text editor.
+  </demo>
+  -->
+</demos>

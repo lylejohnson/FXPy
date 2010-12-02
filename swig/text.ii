@@ -1,0 +1,709 @@
+/***********************************************************************
+ * $Id: text.ii,v 1.21 2002/02/11 09:58:54 calvin Exp $
+ ***********************************************************************/
+
+%module text
+
+%{
+#include "fx.h"
+#include "fx3d.h"
+#include "FXCURCursor.h"
+#include "FXJPGImage.h"
+#include "FXJPGIcon.h"
+#include "FXPNGIcon.h"
+#include "FXPNGImage.h"
+#include "FXTIFIcon.h"
+#include "FXTIFImage.h"
+#include "FXRGBIcon.h"
+#include "FXRGBImage.h"
+#include "FXICOIcon.h"
+#include "FXICOImage.h"
+#include "FXPyApp.h"
+#include "FXPy.h"
+%}
+
+%extern fxdefs.i
+%include typemaps.i
+%include my_typemaps.i
+
+%import misc.i
+%import windows.i
+%import containers.i
+
+%pragma(python) code = "import fox"
+
+
+// A set of characters
+class FXCharset {
+public:
+  /// Initialize to empty set
+  // FXCharset();
+
+  /// Initialize with one character
+  // FXCharset(FXchar ch);
+
+  /// Initialize set with set of characters
+  FXCharset(const FXString& characters);
+
+  /// See if character ch is member of set
+  FXbool has(FXchar ch) const;
+
+  /// Clear the set
+  FXCharset& clear();
+  };
+
+
+/// Text widget options
+enum {
+  TEXT_READONLY      = 0x00100000,              /// Text is NOT editable
+  TEXT_WORDWRAP      = 0x00200000,              /// Wrap at word breaks
+  TEXT_OVERSTRIKE    = 0x00400000,              /// Overstrike mode
+  TEXT_FIXEDWRAP     = 0x00800000,              /// Fixed wrap columns
+  TEXT_NO_TABS       = 0x01000000,              /// Insert spaces for tabs
+  TEXT_AUTOINDENT    = 0x02000000,              /// Autoindent
+  TEXT_SHOWACTIVE    = 0x04000000               /// Show active line
+  };
+
+  
+/// Selection modes
+enum FXTextSelectionMode {
+  SELECT_CHARS,
+  SELECT_WORDS,
+  SELECT_LINES
+  };
+
+
+/// Highlight style entry
+struct FXHiliteStyle {
+  FXColor normalForeColor;            /// Normal text foreground color
+  FXColor normalBackColor;            /// Normal text background color
+  FXColor selectForeColor;            /// Selected text foreground color
+  FXColor selectBackColor;            /// Selected text background color
+  FXColor hiliteForeColor;            /// Highlight text foreground color
+  FXColor hiliteBackColor;            /// Highlight text background color
+  FXColor activeBackColor;            /// Active text background color
+  FXuint  style;                      /// Highlight text style
+  };
+
+
+/// Multiline text widget
+class FXText : public FXScrollArea {
+public:
+  enum {
+    STYLE_UNDERLINE = 0x0001,   /// Underline text
+    STYLE_STRIKEOUT = 0x0002    /// Strike out text
+    };
+public:
+  long onPaint(FXObject*,FXSelector,void*);
+  long onUpdate(FXObject*,FXSelector,void*);
+  long onFocusIn(FXObject*,FXSelector,void*);
+  long onFocusOut(FXObject*,FXSelector,void*);
+  long onLeftBtnPress(FXObject*,FXSelector,void*);
+  long onLeftBtnRelease(FXObject*,FXSelector,void*);
+  long onMiddleBtnPress(FXObject*,FXSelector,void*);
+  long onMiddleBtnRelease(FXObject*,FXSelector,void*);
+  long onRightBtnPress(FXObject*,FXSelector,void*);
+  long onRightBtnRelease(FXObject*,FXSelector,void*);
+  long onUngrabbed(FXObject*,FXSelector,void*);
+  long onMotion(FXObject*,FXSelector,void*);
+  long onBeginDrag(FXObject*,FXSelector,void*);
+  long onEndDrag(FXObject*,FXSelector,void*);
+  long onDragged(FXObject*,FXSelector,void*);
+  long onDNDEnter(FXObject*,FXSelector,void*);
+  long onDNDLeave(FXObject*,FXSelector,void*);
+  long onDNDMotion(FXObject*,FXSelector,void*);
+  long onDNDDrop(FXObject*,FXSelector,void*);
+  long onDNDRequest(FXObject*,FXSelector,void*);
+  long onSelectionLost(FXObject*,FXSelector,void*);
+  long onSelectionGained(FXObject*,FXSelector,void*);
+  long onSelectionRequest(FXObject*,FXSelector,void* ptr);
+  long onClipboardLost(FXObject*,FXSelector,void*);
+  long onClipboardGained(FXObject*,FXSelector,void*);
+  long onClipboardRequest(FXObject*,FXSelector,void*);
+  long onKeyPress(FXObject*,FXSelector,void*);
+  long onKeyRelease(FXObject*,FXSelector,void*);
+  long onBlink(FXObject*,FXSelector,void*);
+  long onFlash(FXObject*,FXSelector,void*);
+  long onAutoScroll(FXObject*,FXSelector,void*);
+  long onQueryHelp(FXObject*,FXSelector,void*);
+  long onQueryTip(FXObject*,FXSelector,void*);
+
+  // Control commands
+  long onCmdToggleEditable(FXObject*,FXSelector,void*);
+  long onUpdToggleEditable(FXObject*,FXSelector,void*);
+  long onCmdToggleOverstrike(FXObject*,FXSelector,void*);
+  long onUpdToggleOverstrike(FXObject*,FXSelector,void*);
+  long onCmdCursorRow(FXObject*,FXSelector,void*);
+  long onUpdCursorRow(FXObject*,FXSelector,void*);
+  long onCmdCursorColumn(FXObject*,FXSelector,void*);
+  long onUpdCursorColumn(FXObject*,FXSelector,void*);
+  long onUpdHaveSelection(FXObject*,FXSelector,void*);
+  long onCmdSetStringValue(FXObject*,FXSelector,void*);
+  long onCmdGetStringValue(FXObject*,FXSelector,void*);
+  long onCmdSearchSel(FXObject*,FXSelector,void*);
+  long onCmdSearch(FXObject*,FXSelector,void*);
+  long onCmdReplace(FXObject*,FXSelector,void*);
+
+  // Cursor movement
+  long onCmdCursorTop(FXObject*,FXSelector,void*);
+  long onCmdCursorBottom(FXObject*,FXSelector,void*);
+  long onCmdCursorHome(FXObject*,FXSelector,void*);
+  long onCmdCursorEnd(FXObject*,FXSelector,void*);
+  long onCmdCursorRight(FXObject*,FXSelector,void*);
+  long onCmdCursorLeft(FXObject*,FXSelector,void*);
+  long onCmdCursorUp(FXObject*,FXSelector,void*);
+  long onCmdCursorDown(FXObject*,FXSelector,void*);
+  long onCmdCursorWordLeft(FXObject*,FXSelector,void*);
+  long onCmdCursorWordRight(FXObject*,FXSelector,void*);
+  long onCmdCursorPageDown(FXObject*,FXSelector,void*);
+  long onCmdCursorPageUp(FXObject*,FXSelector,void*);
+  long onCmdCursorScreenTop(FXObject*,FXSelector,void*);
+  long onCmdCursorScreenBottom(FXObject*,FXSelector,void*);
+  long onCmdCursorScreenCenter(FXObject*,FXSelector,void*);
+  long onCmdCursorParHome(FXObject*,FXSelector,void*);
+  long onCmdCursorParEnd(FXObject*,FXSelector,void*);
+  long onCmdBlockBeg(FXObject*,FXSelector,void*);
+  long onCmdBlockEnd(FXObject*,FXSelector,void*);
+  long onCmdGotoMatching(FXObject*,FXSelector,void*);
+  long onCmdGotoSelected(FXObject*,FXSelector,void*);
+  long onCmdGotoLine(FXObject*,FXSelector,void*);
+  long onCmdScrollUp(FXObject*,FXSelector,void*);
+  long onCmdScrollDown(FXObject*,FXSelector,void*);
+
+  // Mark and extend
+  long onCmdMark(FXObject*,FXSelector,void*);
+  long onCmdExtend(FXObject*,FXSelector,void*);
+
+  // Inserting
+  long onCmdOverstString(FXObject*,FXSelector,void*);
+  long onCmdInsertString(FXObject*,FXSelector,void*);
+  long onCmdInsertNewline(FXObject*,FXSelector,void*);
+  long onCmdInsertTab(FXObject*,FXSelector,void*);
+
+  // Manipulation Selection
+  long onCmdCutSel(FXObject*,FXSelector,void*);
+  long onCmdCopySel(FXObject*,FXSelector,void*);
+  long onCmdPasteSel(FXObject*,FXSelector,void*);
+  long onCmdDeleteSel(FXObject*,FXSelector,void*);
+  long onCmdChangeCase(FXObject*,FXSelector,void*);
+  long onCmdShiftText(FXObject*,FXSelector,void*);
+
+  // Changing Selection
+  long onCmdSelectChar(FXObject*,FXSelector,void*);
+  long onCmdSelectWord(FXObject*,FXSelector,void*);
+  long onCmdSelectLine(FXObject*,FXSelector,void*);
+  long onCmdSelectAll(FXObject*,FXSelector,void*);
+  long onCmdSelectMatching(FXObject*,FXSelector,void*);
+  long onCmdSelectBlock(FXObject*,FXSelector,void*);
+  long onCmdDeselectAll(FXObject*,FXSelector,void*);
+
+  // Deletion
+  long onCmdBackspace(FXObject*,FXSelector,void*);
+  long onCmdBackspaceWord(FXObject*,FXSelector,void*);
+  long onCmdBackspaceBol(FXObject*,FXSelector,void*);
+  long onCmdDelete(FXObject*,FXSelector,void*);
+  long onCmdDeleteWord(FXObject*,FXSelector,void*);
+  long onCmdDeleteEol(FXObject*,FXSelector,void*);
+  long onCmdDeleteLine(FXObject*,FXSelector,void*);
+
+public:
+
+  enum {
+    ID_CURSOR_TOP=FXScrollArea::ID_LAST,
+    ID_CURSOR_BOTTOM,
+    ID_CURSOR_HOME,
+    ID_CURSOR_END,
+    ID_CURSOR_RIGHT,
+    ID_CURSOR_LEFT,
+    ID_CURSOR_UP,
+    ID_CURSOR_DOWN,
+    ID_CURSOR_WORD_LEFT,
+    ID_CURSOR_WORD_RIGHT,
+    ID_CURSOR_PAGEDOWN,
+    ID_CURSOR_PAGEUP,
+    ID_CURSOR_SCRNTOP,
+    ID_CURSOR_SCRNBTM,
+    ID_CURSOR_SCRNCTR,
+    ID_CURSOR_PAR_HOME,
+    ID_CURSOR_PAR_END,
+    ID_SCROLL_UP,
+    ID_SCROLL_DOWN,
+    ID_MARK,
+    ID_EXTEND,
+    ID_OVERST_STRING,
+    ID_INSERT_STRING,
+    ID_INSERT_NEWLINE,
+    ID_INSERT_TAB,
+    ID_CUT_SEL,
+    ID_COPY_SEL,
+    ID_PASTE_SEL,
+    ID_DELETE_SEL,
+    ID_SELECT_CHAR,
+    ID_SELECT_WORD,
+    ID_SELECT_LINE,
+    ID_SELECT_ALL,
+    ID_SELECT_MATCHING,
+    ID_SELECT_BRACE,
+    ID_SELECT_BRACK,
+    ID_SELECT_PAREN,
+    ID_SELECT_ANG,
+    ID_DESELECT_ALL,
+    ID_BACKSPACE,
+    ID_BACKSPACE_WORD,
+    ID_BACKSPACE_BOL,
+    ID_DELETE,
+    ID_DELETE_WORD,
+    ID_DELETE_EOL,
+    ID_DELETE_LINE,
+    ID_TOGGLE_EDITABLE,
+    ID_TOGGLE_OVERSTRIKE,
+    ID_CURSOR_ROW,
+    ID_CURSOR_COLUMN,
+    ID_CLEAN_INDENT,
+    ID_SHIFT_LEFT,
+    ID_SHIFT_RIGHT,
+    ID_SHIFT_TABLEFT,
+    ID_SHIFT_TABRIGHT,
+    ID_UPPER_CASE,
+    ID_LOWER_CASE,
+    ID_GOTO_MATCHING,
+    ID_GOTO_SELECTED,
+    ID_GOTO_LINE,
+    ID_SEARCH_FORW_SEL,
+    ID_SEARCH_BACK_SEL,
+    ID_SEARCH,
+    ID_REPLACE,
+    ID_LEFT_BRACE,
+    ID_LEFT_BRACK,
+    ID_LEFT_PAREN,
+    ID_LEFT_ANG,
+    ID_RIGHT_BRACE,
+    ID_RIGHT_BRACK,
+    ID_RIGHT_PAREN,
+    ID_RIGHT_ANG,
+    ID_BLINK,
+    ID_FLASH,
+    ID_LAST
+    };
+
+public:
+  // Construct multi-line text widget
+  FXText(FXComposite *p,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=0,FXint x=0,FXint y=0,FXint w=0,FXint h=0);
+
+  /// Scroll the contents
+  void moveContents(FXint x,FXint y);
+
+  // Change top margin
+  void setMarginTop(FXint pt);
+
+  // Return top margin
+  FXint getMarginTop() const;
+
+  // Change bottom margin
+  void setMarginBottom(FXint pb);
+
+  // Return bottom margin
+  FXint getMarginBottom() const;
+
+  // Change left margin
+  void setMarginLeft(FXint pl);
+
+  // Return left margin
+  FXint getMarginLeft() const;
+
+  // Change right margin
+  void setMarginRight(FXint pr);
+
+  // Return right margin
+  FXint getMarginRight() const;
+
+  /// Return wrap columns
+  FXint getWrapColumns() const { return wrapcolumns; }
+
+  /// Set wrap columns
+  void setWrapColumns(FXint cols);
+
+  /// Return tab columns
+  FXint getTabColumns() const { return tabcolumns; }
+
+  /// Change tab columns
+  void setTabColumns(FXint cols);
+
+  /// Return number of columns used for line numbers
+  FXint getBarColumns() const { return barcolumns; }
+
+  /// Change number of columns used for line numbers
+  void setBarColumns(FXint cols);
+
+  // Return TRUE if text was modified
+  FXbool isModified() const;
+
+  // Set modified flag
+  void setModified(FXbool mod=TRUE);
+
+  // Return TRUE if text is editable
+  FXbool isEditable() const;
+
+  /// Set editable flag
+  void setEditable(FXbool edit=TRUE);
+
+  /// Set styled text mode
+  void setStyled(FXbool styled=TRUE);
+
+  /// Return TRUE if style buffer
+  FXbool isStyled() const { return (sbuffer!=NULL); }
+
+  /// Change delimiters of words
+  // void setDelimiters(const FXCharset& delims);
+  void setDelimiters(const FXString& delims);
+
+  /// Return word delimiters  
+  FXCharset getDelimiters() const;
+
+  // Change text font
+  void setFont(FXFont* fnt);
+
+  // Get text font
+  FXFont* getFont() const;
+
+  // Change text color
+  void setTextColor(FXColor clr);
+
+  // Return text color
+  FXColor getTextColor() const;
+
+  // Change selected background color
+  void setSelBackColor(FXColor clr);
+
+  // Return selected background color
+  FXColor getSelBackColor() const;
+
+  // Change selected text color
+  void setSelTextColor(FXColor clr);
+
+  // Return selected text color
+  FXColor getSelTextColor() const;
+
+  /// Change highlighted text color
+  void setHiliteTextColor(FXColor clr);
+
+  /// Return highlighted text color
+  FXColor getHiliteTextColor() const;
+
+  /// Change highlighted background color
+  void setHiliteBackColor(FXColor clr);
+
+  /// Return highlighted background color
+  FXColor getHiliteBackColor() const;
+
+  /// Change active background color
+  void setActiveBackColor(FXColor clr);
+
+  /// Return active background color
+  FXColor getActiveBackColor() const;
+
+  /// Change cursor color
+  void setCursorColor(FXColor clr);
+
+  /// Return cursor color
+  FXColor getCursorColor() const;
+
+  /// Change line number color
+  void setNumberColor(FXColor clr);
+
+  /// Return line number color
+  FXColor getNumberColor() const;
+
+  /// Change bar color
+  void setBarColor(FXColor clr);
+
+  /// Return bar color
+  FXColor getBarColor() const;
+
+  /// Set help text
+  void setHelpText(const FXString& text);
+
+  /// Return help text
+  FXString getHelpText() const;
+
+  /// Set the tool tip message for this text field
+  void setTipText(const FXString& text);
+
+  /// Get the tool tip message for this text field
+  FXString getTipText() const;
+
+  /// Get character at position in text buffer
+  FXint getChar(FXint pos) const;
+
+  /// Get style at position in style buffer
+  FXint getStyle(FXint pos) const;
+
+  /// Extract n characters of text from position 'pos'
+  %addmethods {
+    PyObject* extractText(FXint pos,FXint n) const {
+      FXchar *buffer;
+      PyObject *result=NULL;
+      if(FXMALLOC(&buffer,FXchar,n+1)){
+        self->extractText(buffer,pos,n);
+        buffer[n]='\0';
+        FXbool doSave=FXPyRestoreThread();
+        result=PyString_FromString(buffer);
+        FXPySaveThread(doSave);
+        FXFREE(&buffer);
+        }
+      else {
+	PyErr_SetString(PyExc_MemoryError,"out of memory");
+        }
+      return result;
+      }
+    }
+
+  /// Extract n characters of style info from position 'pos'
+  %addmethods {
+    PyObject* extractStyle(FXint pos,FXint n) const {
+      FXchar *buffer;
+      PyObject *result=NULL;
+      if(FXMALLOC(&buffer,FXchar,n+1)){
+        self->extractStyle(buffer,pos,n);
+        buffer[n]='\0';
+        FXbool doSave=FXPyRestoreThread();
+        result=PyString_FromString(buffer);
+        FXPySaveThread(doSave);
+        FXFREE(&buffer);
+        }
+      else {
+	PyErr_SetString(PyExc_MemoryError,"out of memory");
+        }
+      return result;
+      }
+    }
+
+  /// Replace m characters at pos by n characters
+  void replaceText(FXint pos,FXint m,const FXchar *text,FXint n,FXbool notify=FALSE);
+
+  /// Replace m characters at pos by n characters
+  void replaceStyledText(FXint pos,FXint m,const FXchar *text,FXint n,FXint style=0,FXbool notify=FALSE);
+
+  /// Append n characters of text at the end of the buffer
+  void appendText(const FXchar *text,FXint n,FXbool notify=FALSE);
+
+  /// Append n characters of text at the end of the buffer
+  void appendStyledText(const FXchar *text,FXint n,FXint style=0,FXbool notify=FALSE);
+
+  /// Insert n characters of text at position 'pos' into the buffer
+  void insertText(FXint pos,const FXchar *text,FXint n,FXbool notify=FALSE);
+
+  /// Insert n characters of text at position pos into the buffer
+  void insertStyledText(FXint pos,const FXchar *text,FXint n,FXint style=0,FXbool notify=FALSE);
+
+  /// Remove n characters of text at position pos from the buffer
+  void removeText(FXint pos,FXint n,FXbool notify=FALSE);
+
+  /// Change style of text range
+  void changeStyle(FXint pos,FXint n,FXint style);
+
+  /// Change style of text range from style-array
+  //XXXvoid changeStyle(FXint pos,FXint n,const FXchar* style);
+
+  /// Change the text in the buffer to new text
+  // void setText(const FXchar* text,FXint n,FXbool notify=FALSE);
+  /// Change the text in the buffer to new text
+  // void setStyledText(const FXchar* text,FXint n,FXint style=0,FXbool notify=FALSE);
+  
+  /// Retrieve text into buffer
+  // void getText(FXchar* text,FXint n) const;
+
+  /// Change the text in the buffer to new text
+  void setText(const FXString& text, FXbool notify=FALSE);
+
+  /// Change the text in the buffer to new text
+  void setStyledText(const FXString& text,FXint style=0,FXbool notify=FALSE);
+
+  /// Return text in the buffer
+  FXString getText();
+
+  /// Return length of buffer
+  FXint getLength() const;
+
+  /// Shift block of lines from position start up to end by given amount
+  FXint shiftText(FXint start,FXint end,FXint amount,FXbool notify=FALSE);
+
+  /**
+  * Search for string in text buffer, returning the extent of
+  * the string in beg and end.  The search starts from the given
+  * starting position, scans forward (SEARCH_FORWARD) or backward
+  * (SEARCH_BACKWARD), and wraps around if SEARCH_WRAP has been
+  * specified.  The search type is either a plain search (SEARCH_EXACT),
+  * case insensitive search (SEARCH_IGNORECASE), or regular expression
+  * search (SEARCH_REGEX).
+  * For regular expression searches, capturing parentheses are used if
+  * npar is greater than 1; in this case, the number of entries in the
+  * beg[], end[] arrays must be npar also.  If either beg or end or
+  * both are NULL, internal arrays are used.
+  * [This API is still subject to change!!]
+  */
+  FXbool findText(const FXString& string,FXint* beg=NULL,FXint* end=NULL,FXint start=0,FXuint flags=SEARCH_FORWARD|SEARCH_WRAP|SEARCH_EXACT,FXint npar=1);
+
+  // Return TRUE if position 'pos' is selected
+  FXbool isPosSelected(FXint pos) const;
+
+  // Return TRUE if position is fully visible
+  FXbool isPosVisible(FXint pos) const;
+
+  // Return text position at given (x,y) coordinate
+  FXint getPosAt(FXint x,FXint y) const;
+
+  /// Return position of begin of line containing position pos
+  FXint lineStart(FXint pos) const;
+  
+  /// Return position of end of line containing position pos
+  FXint lineEnd(FXint pos) const;
+
+  /// Return start of next line
+  FXint nextLine(FXint pos,FXint nl=1) const;
+  
+  /// Return start of previous line
+  FXint prevLine(FXint pos,FXint nl=1) const;
+  
+  /// Return row start
+  FXint rowStart(FXint pos) const;
+  
+  /// Return row end
+  FXint rowEnd(FXint pos) const;
+  
+  /// Return start of next row
+  FXint nextRow(FXint pos,FXint nr=1) const;
+  
+  /// Return start of previous row
+  FXint prevRow(FXint pos,FXint nr=1) const;
+  
+  /// Return end of previous word
+  FXint leftWord(FXint pos) const;
+  
+  /// Return begin of next word
+  FXint rightWord(FXint pos) const;
+  
+  /// Return begin of word
+  FXint wordStart(FXint pos) const;
+  
+  /// Return end of word
+  FXint wordEnd(FXint pos) const;
+
+  /// Return validated position
+  FXint validPos(FXint pos) const;
+  
+  /// Make line containing pos the top line
+  void setTopLine(FXint pos);
+  
+  /// Return position of top line
+  FXint getTopLine() const;
+  
+  /// Make line containing pos the bottom line
+  void setBottomLine(FXint pos);
+  
+  /// Return the position of the bottom line
+  FXint getBottomLine() const;
+  
+  /// Make line containing pos the center line
+  void setCenterLine(FXint pos);
+
+  /// Set the anchor position
+  void setAnchorPos(FXint pos);
+  
+  /// Return the anchor position
+  FXint getAnchorPos() const { return anchorpos; }
+
+  /// Set the cursor position
+  virtual void setCursorPos(FXint pos,FXbool notify=FALSE);
+
+  /// Set cursor row
+  void setCursorRow(FXint row,FXbool notify=FALSE);
+
+  /// Return cursor row  
+  FXint getCursorRow() const { return cursorrow; }
+
+  /// Set cursor column
+  void setCursorCol(FXint col,FXbool notify=FALSE);
+  
+  /// Return cursor row  
+  FXint getCursorCol() const { return cursorcol; }
+  
+  /// Return the cursor position
+  FXint getCursorPos() const { return cursorpos; }
+  
+  /// Return selstartpos
+  FXint getSelStartPos() const { return selstartpos; }
+
+  /// Return selendpos
+  FXint getSelEndPos() const { return selendpos; }
+
+  /// Select all text
+  FXbool selectAll(FXbool notify=FALSE);
+
+  /// Select len characters starting at given position pos
+  FXbool setSelection(FXint pos,FXint len,FXbool notify=FALSE);
+  
+  /// Extend the selection from the anchor to the given position
+  virtual FXbool extendSelection(FXint pos,FXTextSelectionMode select=SELECT_CHARS,FXbool notify=FALSE); 
+  
+  /// Unselect the text
+  virtual FXbool killSelection(FXbool notify=FALSE); 
+  
+  /// Highlight len characters starting at given position pos
+  FXbool setHighlight(FXint start,FXint len);
+
+  /// Unhighlight the text
+  FXbool killHighlight();
+
+  /// Scroll text to make the given position visible
+  void makePositionVisible(FXint pos);
+
+  /// Change text widget style
+  void setTextStyle(FXuint style);
+  
+  /// Return text widget style
+  FXuint getTextStyle() const;
+
+  /// Change number of visible rows
+  void setVisRows(FXint rows);
+
+  /// Return number of visible rows
+  FXint getVisRows() const { return vrows; }
+
+  /// Change number of visible columns
+  void setVisCols(FXint cols);
+
+  /// Return number of visible columns
+  FXint getVisCols() const { return vcols; }
+
+  /** 
+  * Change brace and parenthesis match highlighting time, in us.
+  * A match highlight time of 0 disables brace matching.
+  */
+  void setHiliteMatchTime(FXuint t){ matchtime=t; }
+
+  /**
+  * Return brace and parenthesis match highlighting time, in us.
+  */
+  FXuint getHiliteMatchTime() const { return matchtime; }
+  
+  /// Set highlight styles
+  void setHiliteStyles(const FXHiliteStyle* styles);
+
+  /// Get highlight styles
+  const FXHiliteStyle* getHiliteStyles() const { return hilitestyles; }
+  };
+
+
+class FXPyText : public FXText {
+public:
+  FXPyText(FXComposite *p,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=0,FXint x=0,FXint y=0,FXint w=0,FXint h=0);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  SCROLLAREA_VIRTUALS
+  TEXT_VIRTUALS
+  };
+

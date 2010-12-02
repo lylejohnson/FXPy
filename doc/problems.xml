@@ -1,0 +1,17 @@
+<chapter id="problems">
+  <title>Known Problems</title>
+  <para>First, a few general comments:</para>
+  <itemizedlist mark="bullet">
+    <listitem><para>It goes without saying that any bugs in the FOX library will be exposed in FXPy as well.</para></listitem>
+    <listitem><para>FXPy is pretty highly coupled with FOX, and so you need to be careful about which versions of FXPy and FOX you're using together. Any of the FXPy-1.0.x releases should work with any of the fox-1.0.x releases, since the FOX 1.0 API is stable. However, if you need to use FXPy with a development version of FOX, be sure that the version numbers for both are compatible.</para></listitem>
+    <listitem><para>All of the test programs run, but some of them don't quite work properly. For example, the <filename>image.py</filename> test shows the wrong images. So sue me, I'm working on it :)</para></listitem>
+  </itemizedlist>
+  <para>The following FOX features (including some class member functions) are currently not supported by FXPy. They will probably be supported in a future release of FXPy unless there is some overwhelming technical reason not to do so.</para>
+  <itemizedlist mark="bullet">
+    <listitem><para><classname>FXVec</classname>, <classname>FXDVec</classname>, <classname>FXRange</classname>, <classname>FXHMat</classname>, <classname>FXDHMat</classname>, <classname>FXHVec</classname>, <classname>FXDHVec</classname>, <classname>FXQuat</classname> and <classname>FXDQuat</classname> are not implemented.</para></listitem>
+    <listitem><para>Although the <classname>FXStream</classname> and <classname>FXFileStream</classname> classes are exposed to Python to a limited degree, you can't really mix and match Python serialization with FOX's serialization. For an example of how you can use FOX stream objects from Python, see the <filename>imageviewer.py</filename> test program, where we use an <classname>FXFileStream</classname> object to load and save the image data.</para></listitem>
+    <listitem><para>For <classname>FXGLViewer</classname>, the <methodname>getZSortFunc()</methodname>, and <methodname>setZSortFunc()</methodname> functions are not yet implemented.</para></listitem>
+    <listitem><para>For <classname>FXGLTriangleMesh</classname>, the <methodname>setVertexBuffer()</methodname>, <methodname>setColorBuffer()</methodname>, <methodname>setNormalBuffer()</methodname>, <methodname>setTextureCoordBuffer()</methodname>, <methodname>getVertexBuffer()</methodname>, <methodname>getColorBuffer()</methodname>, <methodname>getNormalBuffer()</methodname> and <methodname>getTextureCoordBuffer()</methodname> functions need to be fixed.</para></listitem>
+    <listitem><para>The static member function <methodname>FXFont.listFonts()</methodname> is missing.</para></listitem>
+  </itemizedlist>
+</chapter>

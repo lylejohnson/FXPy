@@ -1,0 +1,268 @@
+/// Rectangle
+class FXRectangle {
+public:
+  FXshort x;
+  FXshort y;
+  FXshort w;
+  FXshort h;
+public:
+
+  /// Constructors
+  // FXRectangle();
+  FXRectangle(FXshort xx,FXshort yy,FXshort ww,FXshort hh):x(xx),y(yy),w(ww),h(hh);
+  // FXRectangle(const FXPoint& p,const FXSize& s);
+  // FXRectangle(const FXPoint& tl,const FXPoint& br);
+
+  /// Equality
+  %addmethods {
+    FXbool __eq__(const FXRectangle& other) const {
+      return (*self == other);
+      }
+    FXbool __ne__(const FXRectangle& other) const {
+      return (*self != other);
+      }
+  }
+
+  /// Point in rectangle
+  %name(containsPoint) FXbool contains(const FXPoint& p) const;
+  %name(containsXY) FXbool contains(FXshort xx,FXshort yy) const;
+
+  /// Rectangle properly contained in rectangle
+  %name(containsRectangle) FXbool contains(const FXRectangle& r) const;
+
+  /// Rectangles overlap
+  %addmethods {
+    FXbool overlaps(const FXRectangle& other) const {
+      return overlap(*self, other);
+      }
+  }
+
+  /// Return moved rectangle
+  FXRectangle& move(FXshort dx,FXshort dy);
+
+  /// Grow by amount
+  FXRectangle& grow(FXshort margin);
+  %name(grow2) FXRectangle& grow(FXshort hormargin,FXshort vermargin);
+  %name(grow4) FXRectangle& grow(FXshort leftmargin,FXshort rightmargin,FXshort topmargin,FXshort bottommargin);
+
+  /// Shrink by amount
+  FXRectangle& shrink(FXshort margin);
+  %name(shrink2) FXRectangle& shrink(FXshort hormargin,FXshort vermargin);
+  %name(shrink4) FXRectangle& shrink(FXshort leftmargin,FXshort rightmargin,FXshort topmargin,FXshort bottommargin);
+
+  /// Corners
+  FXPoint tl() const;
+  FXPoint tr() const;
+  FXPoint bl() const;
+  FXPoint br() const;
+
+  /// Union and intersection with rectangle
+  // FXRectangle& operator+=(const FXRectangle &r);
+  // FXRectangle& operator*=(const FXRectangle &r);
+  };
+
+
+/// Size
+class FXSize {
+public:
+  FXshort w;
+  FXshort h;
+public:
+
+  /// Constructors
+  // FXSize();
+  // FXSize(const FXSize& s);
+  FXSize(FXshort ww,FXshort hh);
+
+  /// Equality
+  %addmethods {
+    FXbool __eq__(const FXSize& other) const {
+      return (*self == other);
+      }
+    FXbool __ne__(const FXSize& other) const {
+      return (*self != other);
+      }
+  }
+
+  /// Assignment operators
+  %addmethods {
+    FXSize __add__(const FXSize& s) const {
+      return (*self + s);
+      }
+    FXSize __sub__(const FXSize& s) const {
+      return (*self - s);
+      }
+    FXSize __mul__(FXshort c) const {
+      return (*self * c);
+      }
+    FXSize __div__(FXshort c) const {
+      return (*self / c);
+      }
+    FXSize& __iadd__(const FXSize& s) {
+      return (*self += s);
+      }
+    FXSize& __isub__(const FXSize& s) {
+      return (*self -= s);
+      }
+    FXSize& __imul__(FXshort c) {
+      return (*self *= c);
+      }
+    FXSize& __idiv__(FXshort c) {
+      return (*self /= c);
+      }
+  }
+
+  /// Negation
+  %addmethods {
+    FXSize __neg__() const {
+      return -(*self);
+      }
+  }
+  };
+
+
+/// Point
+class FXPoint {
+public:
+  FXshort x;
+  FXshort y;
+public:
+
+  /// Constructors
+  // FXPoint();
+  // FXPoint(const FXSize& s);
+  // FXPoint(const FXPoint& p);
+  FXPoint(FXshort xx,FXshort yy);
+
+  /// Equality
+  %addmethods {
+    FXbool __eq__(const FXPoint& other) const {
+      return (*self == other);
+      }
+    FXbool __ne__(const FXPoint& other) const {
+      return (*self != other);
+      }
+  }
+
+  /// Assignment operators
+  %addmethods {
+    FXPoint __add__(const FXPoint& other) const {
+      return (*self + other);
+      }
+    FXPoint __sub__(const FXPoint& other) const {
+      return (*self - other);
+      }
+    FXPoint __mul__(FXshort c) const {
+      return (*self * c);
+      }
+    FXPoint __div__(FXshort c) const {
+      return (*self / c);
+      }
+    FXPoint& __iadd__(const FXPoint& other) {
+      return (*self += other);
+      }
+    FXPoint& __isub__(const FXPoint& other) {
+      return (*self -= other);
+      }
+    FXPoint& __imul__(FXshort c) {
+      return (*self *= c);
+      }
+    FXPoint& __idiv__(FXshort c) {
+      return (*self /= c);
+      }
+  }
+
+  /// Negation
+  %addmethods {
+    FXPoint __neg__() const {
+      return -(*self);
+      }
+  }
+
+  /// Save object to a stream
+  // friend FXStream& operator<<(FXStream& store,const FXPoint& p);
+
+  /// Load object from a stream
+  // friend FXStream& operator>>(FXStream& store,FXPoint& p);
+  };
+
+// This typemap allows us to both read & set the "face" member of
+// FXFontDesc object instances.
+%typemap(memberin) FXchar[48] { strncpy($target, $source, 48); }
+
+// Font style
+struct FXFontDesc {
+  FXchar	  face[48];               // Face name
+  FXuint	  size;                   // Size in deci-points
+  FXuint	  weight;                 // Weight [light, normal, bold, ...]
+  FXuint	  slant;                  // Slant [normal, italic, oblique, ...]
+  FXuint          encoding;               // Encoding of character set
+  FXuint	  setwidth;               // Set width [normal, condensed, expanded, ...]
+  FXuint	  flags;                  // Flags
+  };
+
+
+// Describes printer
+struct FXPrinter {
+  FXString name;                          // Printer name
+  FXuint   firstpage;                     // First page that can be printed
+  FXuint   lastpage;                      // Last page that can be printed
+  FXuint   currentpage;                   // Current page to print
+  FXuint   frompage;                      // On output, this is the first page to print
+  FXuint   topage;                        // On output, last page to print
+  FXuint   mediasize;                     // Media size [MEDIA_USLETTER etc]
+  FXdouble mediawidth;                    // Width of paper in points [1/72 of an inch]
+  FXdouble mediaheight;                   // Height of paper in points
+  FXdouble leftmargin;                    // Left margin
+  FXdouble rightmargin;                   // Right margin
+  FXdouble topmargin;                     // Top margin
+  FXdouble bottommargin;                  // Bottom margin
+  FXuint   numcopies;                     // Number of copies
+  FXuint   flags;                         // Flags
+  };
+
+
+/// Bounding box
+struct FXPSBounds {
+  FXdouble  xmin;
+  FXdouble  xmax;
+  FXdouble  ymin;
+  FXdouble  ymax;
+  };
+
+
+// FOX Event
+struct FXEvent {
+  %addmethods {
+    FXEvent(const char *str) {
+      if (str) {
+        FXEvent *ptr;
+        sscanf(str,"%p",&ptr);
+        FXEvent *ev = new FXEvent(*ptr);
+        return ev;
+      }
+      else
+	return 0;
+    }
+  }
+  FXuint      type;           /// Event type
+  FXuint      time;           /// Time of last event
+  FXint       win_x;          /// Window-relative x-coord
+  FXint       win_y;          /// Window-relative y-coord
+  FXint       root_x;         /// Root x-coord
+  FXint       root_y;         /// Root y-coord
+  FXint       state;          /// Keyboard/Modifier state
+  FXint       code;           /// Button, Keysym, or mode; DDE Source
+  FXString    text;           /// Text of keyboard event
+  FXint       last_x;         /// Window-relative x-coord of previous mouse location
+  FXint       last_y;         /// Window-relative y-coord of previous mouse location
+  FXint       click_x;        /// Window-relative x-coord of mouse button press
+  FXint       click_y;        /// Window-relative y-coord of mouse press
+  FXuint      click_time;     /// Time of mouse button press
+  FXuint      click_button;   /// Mouse button pressed
+  FXint       click_count;    /// Click-count
+  FXbool      moved;          /// Moved cursor since press
+  FXRectangle rect;           /// Rectangle
+  FXbool      synthetic;      /// True if synthetic expose event
+  FXDragType  target;         /// Target drag type
+  };

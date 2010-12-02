@@ -1,0 +1,24 @@
+<chapter id="intro">
+  <title>Getting Started with FXPy</title>
+  <simplesect>
+    <title>Python</title>
+    <para>First, you need to have <ulink url="http://www.python.org">Python</ulink> installed on your system in order to use FXPy. Pre-compiled binaries for Linux and Microsoft Windows are available for download from the Python home page, and most of the popular Linux distributions include Python as a standard feature. FXPy is also compatible with the <ulink url="http://www.activestate.com">ActiveState</ulink> releases of Python. For other Unix platforms, you may need to download the source code from the Python home page, and build it yourself.</para>
+  </simplesect>
+  <simplesect>
+    <title>FOX</title>
+    <para>Once you've got Python up and running, you <emphasis>may</emphasis> also need to download the FOX library source code and build and install that. If you're planning to use FXPy on Microsoft Windows, you can just download one of the FXPy binary installers for Windows and skip this step. But for all other Unix-based installations (including Linux) you're going to need to build and install FOX from the sources first.</para>
+  </simplesect>
+  <simplesect>
+    <title>OpenGL and PyOpenGL</title>
+    <para>If you are running Windows 95 (earlier than OSR2), you will also need to download the <ulink url="http://download.microsoft.com/download/win95upg/info/1/W95/EN-US/Opengl95.exe">OpenGL runtime libraries</ulink> from Microsoft. <emphasis>You must have these libraries installed even if you don't plan to do anything OpenGL-related with FXPy</emphasis>. These libraries come as a standard part of Windows 98 and Windows NT but were not part of Windows 95.</para>
+    <para>If you are actually interested in developing OpenGL applications with FXPy, you will also want to get the <ulink url="http://pyopengl.sourceforge.net">PyOpenGL</ulink> package and install it. This extension allows you to make OpenGL library calls from your Python scripts.</para>
+  </simplesect>
+  <simplesect>
+    <title>Distutils</title>
+    <para>If you need or want to compile FXPy from the sources you will need to have version 0.9.4 or later of the <ulink url="http://www.python.org/sigs/distutils-sig">Distutils</ulink> installed. Note that the Distutils versions included with Python 1.6 and Python 2.0b1 were earlier than version 0.9.4 and will <emphasis>not</emphasis> work!</para>
+  </simplesect>
+  <simplesect>
+    <title>FXPy</title>
+    <para>Finally, download either the full source code distribution of FXPy or the one of the pre-compiled binary distributions for Microsoft Windows. If you downloaded and ran the Windows installer, you're ready to take a look at the example programs; these get installed under the <filename class="directory">examples</filename> subdirectory of the main installation directory (e.g. <filename class="directory">C:\Python20\FXPy\tests</filename>). If you downloaded the source distribution, you'll need to read the instructions on <link linkend="build">building FXPy from the source code</link>.</para>
+  </simplesect>
+</chapter>

@@ -1,0 +1,6 @@
+<chapter id="install">
+  <title>Installation</title>
+  <para>To install FXPy, change to the top-level directory and type:</para>
+  <programlisting>python setup.py install [--prefix=<emphasis>install-dir</emphasis>]</programlisting>
+  <para>If you do not provide the optional installation directory argument, it should get installed in the right place. On Unix platforms, the FXPy package directory should get installed under the <filename class="directory">site-packages</filename> directory, e.g. <filename class="directory">/usr/local/lib/python1.5/site-packages/FXPy</filename>. On Windows, it should get installed under the main Python directory, e.g. <filename class="directory">C:\Python20\FXPy</filename>. You shouldn't need to adjust your <property>PYTHONPATH</property> environment setting for these standard installation locations, but if you don't install it in a "standard" location, be sure to add the installation directory to your <property>PYTHONPATH</property> environment variable.</para>
+</chapter>

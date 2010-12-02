@@ -1,0 +1,435 @@
+// Streamable types; these are fixed size!
+typedef unsigned char          FXuchar;
+typedef char                   FXchar;
+typedef FXuchar                FXbool;
+typedef unsigned short         FXushort;
+typedef short                  FXshort;
+typedef unsigned int           FXuint;
+typedef int                    FXint;
+typedef float                  FXfloat;
+typedef double                 FXdouble;
+typedef FXObject              *FXObjectPtr;
+
+// Minimum and maximum key values
+#define MINKEY 0
+#define MAXKEY 65535
+
+// Minimum and maximum types
+#define MINTYPE 0
+#define MAXTYPE 65535
+
+// Association key
+typedef FXuint FXSelector;
+
+// FOX System Defined Selector Types
+enum FXSelType {
+  SEL_NONE,
+  SEL_KEYPRESS,                       // Key
+  SEL_KEYRELEASE,
+  SEL_LEFTBUTTONPRESS,                // Buttons
+  SEL_LEFTBUTTONRELEASE,
+  SEL_MIDDLEBUTTONPRESS,
+  SEL_MIDDLEBUTTONRELEASE,
+  SEL_RIGHTBUTTONPRESS,
+  SEL_RIGHTBUTTONRELEASE,
+  SEL_MOTION,                         // Mouse motion
+  SEL_ENTER,
+  SEL_LEAVE,
+  SEL_FOCUSIN,
+  SEL_FOCUSOUT,
+  SEL_KEYMAP,
+  SEL_UNGRABBED,                      // Lost the grab (Windows)
+  SEL_PAINT,                          // Must repaint window
+  SEL_CREATE,
+  SEL_DESTROY,
+  SEL_UNMAP,
+  SEL_MAP,
+  SEL_CONFIGURE,                      // Resize
+  SEL_SELECTION_LOST,                 // Widget lost selection
+  SEL_SELECTION_GAINED,               // Widget gained selection
+  SEL_SELECTION_REQUEST,              // Inquire selection data
+  SEL_RAISED,
+  SEL_LOWERED,
+  SEL_CLOSE,                          // Close window
+  SEL_CLOSEALL,                       // Close all windows
+  SEL_DELETE,                         // Delete window
+  SEL_MINIMIZE,                       // Iconified
+  SEL_RESTORE,                        // No longer iconified or maximized
+  SEL_MAXIMIZE,                       // Maximized
+  SEL_UPDATE,                         // GUI update
+  SEL_COMMAND,                        // GUI command
+  SEL_CLICKED,                        // Clicked
+  SEL_DOUBLECLICKED,                  // Double-clicked
+  SEL_TRIPLECLICKED,                  // Triple-clicked
+  SEL_MOUSEWHEEL,                     // Mouse wheel
+  SEL_CHANGED,                        // GUI has changed
+  SEL_VERIFY,                         // Verify change
+  SEL_DESELECTED,                     // Deselected
+  SEL_SELECTED,                       // Selected
+  SEL_INSERTED,                       // Inserted
+  SEL_REPLACED,                       // Replaced
+  SEL_DELETED,                        // Deleted
+  SEL_OPENED,                         // Opened
+  SEL_CLOSED,                         // Closed
+  SEL_EXPANDED,                       // Expanded
+  SEL_COLLAPSED,                      // Collapsed
+  SEL_BEGINDRAG,                      // Start a drag
+  SEL_ENDDRAG,                        // End a drag
+  SEL_DRAGGED,                        // Dragged
+  SEL_LASSOED,                        // Lassoed
+  SEL_TIMEOUT,                        // Timeout occurred
+  SEL_SIGNAL,                         // Signal received
+  SEL_CLIPBOARD_LOST,                 // Widget lost clipboard
+  SEL_CLIPBOARD_GAINED,               // Widget gained clipboard
+  SEL_CLIPBOARD_REQUEST,              // Inquire clipboard data
+  SEL_CHORE,                          // Background chore
+  SEL_FOCUS_SELF,                     // Focus on widget itself
+  SEL_FOCUS_RIGHT,                    // Focus movements
+  SEL_FOCUS_LEFT,
+  SEL_FOCUS_DOWN,
+  SEL_FOCUS_UP,
+  SEL_FOCUS_NEXT,
+  SEL_FOCUS_PREV,
+  SEL_DND_ENTER,                      // Drag action entering potential drop target
+  SEL_DND_LEAVE,                      // Drag action leaving potential drop target
+  SEL_DND_DROP,                       // Drop on drop target
+  SEL_DND_MOTION,                     // Drag position changed over potential drop target
+  SEL_DND_REQUEST,                    // Inquire drag and drop data
+  SEL_UNCHECK_OTHER,                  // Sent by child to parent to uncheck other children
+  SEL_UNCHECK_RADIO,                  // Sent by parent to uncheck radio children
+  SEL_IO_READ,                        // Read activity on a pipe
+  SEL_IO_WRITE,                       // Write activity on a pipe
+  SEL_IO_EXCEPT,                      // Except activity on a pipe
+  SEL_PICKED,                         // Picked some location
+  SEL_LAST                            // Last message
+  };
+
+
+/// FOX Keyboard and Button states
+enum {
+  SHIFTMASK        = 0x001,           /// Shift key is down
+  CAPSLOCKMASK     = 0x002,           /// Caps Lock key is down
+  CONTROLMASK      = 0x004,           /// Ctrl key is down
+  ALTMASK          = 0x008,           /// Alt key is down
+  NUMLOCKMASK      = 0x010,           /// Num Lock key is down
+  SCROLLLOCKMASK   = 0x0E0,           /// Scroll Lock key is down (seems to vary)
+  LEFTBUTTONMASK   = 0x100,           /// Left mouse button is down
+  MIDDLEBUTTONMASK = 0x200,           /// Middle mouse button is down
+  RIGHTBUTTONMASK  = 0x400            /// Right mouse button is down
+  };
+
+
+// FOX Mouse Buttons
+enum {
+  LEFTBUTTON       = 1,
+  MIDDLEBUTTON     = 2,
+  RIGHTBUTTON      = 3
+  };
+
+
+// FOX Crossing Modes
+enum {
+  CROSSINGNORMAL,
+  CROSSINGGRAB,
+  CROSSINGUNGRAB
+  };
+
+
+// FOX Visibility Modes
+enum {
+  VISIBILITYTOTAL,
+  VISIBILITYPARTIAL,
+  VISIBILITYNONE
+  };
+
+
+// Options for fxfilematch
+enum {
+  FILEMATCH_FILE_NAME   = 1,        // No wildcard can ever match `/'
+  FILEMATCH_NOESCAPE    = 2,        // Backslashes don't quote special chars
+  FILEMATCH_PERIOD      = 4,        // Leading `.' is matched only explicitly
+  FILEMATCH_LEADING_DIR = 8,        // Ignore `/...' after a match
+  FILEMATCH_CASEFOLD    = 16        // Compare without regard to case
+  };
+
+
+// Drag and drop actions
+enum FXDragAction {
+  DRAG_REJECT  = 0,                 // Reject all drop actions
+  DRAG_ACCEPT  = 1,                 // Accept any drop action
+  DRAG_COPY    = 2,                 // Copy
+  DRAG_MOVE    = 3,                 // Move
+  DRAG_LINK    = 4,                 // Link
+  DRAG_PRIVATE = 5
+  };
+  
+
+// Origin of data
+enum FXDNDOrigin {
+  FROM_SELECTION  = 0,              // Primary selection
+  FROM_CLIPBOARD  = 1,              // Clipboard
+  FROM_DRAGNDROP  = 2               // Drag and drop source
+  };
+
+
+// Exponent display
+enum FXExponent {
+  EXP_NEVER=FALSE,                  // Never use exponential notation
+  EXP_ALWAYS=TRUE,                  // Always use exponential notation
+  EXP_AUTO=MAYBE                    // Use exponential notation if needed
+  };
+
+
+/// Search modes for search/replace dialogs
+enum {
+  SEARCH_FORWARD      = 0,    /// Search forward (default)
+  SEARCH_BACKWARD     = 1,    /// Search backward
+  SEARCH_NOWRAP       = 0,    /// Don't wrap (default)
+  SEARCH_WRAP         = 2,    /// Wrap around to start
+  SEARCH_EXACT        = 0,    /// Exact match (default)
+  SEARCH_IGNORECASE   = 4,    /// Ignore case
+  SEARCH_REGEX        = 8,    /// Regular expression match
+  SEARCH_PREFIX       = 16    /// Prefix of subject string
+  };
+
+  
+// Font style hints which influence the matcher
+enum FXFontHint {
+  FONTPITCH_DEFAULT    = 0,         // Default pitch
+  FONTPITCH_FIXED      = 1,         // Fixed pitch, mono-spaced
+  FONTPITCH_VARIABLE   = 2,         // Variable pitch, proportional spacing
+  FONTHINT_DONTCARE    = 0,         // Don't care which font
+  FONTHINT_DECORATIVE  = 4,         // Fancy fonts
+  FONTHINT_MODERN      = 8,         // Monospace typewriter font
+  FONTHINT_ROMAN       = 16,        // Variable width times-like font, serif
+  FONTHINT_SCRIPT      = 32,        // Script or cursive
+  FONTHINT_SWISS       = 64,        // Helvetica/swiss type font, sans-serif
+  FONTHINT_SYSTEM      = 128,       // System font
+  FONTHINT_X11         = 256,       // X11 Font string
+  FONTHINT_SCALABLE    = 512,       // Scalable fonts
+  FONTHINT_POLYMORPHIC = 1024       // Polymorphic fonts
+  };
+  
+
+// Font slant 
+enum FXFontSlant {
+  FONTSLANT_DONTCARE        = 0,
+  FONTSLANT_REGULAR         = 1,
+  FONTSLANT_ITALIC          = 2,
+  FONTSLANT_OBLIQUE         = 3,
+  FONTSLANT_REVERSE_ITALIC  = 4,
+  FONTSLANT_REVERSE_OBLIQUE = 5 
+  };
+
+
+/// Font character set encoding
+enum FXFontEncoding {
+  FONTENCODING_DEFAULT      = 0,                        /// Don't care character encoding
+  FONTENCODING_ISO_8859_1   = 1,
+  FONTENCODING_ISO_8859_2   = 2,
+  FONTENCODING_ISO_8859_3   = 3,
+  FONTENCODING_ISO_8859_4   = 4,
+  FONTENCODING_ISO_8859_5   = 5,                        /// Cyrillic (almost obsolete)
+  FONTENCODING_ISO_8859_6   = 6,
+  FONTENCODING_ISO_8859_7   = 7,
+  FONTENCODING_ISO_8859_8   = 8,
+  FONTENCODING_ISO_8859_9   = 9,
+  FONTENCODING_ISO_8859_10  = 10,
+  FONTENCODING_ISO_8859_11  = 11,
+  FONTENCODING_ISO_8859_13  = 13,
+  FONTENCODING_ISO_8859_14  = 14,
+  FONTENCODING_ISO_8859_15  = 15,
+  FONTENCODING_ISO_8859_16  = 16,
+  FONTENCODING_KOI8         = 17,
+  FONTENCODING_KOI8_R       = 18,                       /// Russian
+  FONTENCODING_KOI8_U       = 19,                       /// Ukrainian
+  FONTENCODING_KOI8_UNIFIED = 20,
+
+  FONTENCODING_LATIN1      = FONTENCODING_ISO_8859_1,   /// Latin 1 (West European) 
+  FONTENCODING_LATIN2      = FONTENCODING_ISO_8859_2,   /// Latin 2 (East European) 
+  FONTENCODING_LATIN3      = FONTENCODING_ISO_8859_3,   /// Latin 3 (South European) 
+  FONTENCODING_LATIN4      = FONTENCODING_ISO_8859_4,   /// Latin 4 (North European) 
+  FONTENCODING_LATIN5      = FONTENCODING_ISO_8859_9,   /// Latin 5 (Turkish) 
+  FONTENCODING_LATIN6      = FONTENCODING_ISO_8859_10,  /// Latin 6 (Nordic) 
+  FONTENCODING_LATIN7      = FONTENCODING_ISO_8859_13,  /// Latin 7 (Baltic Rim)
+  FONTENCODING_LATIN8      = FONTENCODING_ISO_8859_14,  /// Latin 8 (Celtic)
+  FONTENCODING_LATIN9      = FONTENCODING_ISO_8859_15,  /// Latin 9 AKA Latin 0
+  FONTENCODING_LATIN10     = FONTENCODING_ISO_8859_16,  /// Latin 10
+
+  FONTENCODING_USASCII     = FONTENCODING_ISO_8859_1,   /// Latin 1
+  FONTENCODING_WESTEUROPE  = FONTENCODING_ISO_8859_1,   /// Latin 1 (West European) 
+  FONTENCODING_EASTEUROPE  = FONTENCODING_ISO_8859_2,   /// Latin 2 (East European) 
+  FONTENCODING_SOUTHEUROPE = FONTENCODING_ISO_8859_3,   /// Latin 3 (South European) 
+  FONTENCODING_NORTHEUROPE = FONTENCODING_ISO_8859_4,   /// Latin 4 (North European) 
+  FONTENCODING_CYRILLIC    = FONTENCODING_ISO_8859_5,   /// Cyrillic
+  FONTENCODING_RUSSIAN     = FONTENCODING_KOI8,         /// Cyrillic
+  FONTENCODING_ARABIC      = FONTENCODING_ISO_8859_6,   /// Arabic
+  FONTENCODING_GREEK       = FONTENCODING_ISO_8859_7,   /// Greek
+  FONTENCODING_HEBREW      = FONTENCODING_ISO_8859_8,   /// Hebrew
+  FONTENCODING_TURKISH     = FONTENCODING_ISO_8859_9,   /// Latin 5 (Turkish) 
+  FONTENCODING_NORDIC      = FONTENCODING_ISO_8859_10,  /// Latin 6 (Nordic) 
+  FONTENCODING_THAI        = FONTENCODING_ISO_8859_11,  /// Thai
+  FONTENCODING_BALTIC      = FONTENCODING_ISO_8859_13,  /// Latin 7 (Baltic Rim)
+  FONTENCODING_CELTIC      = FONTENCODING_ISO_8859_14   /// Latin 8 (Celtic)
+  };
+
+
+// Font weight
+enum FXFontWeight {
+  FONTWEIGHT_DONTCARE   = 0,        /// Don't care about weight
+  FONTWEIGHT_THIN       = 100,      /// Thin
+  FONTWEIGHT_EXTRALIGHT = 200,      /// Extra light
+  FONTWEIGHT_LIGHT      = 300,      /// Light
+  FONTWEIGHT_NORMAL     = 400,      /// Normal or regular weight
+  FONTWEIGHT_REGULAR    = 400,      /// Normal or regular weight
+  FONTWEIGHT_MEDIUM     = 500,      /// Medium bold face
+  FONTWEIGHT_DEMIBOLD   = 600,      /// Demi bold face
+  FONTWEIGHT_BOLD       = 700,      /// Bold face
+  FONTWEIGHT_EXTRABOLD  = 800,      /// Extra
+  FONTWEIGHT_HEAVY      = 900,      /// Heavy
+  FONTWEIGHT_BLACK      = 900       /// Black
+  };
+
+
+// Font relative setwidth
+enum FXFontSetWidth {
+  FONTSETWIDTH_DONTCARE       = 0,    /// Don't care about set width
+  FONTSETWIDTH_ULTRACONDENSED = 10,   /// Ultra condensed printing
+  FONTSETWIDTH_EXTRACONDENSED = 20,   /// Extra condensed
+  FONTSETWIDTH_CONDENSED      = 30,   /// Condensed
+  FONTSETWIDTH_NARROW         = 30,   /// Narrow
+  FONTSETWIDTH_COMPRESSED     = 30,   /// Compressed
+  FONTSETWIDTH_SEMICONDENSED  = 40,   /// Semi-condensed
+  FONTSETWIDTH_MEDIUM         = 50,   /// Medium printing
+  FONTSETWIDTH_NORMAL         = 50,   /// Normal printing
+  FONTSETWIDTH_REGULAR        = 50,   /// Regulat printing
+  FONTSETWIDTH_SEMIEXPANDED   = 60,   /// Semi expanded
+  FONTSETWIDTH_EXPANDED       = 70,   /// Expanded
+  FONTSETWIDTH_WIDE           = 80,   /// Wide
+  FONTSETWIDTH_EXTRAEXPANDED  = 80,   /// Extra expanded
+  FONTSETWIDTH_ULTRAEXPANDED  = 90    /// Ultra expanded
+  };
+
+    
+// Printer flags
+enum FXPrintFlags {
+  PRINT_DEST_PAPER        = 0,    // Send print to paper
+  PRINT_DEST_FILE         = 1,    // Send print to file
+  PRINT_PAGES_ALL         = 0,    // Print all pages
+  PRINT_PAGES_EVEN        = 2,    // Print even pages only
+  PRINT_PAGES_ODD         = 4,    // Print odd pages only
+  PRINT_PAGES_RANGE       = 8,    // Print range of pages
+  PRINT_COLLATE_NORMAL    = 0,    // Normal collate order
+  PRINT_COLLATE_REVERSED  = 16,   // Reversed collate order
+  PRINT_PORTRAIT          = 0,    // Portrait orientation
+  PRINT_LANDSCAPE         = 32,   // Landscape orientation
+  PRINT_BLACKANDWHITE     = 0,    // Black and white output
+  PRINT_COLOR             = 64,   // Color output
+  PRINT_NOBOUNDS          = 128   // Must determine bounding box
+  };
+
+
+// Printer media size
+enum FXMediaSize {
+  MEDIA_CUSTOM            = 0,    // Custom paper size
+  MEDIA_USLETTER          = 1,    // US Letter size
+  MEDIA_LEGAL             = 2,    // US Legal size
+  MEDIA_A4                = 3,    // A4
+  MEDIA_ENVELOPE          = 4     // #10 Envelope
+  };
+
+
+// Handle to something in server
+#ifndef WIN32
+typedef unsigned int           FXID;
+#else
+typedef void*                  FXID;
+#endif
+
+// Server time
+typedef long                   FXTime;
+
+// Pixel type (could be color index)
+typedef unsigned long          FXPixel;
+
+// RGBA pixel value
+typedef FXuint                 FXColor;
+
+// Hot key
+typedef FXuint                 FXHotKey;
+
+// Drag type
+#ifndef WIN32
+typedef FXID                   FXDragType;
+#else
+typedef FXushort               FXDragType;
+#endif
+
+// Raw event type
+#ifndef WIN32
+union _XEvent;
+typedef _XEvent                FXRawEvent;
+#else
+struct tagMSG; 
+typedef tagMSG                 FXRawEvent;
+#endif
+
+// Input source handle type (see typemaps in my_typemaps.i)
+typedef FXint                  FXInputHandle;
+
+/*********************************  Globals  **********************************/
+
+// Sleep n microseconds
+void fxsleep(unsigned int n);
+
+// Match a file name with a pattern
+FXint fxfilematch(const char *pattern,const char *string,FXuint flags=(FILEMATCH_NOESCAPE|FILEMATCH_FILE_NAME));
+
+// Parse for accelerator key codes in a string
+FXHotKey fxparseaccel(const FXchar* s);
+
+// Parse for hot key codes in a string
+FXHotKey fxparsehotkey(const FXchar* s);
+
+// Locate hot key underline offset from begin of string
+FXint fxfindhotkeyoffset(const FXchar* s);
+
+// Get highlight color
+FXColor makeHiliteColor(FXColor clr);
+
+// Get shadow color
+FXColor makeShadowColor(FXColor clr);
+
+// Get user name from uid
+FXchar* fxgetusername(FXchar* result,FXuint uid);
+
+// Get group name from gid
+FXchar* fxgetgroupname(FXchar* result,FXuint gid);
+
+// Get permissions string from mode
+FXchar* fxgetpermissions(FXchar* result,FXuint mode);
+
+// Get process id
+FXint fxgetpid();
+
+// Get RGB value from color name
+FXColor fxcolorfromname(const FXchar* colorname);
+
+// Convert RGB to HSV
+void fxrgb_to_hsv(FXfloat& h,FXfloat& s,FXfloat& v,FXfloat r,FXfloat g,FXfloat b);
+
+// Convert HSV to RGB
+void fxhsv_to_rgb(FXfloat& r,FXfloat& g,FXfloat& b,FXfloat h,FXfloat s,FXfloat v);
+
+// Parse font description
+FXbool fxparsefontdesc(FXFontDesc& fontdesc,const FXchar* string);
+
+// Unparse font description
+FXbool fxunparsefontdesc(FXchar *string,const FXFontDesc& fontdesc);
+
+// Calculate a hash value from a string
+FXint fxstrhash(const FXchar* str);
+
+// Controls tracing level
+unsigned int fxTraceLevel;
+

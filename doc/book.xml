@@ -1,0 +1,25 @@
+<?xml version='1.0'?>
+<!DOCTYPE book
+  PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN"
+  "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd" [
+<!ENTITY bookinfo.xml SYSTEM "bookinfo.xml">
+<!ENTITY build.xml SYSTEM "build.xml">
+<!ENTITY changes.xml SYSTEM "changes.xml">
+<!ENTITY diffs.xml SYSTEM "diffs.xml">
+<!ENTITY examples.xml SYSTEM "examples.xml">
+<!ENTITY install.xml SYSTEM "install.xml">
+<!ENTITY intro.xml SYSTEM "intro.xml">
+<!ENTITY problems.xml SYSTEM "problems.xml">
+<!ENTITY todo-list.xml SYSTEM "todo-list.xml">
+]>
+<book id="book" lang="en">
+&bookinfo.xml;
+&intro.xml;
+&build.xml;
+&examples.xml;
+&install.xml;
+&diffs.xml;
+&problems.xml;
+&todo-list.xml;
+&changes.xml;
+</book>

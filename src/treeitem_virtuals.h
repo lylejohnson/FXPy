@@ -1,0 +1,32 @@
+public:
+  virtual void setText(const FXString& text);
+  virtual void setOpenIcon(FXIcon *ic);
+  virtual void setClosedIcon(FXIcon *ic);
+  virtual void setFocus(FXbool focus);
+  virtual void setSelected(FXbool selected);
+  virtual void setOpened(FXbool opened);
+  virtual void setExpanded(FXbool expanded);
+  virtual void setEnabled(FXbool enabled);
+  virtual void setDraggable(FXbool draggable);
+  virtual void setIconOwned(FXuint owned);
+  virtual FXint getWidth(const FXTreeList* list) const;
+  virtual FXint getHeight(const FXTreeList* list) const;
+  virtual void create();
+  virtual void detach();
+  virtual void destroy();
+public:
+  void _setText(const FXString& text);
+  void _setOpenIcon(FXIcon *ic);
+  void _setClosedIcon(FXIcon *ic);
+  void _setFocus(FXbool focus);
+  void _setSelected(FXbool selected);
+  void _setOpened(FXbool opened);
+  void _setExpanded(FXbool expanded);
+  void _setEnabled(FXbool enabled);
+  void _setDraggable(FXbool draggable);
+  void _setIconOwned(FXuint owned);
+  FXint _getWidth(const FXTreeList* list) const;
+  FXint _getHeight(const FXTreeList* list) const;
+  void _create();
+  void _detach();
+  void _destroy();

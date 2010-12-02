@@ -1,0 +1,14 @@
+This directory contains additional FXPy example programs contributed by the
+users of FXPy. These are mostly unsupported by the maintainer of FXPy; please
+contact the author(s) of the examples directly if you have questions about
+them.
+
+gltest2.py
+	This example, contributed by John Przybylski (johnp9@bellatlantic.net),
+	is an enhancement of the basic GL test program for FXPy. This example
+	includes buttons to zoom the image in and out, add and remove shapes
+	from the scene, and much more. Requires the PyOpenGL extension module.
+
+foxtail.py
+	This example, contributed by John Przybylski (johnp9@bellatlantic.net),
+	is a GUI version of the Unix 'tail' utility for viewing files.

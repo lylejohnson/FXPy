@@ -1,0 +1,10 @@
+<chapter id="build">
+  <title>Building FXPy from the Sources</title>
+  <para>To build FXPy directly from the sources, you will first need to have installed version 0.9.4 or later of the <ulink url="http://www.python.org/sigs/distutils-sig">Distutils</ulink>. The versions of Distutils distributed with Python 1.6 and Python 2.0b1 were earlier versions and will not work.</para>
+  <para>To build FXPy from the sources, change to the top-level directory and take a look at the <filename>setup.py</filename> script and make sure the settings look appropriate for your installation. In particular, take a look at the first few lines which specify the location of the FOX library header files and library and modify these if necessary. Once you're satisfied that the settings are correct, type:</para>
+  <programlisting>python setup.py build</programlisting>
+  <para>After it's finished building, you can install FXPy by typing:</para>
+  <programlisting>python setup.py install</programlisting>
+  <para>Note that by default, the code will be installed alongside your Python installation and you may need super-user permissions to pull this off. If you would prefer to install FXPy to a different location, type:</para>
+  <programlisting>python setup.py install --prefix=[<emphasis>prefix</emphasis>]</programlisting>
+</chapter>

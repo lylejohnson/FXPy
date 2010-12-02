@@ -1,0 +1,234 @@
+/***********************************************************************
+ * $Id: graphics.ii,v 1.15 2002/03/29 00:01:52 lyle Exp $
+ ***********************************************************************/
+
+%module graphics
+
+%{
+#include "fx.h"
+#include "fx3d.h"
+#include "FXCURCursor.h"
+#include "FXJPGImage.h"
+#include "FXJPGIcon.h"
+#include "FXPNGIcon.h"
+#include "FXPNGImage.h"
+#include "FXTIFIcon.h"
+#include "FXTIFImage.h"
+#include "FXRGBIcon.h"
+#include "FXRGBImage.h"
+#include "FXICOIcon.h"
+#include "FXICOImage.h"
+#include "FXPyApp.h"
+#include "FXPy.h"
+%}
+
+%extern fxdefs.i
+
+%include typemaps.i
+%include my_typemaps.i
+
+%import misc.i
+%import containers.i
+
+%pragma(python) code = "import fox"
+
+// Image rendering hints
+enum {
+  BITMAP_KEEP       = 0x00000001,       // Keep pixel data in client
+  BITMAP_OWNED      = 0x00000002,       // Pixel data is owned by image
+  BITMAP_SHMI       = 0x00000020,       // Using shared memory image
+  BITMAP_SHMP       = 0x00000040        // Using shared memory pixmap
+  };
+    
+// Image class
+class FXBitmap : public FXDrawable {
+public:
+  // Create an image
+  FXBitmap(FXApp* a,const void *pix=NULL,FXuint opts=0,FXint w=1,FXint h=1);
+  
+  // Create bitmap
+  virtual void create();
+
+  // Detach from bitmap
+  virtual void detach();
+
+  // Destroy bitmap
+  virtual void destroy();
+
+  // Render pixels
+  virtual void render();
+
+  /// Get pixel at x,y
+  FXbool getPixel(FXint x,FXint y) const;
+
+  /// Change pixel at x,y
+  void setPixel(FXint x,FXint y,FXbool color);
+
+  // Resize bitmap to the specified width and height; the contents become undefined
+  virtual void resize(FXint w, FXint h);
+  
+  // Save pixel data only
+  virtual void savePixels(FXStream& store) const;
+  
+  // Load pixel data only
+  virtual void loadPixels(FXStream& store);
+  };
+
+
+class FXPyBitmap : public FXBitmap {
+public:
+  FXPyBitmap(FXApp* a,const void *pix=NULL,FXuint opts=0,FXint w=1,FXint h=1);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  };
+
+
+// Stock cursors
+enum FXStockCursor {
+  CURSOR_ARROW=1,                   // Default left pointing arrow
+  CURSOR_RARROW,                    // Right arrow
+  CURSOR_IBEAM,                     // Text I-Beam
+  CURSOR_WATCH,                     // Stopwatch or hourglass
+  CURSOR_CROSS,                     // Crosshair
+  CURSOR_UPDOWN,                    // Move up, down
+  CURSOR_LEFTRIGHT,                 // Move left, right
+  CURSOR_MOVE
+  };
+  
+
+// Cursor class
+class FXCursor : public FXId {
+public:
+  // Get hotspot x
+  FXint getHotX() const;
+  
+  // Get hotspot y
+  FXint getHotY() const;
+
+  // Width of cursor
+  FXint getWidth() const;
+  
+  // Height of cursor
+  FXint getHeight() const;
+  
+  // Create cursor
+  virtual void create();
+
+  // Detach cursor
+  virtual void detach();
+  
+  // Destroy cursor
+  virtual void destroy();
+
+  // Save pixels to a stream
+  virtual void savePixels(FXStream& store) const;
+
+  // Load pixels from a stream
+  virtual void loadPixels(FXStream& store);
+  };
+
+
+class FXPyCursor : public FXCursor {
+public:
+  OBJECT_VIRTUALS
+  FXCURSOR_VIRTUALS
+  };
+
+
+/**
+ *  Provide support for overloaded constructors on FXCursor:
+ *
+ *    FXCursor(FXApp* a,FXStockCursor curid=CURSOR_ARROW);
+ *    FXCursor(FXApp* a,const void* src,const void* msk,
+ *             FXint w=32,FXint h=32,FXint hx=-1,FXint hy=-1);
+ */
+%inline %{
+  FXPyCursor* CreateStockCursor(FXApp* a,FXStockCursor curid=CURSOR_ARROW) {
+    return new FXPyCursor(a,curid);
+    }
+
+  FXPyCursor* CreateCursorFromMask(FXApp* a, const void* src, const void* msk,
+                                   FXint w=32, FXint h=32,
+                                   FXint hx=-1, FXint hy=-1) {
+    return new FXPyCursor(a,src,msk,w,h,hx,hy);
+    }
+%}
+
+
+// GIF cursor class
+class FXGIFCursor : public FXCursor {
+public:
+  // Construct cursor from a byte array (in GIF format)
+  FXGIFCursor(FXApp* app,const void* pix,FXint hx=-1,FXint hy=-1);
+  };
+
+
+class FXPyGIFCursor : public FXGIFCursor {
+public:
+  // Constructor
+  FXPyGIFCursor(FXApp* app,const void* pix,FXint hx=-1,FXint hy=-1);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+
+public:
+  OBJECT_VIRTUALS
+  FXCURSOR_VIRTUALS
+  };
+
+
+/// CUR Cursor class
+class FXCURCursor : public FXCursor {
+public:
+  /// Construct CUR cursor from memory stream in Microsoft CUR format
+  FXCURCursor(FXApp* a,const void* pix);
+  };
+
+
+class FXPyCURCursor : public FXCURCursor {
+public:
+  /// Construct CUR cursor from memory stream in Microsoft CUR format
+  FXPyCURCursor(FXApp* a,const void* pix);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+
+public:
+  OBJECT_VIRTUALS
+  FXCURSOR_VIRTUALS
+  };
+
+
+// The Image View widget display a scrollable view of an image.
+class FXImageView : public FXScrollArea {
+public:
+  long onPaint(FXObject*,FXSelector,void*);
+  long onMotion(FXObject*,FXSelector,void*);
+  long onRightBtnPress(FXObject*,FXSelector,void*);
+  long onRightBtnRelease(FXObject*,FXSelector,void*);
+public:
+  enum {
+    ID_XYZ=FXScrollArea::ID_LAST,
+    ID_LAST
+    };
+public:
+  /// Construct a scroll window
+  FXImageView(FXComposite* p,FXImage* img=NULL,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=0,FXint x=0,FXint y=0,FXint w=0,FXint h=0);
+
+  /// Change image
+  void setImage(FXImage* img);
+  
+  /// Return image
+  FXImage* getImage() const;
+  };
+
+
+class FXPyImageView : public FXImageView {
+public:
+  FXPyImageView(FXComposite* p,FXImage* img=NULL,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=0,FXint x=0,FXint y=0,FXint w=0,FXint h=0);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  SCROLLAREA_VIRTUALS
+  };
+

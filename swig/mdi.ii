@@ -1,0 +1,422 @@
+/***********************************************************************
+ * $Id: mdi.ii,v 1.10 2002/02/11 09:58:54 calvin Exp $
+ ***********************************************************************/
+
+%module mdi
+
+%{
+#include "fx.h"
+#include "fx3d.h"
+#include "FXCURCursor.h"
+#include "FXJPGImage.h"
+#include "FXJPGIcon.h"
+#include "FXPNGIcon.h"
+#include "FXPNGImage.h"
+#include "FXTIFIcon.h"
+#include "FXTIFImage.h"
+#include "FXRGBIcon.h"
+#include "FXRGBImage.h"
+#include "FXICOIcon.h"
+#include "FXICOImage.h"
+#include "FXPyApp.h"
+#include "FXPy.h"
+%}
+
+%pragma(python) code = "import fox"
+
+%extern fxdefs.i
+
+%include typemaps.i
+%include my_typemaps.i
+
+%import misc.i
+%import controls.i
+%import menus.i
+
+// MDI Delete button
+class FXMDIDeleteButton : public FXButton {
+public:
+  long onPaint(FXObject*,FXSelector,void*);
+public:
+  FXMDIDeleteButton(FXComposite* p,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=FRAME_RAISED,FXint x=0,FXint y=0,FXint w=0,FXint h=0);
+  };
+
+
+class FXPyMDIDeleteButton : public FXMDIDeleteButton {
+public:
+  FXPyMDIDeleteButton(FXComposite* p,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=FRAME_RAISED,FXint x=0,FXint y=0,FXint w=0,FXint h=0);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  };
+
+
+// MDI Restore button
+class FXMDIRestoreButton : public FXButton {
+public:
+  long onPaint(FXObject*,FXSelector,void*);
+public:
+  FXMDIRestoreButton(FXComposite* p,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=FRAME_RAISED,FXint x=0,FXint y=0,FXint w=0,FXint h=0);
+  };
+
+
+class FXPyMDIRestoreButton : public FXMDIRestoreButton {
+public:
+  FXPyMDIRestoreButton(FXComposite* p,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=FRAME_RAISED,FXint x=0,FXint y=0,FXint w=0,FXint h=0);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  };
+
+
+// MDI Maximize button
+class FXMDIMaximizeButton : public FXButton {
+public:
+  long onPaint(FXObject*,FXSelector,void*);
+public:
+  FXMDIMaximizeButton(FXComposite* p,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=FRAME_RAISED,FXint x=0,FXint y=0,FXint w=0,FXint h=0);
+  };
+
+
+class FXPyMDIMaximizeButton : public FXMDIMaximizeButton {
+public:
+  FXPyMDIMaximizeButton(FXComposite* p,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=FRAME_RAISED,FXint x=0,FXint y=0,FXint w=0,FXint h=0);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  };
+
+
+// MDI Minimize button
+class FXMDIMinimizeButton : public FXButton {
+public:
+  long onPaint(FXObject*,FXSelector,void*);
+public:
+  FXMDIMinimizeButton(FXComposite* p,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=FRAME_RAISED,FXint x=0,FXint y=0,FXint w=0,FXint h=0);
+  };
+
+
+class FXPyMDIMinimizeButton : public FXMDIMinimizeButton {
+public:
+  FXPyMDIMinimizeButton(FXComposite* p,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=FRAME_RAISED,FXint x=0,FXint y=0,FXint w=0,FXint h=0);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  };
+
+
+// MDI Window button
+class FXMDIWindowButton : public FXMenuButton {
+public:
+  long onPaint(FXObject*,FXSelector,void*);
+public:
+  FXMDIWindowButton(FXComposite* p,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=0,FXint x=0,FXint y=0,FXint w=0,FXint h=0);
+  };
+
+
+class FXPyMDIWindowButton : public FXMDIWindowButton {
+public:
+  FXPyMDIWindowButton(FXComposite* p,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=0,FXint x=0,FXint y=0,FXint w=0,FXint h=0);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  };
+
+
+// MDI Window Menu
+class FXMDIMenu : public FXMenuPane {
+public:
+  FXMDIMenu(FXWindow* owner,FXObject* tgt=NULL);
+  };
+
+
+class FXPyMDIMenu : public FXMDIMenu {
+public:
+  FXPyMDIMenu(FXWindow* owner,FXObject* tgt=NULL);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  };
+
+
+// Base class for scrolled stuff
+class FXMDIClient : public FXScrollArea {
+public:
+  long onChanged(FXObject*,FXSelector,void*);
+  long onCmdActivateNext(FXObject*,FXSelector,void*);
+  long onCmdActivatePrev(FXObject*,FXSelector,void*);
+  long onCmdTileHorizontal(FXObject*,FXSelector,void*);
+  long onCmdTileVertical(FXObject*,FXSelector,void*);
+  long onCmdCascade(FXObject*,FXSelector,void*);
+  long onUpdActivateNext(FXObject*,FXSelector,void*);
+  long onUpdActivatePrev(FXObject*,FXSelector,void*);
+  long onUpdTileVertical(FXObject*,FXSelector,void*);
+  long onUpdTileHorizontal(FXObject*,FXSelector,void*);
+  long onUpdCascade(FXObject*,FXSelector,void*);
+  long onUpdClose(FXObject*,FXSelector,void*);
+  long onUpdMenuClose(FXObject*,FXSelector,void*);
+  long onUpdRestore(FXObject*,FXSelector,void*);
+  long onUpdMenuRestore(FXObject*,FXSelector,void*);
+  long onUpdMinimize(FXObject*,FXSelector,void*);
+  long onUpdMenuMinimize(FXObject*,FXSelector,void*);
+  long onUpdMaximize(FXObject*,FXSelector,void*);
+  long onUpdMenuWindow(FXObject*,FXSelector,void*);
+  long onCmdCloseDocument(FXObject*,FXSelector,void*);
+  long onCmdCloseAllDocuments(FXObject*,FXSelector,void*);
+  long onUpdCloseDocument(FXObject*,FXSelector,void*);
+  long onUpdCloseAllDocuments(FXObject*,FXSelector,void*);
+  long onCmdWindowSelect(FXObject*,FXSelector,void*);
+  long onUpdWindowSelect(FXObject*,FXSelector,void*);
+  long onUpdAnyWindows(FXObject*,FXSelector,void*);
+public:
+  enum {
+    ID_MDI_ANY=65400,
+    ID_MDI_1,
+    ID_MDI_2,
+    ID_MDI_3,
+    ID_MDI_4,
+    ID_MDI_5,
+    ID_MDI_6,
+    ID_MDI_7,
+    ID_MDI_8,
+    ID_MDI_9,
+    ID_MDI_10,
+    ID_LAST
+    };
+public:
+  FXMDIClient(FXComposite* p,FXuint opts=0,FXint x=0,FXint y=0,FXint w=0,FXint h=0);
+  
+  // Get first MDI Child
+  FXMDIChild* getMDIChildFirst() const;
+
+  // Get last MDI Child
+  FXMDIChild* getMDIChildLast() const;
+
+  // Pass message to all MDI Child windows
+  long forallWindows(FXObject* sender,FXSelector sel,void* ptr);
+  
+  // Pass message to all MDI Child windows whose target is document
+  long forallDocWindows(FXObject* document,FXObject* sender,FXSelector sel,void* ptr);
+  
+  // Get current active child; may be NULL!
+  FXMDIChild* getActiveChild() const;
+
+  // Set active MDI Child
+  FXbool setActiveChild(FXMDIChild* child=NULL,FXbool notify=TRUE);
+  
+  // Change cascade offset X
+  void setCascadeX(FXint off);
+  
+  // Change cascade offset Y
+  void setCascadeY(FXint off);
+
+  // Get cascade offset X
+  FXint getCascadeX() const;
+
+  // Get cascade offset Y
+  FXint getCascadeY() const;
+  };
+
+
+class FXPyMDIClient : public FXMDIClient {
+public:
+  FXPyMDIClient(FXComposite* p,FXuint opts=0,FXint x=0,FXint y=0,FXint w=0,FXint h=0);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  SCROLLAREA_VIRTUALS
+  };
+
+
+// MDI Child Window styles
+enum {
+  MDI_NORMAL    = 0,
+  MDI_MAXIMIZED = 0x00001000,
+  MDI_MINIMIZED = 0x00002000 
+  };
+
+// Base composite
+class FXMDIChild : public FXComposite {
+public:
+  long onPaint(FXObject*,FXSelector,void*);
+  long onFocusSelf(FXObject*,FXSelector,void*);
+  long onFocusIn(FXObject*,FXSelector,void*);
+  long onFocusOut(FXObject*,FXSelector,void*);
+  long onRightBtnPress(FXObject*,FXSelector,void*);
+  long onRightBtnRelease(FXObject*,FXSelector,void*);
+  long onLeftBtnPress(FXObject*,FXSelector,void*);
+  long onLeftBtnRelease(FXObject*,FXSelector,void*);
+  long onMiddleBtnPress(FXObject*,FXSelector,void*);
+  long onMiddleBtnRelease(FXObject*,FXSelector,void*);
+  long onMotion(FXObject*,FXSelector,void*);
+  long onDelete(FXObject*,FXSelector,void*);
+  long onClose(FXObject*,FXSelector,void*);
+  long onCloseAll(FXObject*,FXSelector,void*);
+  long onSelected(FXObject*,FXSelector,void*);
+  long onDeselected(FXObject*,FXSelector,void*);
+  long onMinimize(FXObject*,FXSelector,void*);
+  long onRestore(FXObject*,FXSelector,void*);
+  long onMaximize(FXObject*,FXSelector,void*);
+  long onCmdRestore(FXObject*,FXSelector,void*);
+  long onCmdMaximize(FXObject*,FXSelector,void*);
+  long onCmdMinimize(FXObject*,FXSelector,void*);
+  long onCmdClose(FXObject*,FXSelector,void*);
+  long onCmdDelete(FXObject*,FXSelector,void*);
+  long onUpdRestore(FXObject*,FXSelector,void*);
+  long onUpdMaximize(FXObject*,FXSelector,void*);
+  long onUpdMinimize(FXObject*,FXSelector,void*);
+  long onUpdWindow(FXObject*,FXSelector,void*);
+  long onUpdMenuRestore(FXObject*,FXSelector,void*);
+  long onUpdMenuMinimize(FXObject*,FXSelector,void*);
+  long onUpdMenuClose(FXObject*,FXSelector,void*);
+  long onUpdMenuWindow(FXObject*,FXSelector,void*);
+  long onUpdClose(FXObject*,FXSelector,void*);
+  long onCmdSetStringValue(FXObject*,FXSelector,void*);
+public:
+  FXMDIChild(FXMDIClient* p,const FXString& name,FXIcon* ic=NULL,FXMenuPane* mn=NULL,FXuint opts=0,FXint x=0,FXint y=0,FXint w=0,FXint h=0);
+
+  // Get next MDI Child
+  FXMDIChild* getMDINext() const;
+
+  // Get previous MDI Child
+  FXMDIChild* getMDIPrev() const;
+
+  /// Change normal (restored) position
+  void setNormalX(FXint x){ normalPosX=x; }
+  void setNormalY(FXint y){ normalPosY=y; }
+  void setNormalWidth(FXint w){ normalWidth=w; }
+  void setNormalHeight(FXint h){ normalHeight=h; }
+  
+  /// Return normal (restored) position
+  FXint getNormalX() const { return normalPosX; }
+  FXint getNormalY() const { return normalPosY; }
+  FXint getNormalWidth() const { return normalWidth; }
+  FXint getNormalHeight() const { return normalHeight; }
+
+  /// Change iconified position
+  void setIconX(FXint x){ iconPosX=x; }
+  void setIconY(FXint y){ iconPosY=y; }
+  void setIconWidth(FXint w){ iconWidth=w; }
+  void setIconHeight(FXint h){ iconHeight=h; }
+  
+  /// Return iconified position
+  FXint getIconX() const { return iconPosX; }
+  FXint getIconY() const { return iconPosY; }
+  FXint getIconWidth() const { return iconWidth; }
+  FXint getIconHeight() const { return iconHeight; }
+
+  // Return content window
+  FXWindow *contentWindow() const;
+  
+  // Change MDI Child's title
+  void setTitle(const FXString& name);
+  
+  // Get current title
+  FXString getTitle() const;
+
+  // Get colors
+  FXColor getHiliteColor() const;
+  FXColor getShadowColor() const;
+  FXColor getBaseColor() const;
+  FXColor getBorderColor() const;
+  FXColor getTitleColor() const;
+  FXColor getTitleBackColor() const;
+
+  // Change colors
+  void setHiliteColor(FXColor clr);
+  void setShadowColor(FXColor clr);
+  void setBaseColor(FXColor clr);
+  void setBorderColor(FXColor clr);
+  void setTitleColor(FXColor clr);
+  void setTitleBackColor(FXColor clr);
+  
+  // Return TRUE if maximized
+  FXbool isMaximized() const;
+  
+  // Return TRUE if minimized
+  FXbool isMinimized() const;
+  
+  // Maximize MDI Child
+  virtual void maximize(FXbool notify=FALSE);
+  
+  // Minimize/iconify MDI Child
+  virtual void minimize(FXbool notify=FALSE);
+  
+  // Restore MDI Child to normal
+  virtual void restore(FXbool notify=FALSE);
+  
+  // Get window icon
+  FXIcon *getWindowIcon() const;
+  
+  // Set window icon
+  void setWindowIcon(FXIcon* icon);
+  
+  // Get window menu
+  FXPopup* getWindowMenu() const;
+  
+  // Set window menu
+  void setWindowMenu(FXPopup* menu);
+  
+  // Set title font
+  void setFont(FXFont *fnt);
+  
+  // Get title font
+  FXFont* getFont() const;
+  };
+
+
+class FXPyMDIChild : public FXMDIChild {
+public:
+  FXPyMDIChild(FXMDIClient* p,const FXString& name,FXIcon* ic=NULL,FXMenuPane* mn=NULL,FXuint opts=0,FXint x=0,FXint y=0,FXint w=0,FXint h=0);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  MDICHILD_VIRTUALS
+  };
+
+
+// Document
+class FXDocument : public FXObject {
+public:
+  long onUpdTitle(FXObject*,FXSelector,void*);
+  long onUpdFilename(FXObject*,FXSelector,void*);
+public:
+  enum{
+    ID_TITLE=10000,                 // Don't interfere with viewer's message id's
+    ID_FILENAME,
+    ID_LAST                
+    };
+public:
+  FXDocument();
+  FXbool isModified() const;
+  void setModified(FXbool mdfy=TRUE);
+  void setTitle(const FXString& name);
+  FXString getTitle() const;
+  void setFilename(const FXString& path);
+  FXString getFilename() const;
+  };
+
+
+class FXPyDocument : public FXDocument {
+public:
+  FXPyDocument();
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  };
+

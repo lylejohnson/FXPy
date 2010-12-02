@@ -1,0 +1,1377 @@
+/***********************************************************************
+ * $Id: dialogs.ii,v 1.28 2002/03/29 00:01:52 lyle Exp $
+ ***********************************************************************/
+
+%module dialogs
+
+%{
+#include "fx.h"
+#include "fx3d.h"
+#include "FXCURCursor.h"
+#include "FXJPGImage.h"
+#include "FXJPGIcon.h"
+#include "FXPNGIcon.h"
+#include "FXPNGImage.h"
+#include "FXTIFIcon.h"
+#include "FXTIFImage.h"
+#include "FXRGBIcon.h"
+#include "FXRGBImage.h"
+#include "FXICOIcon.h"
+#include "FXICOImage.h"
+#include "FXPyApp.h"
+#include "FXPy.h"
+%}
+
+%extern fxdefs.i
+%include typemaps.i
+%include my_typemaps.i
+
+%import windows.i
+%import containers.i
+%import controls.i
+%import treelist.i
+%import iconlist.i
+
+%pragma(python) code = "import fox"
+
+
+// Dialog Box window
+class FXDialogBox : public FXTopWindow {
+public:
+  long onKeyPress(FXObject*,FXSelector,void*);
+  long onKeyRelease(FXObject*,FXSelector,void*);
+  long onClose(FXObject*,FXSelector,void*);
+  long onCmdAccept(FXObject*,FXSelector,void*);
+  long onCmdCancel(FXObject*,FXSelector,void*);
+public:
+  enum{
+    ID_CANCEL=FXTopWindow::ID_LAST,
+    ID_ACCEPT,
+    ID_LAST
+    };
+public:
+  virtual FXuint execute(FXuint placement=PLACEMENT_CURSOR);
+  };
+
+
+class FXPyDialogBox : public FXDialogBox {
+public:
+  //FXPyDialogBox(FXWindow* owner,const FXString& name,FXuint opts=DECOR_TITLE|DECOR_BORDER,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint hs=4,FXint vs=4);
+  //FXPyDialogBox(FXApp* app,const FXString& name,FXuint opts=DECOR_TITLE|DECOR_BORDER,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint hs=4,FXint vs=4);
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  TOPWINDOW_VIRTUALS
+  };
+
+
+%inline %{
+  FXPyDialogBox* CreateOwnedDialogBox(FXWindow* owner,const FXString& name,FXuint opts=DECOR_TITLE|DECOR_BORDER,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=10,FXint pr=10,FXint pt=10,FXint pb=10,FXint hs=4,FXint vs=4) {
+    return new FXPyDialogBox(owner,name,opts,x,y,w,h,pl,pr,pt,pb,hs,vs);
+  }
+
+  FXPyDialogBox* CreateFreeDialogBox(FXApp* app,const FXString& name,FXuint opts=DECOR_TITLE|DECOR_BORDER,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=10,FXint pr=10,FXint pt=10,FXint pb=10,FXint hs=4,FXint vs=4) {
+    return new FXPyDialogBox(app,name,opts,x,y,w,h,pl,pr,pt,pb,hs,vs);
+  }
+%}
+
+
+// Directory Box
+class FXDirBox : public FXTreeListBox {
+public:
+  long onChanged(FXObject*,FXSelector,void*);
+  long onCommand(FXObject*,FXSelector,void*);
+  long onCmdSetValue(FXObject*,FXSelector,void*);
+  long onCmdSetStringValue(FXObject*,FXSelector,void*);
+  long onCmdGetStringValue(FXObject*,FXSelector,void*);
+public:
+  /// Constructor
+  FXDirBox(FXComposite *p,FXint nvis,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=FRAME_SUNKEN|FRAME_THICK|TREELISTBOX_NORMAL,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=DEFAULT_PAD,FXint pr=DEFAULT_PAD,FXint pt=DEFAULT_PAD,FXint pb=DEFAULT_PAD);
+  
+  /// Set current directory
+  void setDirectory(const FXString& pathname);
+  
+  // Return current directory
+  FXString getDirectory() const;
+  };
+
+
+/// Directory Box
+class FXPyDirBox : public FXDirBox {
+public:
+  /// Constructor
+  FXPyDirBox(FXComposite *p,FXint nvis,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=FRAME_SUNKEN|FRAME_THICK|TREELISTBOX_NORMAL,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=DEFAULT_PAD,FXint pr=DEFAULT_PAD,FXint pt=DEFAULT_PAD,FXint pb=DEFAULT_PAD);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  };
+
+
+// File List options
+enum {
+  FILELIST_SHOWHIDDEN   = 0x04000000, /// Show hidden files or directories
+  FILELIST_SHOWDIRS     = 0x08000000, /// Show only directories
+  FILELIST_NO_OWN_ASSOC = 0x10000000  /// Do not create associations for files
+  };
+
+
+// File item
+class FXFileItem : public FXIconItem {
+public:
+  FXFileItem(const FXString& text,FXIcon* bi=NULL,FXIcon* mi=NULL,void* ptr=NULL);
+  FXbool isFile() const;
+  FXbool isDirectory() const;
+  FXbool isExecutable() const;
+  FXbool isSymlink() const;
+  FXbool isChardev() const;
+  FXbool isBlockdev() const;
+  FXbool isFifo() const;
+  FXbool isSocket() const;
+  FXFileAssoc* getAssoc() const;
+  unsigned long getSize() const;
+  FXTime getDate() const;
+  };
+
+
+class FXPyFileItem : public FXFileItem {
+public:
+  FXPyFileItem(const FXString& text,FXIcon* bi=NULL,FXIcon* mi=NULL,void* ptr=NULL);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ICONITEM_VIRTUALS
+  };
+
+
+// File List object
+class FXFileList : public FXIconList {
+public:
+  long onRefreshTimer(FXObject*,FXSelector,void*);
+  long onOpenTimer(FXObject*,FXSelector,void*);
+  long onDNDEnter(FXObject*,FXSelector,void*);
+  long onDNDLeave(FXObject*,FXSelector,void*);
+  long onDNDMotion(FXObject*,FXSelector,void*);
+  long onDNDDrop(FXObject*,FXSelector,void*);
+  long onDNDRequest(FXObject*,FXSelector,void*);
+  long onBeginDrag(FXObject*,FXSelector,void*);
+  long onEndDrag(FXObject*,FXSelector,void*);
+  long onDragged(FXObject*,FXSelector,void*);
+  long onCmdSetValue(FXObject*,FXSelector,void*);
+  long onCmdGetStringValue(FXObject*,FXSelector,void*);
+  long onCmdSetStringValue(FXObject*,FXSelector,void*);
+  long onCmdDirectoryUp(FXObject*,FXSelector,void*);
+  long onUpdDirectoryUp(FXObject*,FXSelector,void*);
+  long onCmdSortByName(FXObject*,FXSelector,void*);
+  long onUpdSortByName(FXObject*,FXSelector,void*);
+  long onCmdSortByType(FXObject*,FXSelector,void*);
+  long onUpdSortByType(FXObject*,FXSelector,void*);
+  long onCmdSortBySize(FXObject*,FXSelector,void*);
+  long onUpdSortBySize(FXObject*,FXSelector,void*);
+  long onCmdSortByTime(FXObject*,FXSelector,void*);
+  long onUpdSortByTime(FXObject*,FXSelector,void*);
+  long onCmdSortByUser(FXObject*,FXSelector,void*);
+  long onUpdSortByUser(FXObject*,FXSelector,void*);
+  long onCmdSortByGroup(FXObject*,FXSelector,void*);
+  long onUpdSortByGroup(FXObject*,FXSelector,void*);
+  long onCmdSortReverse(FXObject*,FXSelector,void*);
+  long onUpdSortReverse(FXObject*,FXSelector,void*);
+  long onCmdSetPattern(FXObject*,FXSelector,void*);
+  long onUpdSetPattern(FXObject*,FXSelector,void*);
+  long onCmdSetDirectory(FXObject*,FXSelector,void*);
+  long onUpdSetDirectory(FXObject*,FXSelector,void*);
+  long onCmdToggleHidden(FXObject*,FXSelector,void*);
+  long onUpdToggleHidden(FXObject*,FXSelector,void*);
+  long onCmdShowHidden(FXObject*,FXSelector,void*);
+  long onUpdShowHidden(FXObject*,FXSelector,void*);
+  long onCmdHideHidden(FXObject*,FXSelector,void*);
+  long onUpdHideHidden(FXObject*,FXSelector,void*);
+  long onCmdHeader(FXObject*,FXSelector,void*);
+  long onUpdHeader(FXObject*,FXSelector,void*);
+public:
+  enum {
+    ID_SORT_BY_NAME=FXIconList::ID_LAST,
+    ID_SORT_BY_TYPE,
+    ID_SORT_BY_SIZE,
+    ID_SORT_BY_TIME,
+    ID_SORT_BY_USER,
+    ID_SORT_BY_GROUP,
+    ID_SORT_REVERSE,
+    ID_DIRECTORY_UP,
+    ID_SET_PATTERN,
+    ID_SET_DIRECTORY,
+    ID_SHOW_HIDDEN,
+    ID_HIDE_HIDDEN,
+    ID_TOGGLE_HIDDEN,
+    ID_REFRESHTIMER,
+    ID_OPENTIMER,
+    ID_LAST
+    };
+public:
+  FXFileList(FXComposite *p,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=0,FXint x=0,FXint y=0,FXint w=0,FXint h=0);
+  void setCurrentFile(const FXString& file);
+  FXString getCurrentFile() const;
+  void setDirectory(const FXString& path);
+  FXString getDirectory() const;
+  void setPattern(const FXString& ptrn);
+  FXString getPattern() const;
+  FXbool isItemDirectory(FXint index) const;
+  FXbool isItemFile(FXint index) const;
+  FXbool isItemExecutable(FXint index) const;
+  FXString getItemFilename(FXint index) const;
+  FXString getItemPathname(FXint index) const;
+  FXFileAssoc* getItemAssoc(FXint index) const;
+  FXuint getMatchMode() const;
+  void setMatchMode(FXuint mode);
+  FXbool showHiddenFiles() const;
+  %name(showHiddenFiles2) void showHiddenFiles(FXbool shown);
+  void setAssociations(FXFileDict* assoc);
+  FXFileDict* getAssociations() const;
+  FXbool showOnlyDirectories() const;
+  %name(showOnlyDirectories2) void showOnlyDirectories(FXbool shown);
+  };
+
+
+class FXPyFileList : public FXFileList {
+public:
+  FXPyFileList(FXComposite *p,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=0,FXint x=0,FXint y=0,FXint w=0,FXint h=0);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  SCROLLAREA_VIRTUALS
+  };
+
+
+/// File selection modes
+enum {
+  SELECTFILE_ANY,             /// A single file, existing or not (to save to)
+  SELECTFILE_EXISTING,        /// An existing file (to load)
+  SELECTFILE_MULTIPLE,        /// Multiple existing files
+  SELECTFILE_DIRECTORY        /// Existing directory
+  };
+
+
+// File selection widget
+class FXFileSelector : public FXPacker {
+public:
+  long onCmdAccept(FXObject*,FXSelector,void*);
+  long onCmdFilter(FXObject*,FXSelector,void*);
+  long onCmdItemDblClicked(FXObject*,FXSelector,void*);
+  long onCmdItemSelected(FXObject*,FXSelector,void*);
+  long onCmdItemDeselected(FXObject*,FXSelector,void*);
+  long onCmdDirectoryUp(FXObject*,FXSelector,void*);
+  long onUpdDirectoryUp(FXObject*,FXSelector,void*);
+  long onCmdDirTree(FXObject*,FXSelector,void*);
+  long onCmdHome(FXObject*,FXSelector,void*);
+  long onCmdWork(FXObject*,FXSelector,void*);
+  long onCmdBookmark(FXObject*,FXSelector,void*);
+  long onCmdVisit(FXObject*,FXSelector,void*);
+  long onCmdNew(FXObject*,FXSelector,void*);
+  long onUpdNew(FXObject*,FXSelector,void*);
+  long onCmdMove(FXObject*,FXSelector,void*);
+  long onCmdCopy(FXObject*,FXSelector,void*);
+  long onCmdLink(FXObject*,FXSelector,void*);
+  long onCmdDelete(FXObject*,FXSelector,void*);
+  long onUpdSelected(FXObject*,FXSelector,void*);
+  long onPopupMenu(FXObject*,FXSelector,void*);
+public:
+  enum {
+    ID_FILEFILTER=FXPacker::ID_LAST,
+    ID_ACCEPT,
+    ID_FILELIST,
+    ID_DIRECTORY_UP,
+    ID_DIRTREE,
+    ID_HOME,
+    ID_WORK,
+    ID_BOOKMARK,
+    ID_VISIT,
+    ID_NEW,
+    ID_DELETE,
+    ID_MOVE,
+    ID_COPY,
+    ID_LINK,
+    ID_LAST
+    };
+public:
+
+  /// Constructor
+  FXFileSelector(FXComposite *p,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=0,FXint x=0,FXint y=0,FXint w=0,FXint h=0);
+
+  /// Return a pointer to the "Accept" button
+  FXButton *acceptButton() const { return accept; }
+
+  /// Return a pointer to the "Cancel" button
+  FXButton *cancelButton() const { return cancel; }
+
+  /// Change file name
+  void setFilename(const FXString& path);
+  
+  /// Return file name
+  FXString getFilename() const;
+  
+  /// Return empty-string terminated list of selected file names, or NULL if none selected
+  %addmethods {
+    PyObject* getFilenames() const {
+      FXString* filenames=self->getFilenames();
+      if(filenames){
+        FXuint nfiles=0;
+        register FXString* p=filenames;
+        while(*p!=FXString::null){
+          nfiles++; p++;
+          }
+        PyObject* obj=PyList_New(nfiles);
+        for(FXuint i=0;i<nfiles;i++){
+          PyList_SetItem(obj,i,PyString_FromString(filenames[i].text()));
+          }
+        delete[] filenames;
+        return obj;
+        }
+      else{
+        return PyList_New(0);
+        }
+    }
+  }
+
+  /// Change file pattern
+  void setPattern(const FXString& ptrn);
+  
+  /// Return file pattern
+  FXString getPattern() const;
+
+  /**
+  * Change the list of file patterns shown in the file dialog.
+  * Each pattern comprises an optional name, followed by a pattern in
+  * parentheses.  The patterns are separated by newlines.
+  * For example,
+  *
+  *  "*\n*.cpp,*.cc\n*.hpp,*.hh,*.h"
+  *
+  * and
+  *
+  *  "All Files (*)\nC++ Sources (*.cpp,*.cc)\nC++ Headers (*.hpp,*.hh,*.h)"
+  *
+  * will set the same three patterns, but the former shows no pattern names.
+  */
+  void setPatternList(const FXString& patterns);
+  
+  /// Change directory
+  void setDirectory(const FXString& path);
+  
+  /// Return directory
+  FXString getDirectory() const;
+  
+  /// Set current pattern number
+  void setCurrentPattern(FXint n);
+  
+  /// Return current pattern number
+  FXint getCurrentPattern() const;
+  
+  /// Get pattern text for given pattern number
+  FXString getPatternText(FXint patno) const;
+  
+  /// Change pattern text for pattern number
+  void setPatternText(FXint patno,const FXString& text);
+  
+  /// Set the inter-item spacing (in pixels)
+  void setItemSpace(FXint s);
+
+  /// Return the inter-item spacing (in pixels)
+  FXint getItemSpace() const;
+
+  /// Change file list style
+  void setFileBoxStyle(FXuint style);
+  
+  /// Return file list style
+  FXuint getFileBoxStyle() const;
+  
+  /// Change file selection mode
+  void setSelectMode(FXuint mode);
+  
+  /// Return file selection mode
+  FXuint getSelectMode() const { return selectmode; }
+
+  /// Show readonly button
+  void showReadOnly(FXbool show);
+  
+  /// Return TRUE if readonly is shown
+  FXbool shownReadOnly() const;
+  
+  /// Set initial state of readonly button
+  void setReadOnly(FXbool state);
+
+  /// Get readonly state
+  FXbool getReadOnly() const;
+  };
+
+
+class FXPyFileSelector : public FXFileSelector {
+public:
+  FXPyFileSelector(FXComposite *p,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=0,FXint x=0,FXint y=0,FXint w=0,FXint h=0);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  };
+
+
+// File selection dialog
+class FXFileDialog : public FXDialogBox {
+public:
+  
+  /// Construct File Dialog Box
+  FXFileDialog(FXWindow* owner,const FXString& name,FXuint opts=0,FXint x=0,FXint y=0,FXint w=500,FXint h=300);
+
+  /// Change file name
+  void setFilename(const FXString& path);
+  
+  /// Return file name
+  FXString getFilename() const;
+  
+  /// Return empty-string terminated list of selected file names, or NULL if none selected
+  %addmethods {
+    PyObject* getFilenames() const {
+      FXString* filenames=self->getFilenames();
+      if(filenames){
+        FXuint nfiles=0;
+        register FXString* p=filenames;
+        while(*p!=FXString::null){
+          nfiles++; p++;
+          }
+        PyObject* obj=PyList_New(nfiles);
+        for(FXuint i=0;i<nfiles;i++){
+          PyList_SetItem(obj,i,PyString_FromString(filenames[i].text()));
+          }
+        delete[] filenames;
+        return obj;
+        }
+      else{
+        return PyList_New(0);
+        }
+    }
+  }
+
+  /// Change file pattern
+  void setPattern(const FXString& ptrn);
+  
+  /// Return file pattern
+  FXString getPattern() const;
+  
+  /// Change directory
+  void setDirectory(const FXString& path);
+  
+  /// Return directory
+  FXString getDirectory() const;
+  
+  /**
+  * Change the list of file patterns shown in the file dialog.
+  * Each pattern comprises an optional name, followed by a pattern in
+  * parentheses.  The patterns are separated by newlines.
+  * For example,
+  *
+  *  "*\n*.cpp,*.cc\n*.hpp,*.hh,*.h"
+  *
+  * and
+  *
+  *  "All Files (*)\nC++ Sources (*.cpp,*.cc)\nC++ Headers (*.hpp,*.hh,*.h)"
+  *
+  * will set the same three patterns, but the former shows no pattern names.
+  */
+  void setPatternList(const FXString& patterns);
+
+  /// Set current pattern number
+  void setCurrentPattern(FXint n);
+  
+  /// Return current pattern number
+  FXint getCurrentPattern() const;
+  
+  /// Get pattern text for given pattern number
+  FXString getPatternText(FXint patno) const;
+  
+  /// Change pattern text for pattern number
+  void setPatternText(FXint patno,const FXString& text);
+
+  /// Set the inter-item spacing (in pixels)
+  void setItemSpace(FXint s);
+
+  /// Return the inter-item spacing (in pixels)
+  FXint getItemSpace() const;
+
+  /// Change File List style
+  void setFileBoxStyle(FXuint style);
+
+  /// Return File List style
+  FXuint getFileBoxStyle() const;
+
+  /// Change file selection mode
+  void setSelectMode(FXuint mode);
+  
+  /// Return file selection mode
+  FXuint getSelectMode() const;
+
+  /// Show readonly button
+  void showReadOnly(FXbool show);
+  
+  /// Return TRUE if readonly is shown
+  FXbool shownReadOnly() const;
+  
+  /// Set initial state of readonly button
+  void setReadOnly(FXbool state);
+
+  /// Get readonly state
+  FXbool getReadOnly() const;
+
+  /// Open existing filename
+  static FXString getOpenFilename(FXWindow* owner,const FXString& caption,const FXString& path,const FXString& patterns="*",FXint initial=0);
+
+  /// Open multiple existing files
+  static FXString* getOpenFilenames(FXWindow* owner,const FXString& caption,const FXString& path,const FXString& patterns="*",FXint initial=0);
+
+  /// Save to filename
+  static FXString getSaveFilename(FXWindow* owner,const FXString& caption,const FXString& path,const FXString& patterns="*",FXint initial=0);
+
+  /// Open directory name
+  static FXString getOpenDirectory(FXWindow* owner,const FXString& caption,const FXString& path);
+  };
+
+
+class FXPyFileDialog : public FXFileDialog {
+public:
+  FXPyFileDialog(FXWindow* owner,const FXString& name,FXuint opts=0,FXint x=0,FXint y=0,FXint w=500,FXint h=300);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  TOPWINDOW_VIRTUALS
+  };
+
+
+// Color selection widget
+class FXColorSelector : public FXPacker {
+public:
+  long onCmdColor(FXObject*,FXSelector,void*);
+  long onChgColor(FXObject*,FXSelector,void*);
+  long onCmdWell(FXObject*,FXSelector,void*);
+  long onChgWell(FXObject*,FXSelector,void*);
+  long onCmdRGBSlider(FXObject*,FXSelector,void*);
+  long onUpdRGBSlider(FXObject*,FXSelector,void*);
+  long onCmdRGBText(FXObject*,FXSelector,void*);
+  long onUpdRGBText(FXObject*,FXSelector,void*);
+  long onCmdHSVSlider(FXObject*,FXSelector,void*);
+  long onUpdHSVSlider(FXObject*,FXSelector,void*);
+  long onCmdHSVText(FXObject*,FXSelector,void*);
+  long onUpdHSVText(FXObject*,FXSelector,void*);
+  long onCmdCMYSlider(FXObject*,FXSelector,void*);
+  long onUpdCMYSlider(FXObject*,FXSelector,void*);
+  long onCmdCMYText(FXObject*,FXSelector,void*);
+  long onUpdCMYText(FXObject*,FXSelector,void*);
+  long onCmdList(FXObject*,FXSelector,void*);
+  long onCmdCustomWell(FXObject*,FXSelector,void*);
+  long onChgCustomWell(FXObject*,FXSelector,void*);
+  long onCmdSetValue(FXObject*,FXSelector,void*);
+  long onCmdActivePane(FXObject*,FXSelector,void*);
+  long onCmdAlphaSlider(FXObject*,FXSelector,void*);
+  long onUpdAlphaSlider(FXObject*,FXSelector,void*);
+  long onCmdAlphaText(FXObject*,FXSelector,void*);
+  long onUpdAlphaText(FXObject*,FXSelector,void*);
+  long onUpdAlphaLabel(FXObject*,FXSelector,void*);
+  long onCmdWheel(FXObject*,FXSelector,void*);
+  long onUpdWheel(FXObject*,FXSelector,void*);
+  long onCmdBar(FXObject*,FXSelector,void*);
+  long onUpdBar(FXObject*,FXSelector,void*);
+  long onCmdColorPick(FXObject*,FXSelector,void*);
+public:
+  enum {
+    ID_CUSTOM_FIRST=FXPacker::ID_LAST,
+    ID_CUSTOM_LAST=ID_CUSTOM_FIRST+24,
+    ID_RGB_RED_SLIDER,
+    ID_RGB_GREEN_SLIDER,
+    ID_RGB_BLUE_SLIDER,
+    ID_RGB_RED_TEXT,
+    ID_RGB_GREEN_TEXT,
+    ID_RGB_BLUE_TEXT,
+    ID_HSV_HUE_SLIDER,
+    ID_HSV_SATURATION_SLIDER,
+    ID_HSV_VALUE_SLIDER,
+    ID_HSV_HUE_TEXT,
+    ID_HSV_SATURATION_TEXT,
+    ID_HSV_VALUE_TEXT,
+    ID_CMY_CYAN_SLIDER,
+    ID_CMY_MAGENTA_SLIDER,
+    ID_CMY_YELLOW_SLIDER,
+    ID_CMY_CYAN_TEXT,
+    ID_CMY_MAGENTA_TEXT,
+    ID_CMY_YELLOW_TEXT,
+    ID_DIAL_WHEEL,
+    ID_COLOR_BAR,
+    ID_COLOR_LIST,
+    ID_WELL_CHANGED,
+    ID_COLOR,
+    ID_ACTIVEPANE,
+    ID_ALPHA_SLIDER,
+    ID_ALPHA_TEXT,
+    ID_ALPHA_LABEL,
+    ID_COLORPICK,
+    ID_LAST
+    };
+public:
+
+  /// Construct a new ColorSelector
+  FXColorSelector(FXComposite *p,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=0,FXint x=0,FXint y=0,FXint w=0,FXint h=0);
+
+  /// Return a pointer to the "Accept" button
+  FXButton *acceptButton() const { return accept; }
+
+  /// Return a pointer to the "Cancel" button
+  FXButton *cancelButton() const { return cancel; }
+
+  /// Set the selected color
+  void setRGBA(FXColor clr);
+
+  /// Get the selected color
+  FXColor getRGBA() const;
+
+  /// Return true if only opaque colors allowed
+  FXbool isOpaqueOnly() const;
+
+  /// Change opaque only mode
+  void setOpaqueOnly(FXbool opaque);
+  };
+
+
+class FXPyColorSelector : public FXColorSelector {
+public:
+  FXPyColorSelector(FXComposite *p,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=0,FXint x=0,FXint y=0,FXint w=0,FXint h=0);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  };
+
+
+// Color selection dialog
+class FXColorDialog : public FXDialogBox {
+public:
+  long onChgColor(FXObject*,FXSelector,void*);
+  long onCmdColor(FXObject*,FXSelector,void*);
+public:
+  enum{
+    ID_COLORSELECTOR=FXDialogBox::ID_LAST,
+    ID_LAST
+    };
+public:
+  /// Construct color dialog
+  FXColorDialog(FXWindow* owner,const FXString& name,FXuint opts=0,FXint x=0,FXint y=0,FXint w=0,FXint h=0);
+
+  /// Set the color
+  void setRGBA(FXColor clr);
+
+  /// Get the color
+  FXColor getRGBA() const;
+
+  /// Return true if only opaque colors allowed
+  FXbool isOpaqueOnly() const;
+
+  /// Change opaque only mode
+  void setOpaqueOnly(FXbool forceopaque);
+  };
+
+
+class FXPyColorDialog : public FXColorDialog {
+public:
+  FXPyColorDialog(FXWindow* owner,const FXString& name,FXuint opts=0,FXint x=0,FXint y=0,FXint w=0,FXint h=0);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  TOPWINDOW_VIRTUALS
+  };
+
+
+// Font selection widget
+class FXFontSelector : public FXPacker {
+public:
+  long onCmdFamily(FXObject*,FXSelector,void*);
+  long onCmdWeight(FXObject*,FXSelector,void*);
+  long onCmdStyle(FXObject*,FXSelector,void*);
+  long onCmdStyleText(FXObject*,FXSelector,void*);
+  long onCmdSize(FXObject*,FXSelector,void*);
+  long onCmdSizeText(FXObject*,FXSelector,void*);
+  long onCmdCharset(FXObject*,FXSelector,void*);
+  long onUpdCharset(FXObject*,FXSelector,void*);
+  long onCmdSetWidth(FXObject*,FXSelector,void*);
+  long onUpdSetWidth(FXObject*,FXSelector,void*);
+  long onCmdPitch(FXObject*,FXSelector,void*);
+  long onUpdPitch(FXObject*,FXSelector,void*);
+  long onCmdScalable(FXObject*,FXSelector,void*);
+  long onUpdScalable(FXObject*,FXSelector,void*);
+  long onCmdAllFonts(FXObject*,FXSelector,void*);
+  long onUpdAllFonts(FXObject*,FXSelector,void*);
+public:
+  enum{
+    ID_FAMILY=FXPacker::ID_LAST,
+    ID_WEIGHT,
+    ID_STYLE,
+    ID_STYLE_TEXT,
+    ID_SIZE,
+    ID_SIZE_TEXT,
+    ID_CHARSET,
+    ID_SETWIDTH,
+    ID_PITCH,
+    ID_SCALABLE,
+    ID_ALLFONTS,
+    ID_LAST
+    };
+public:
+  FXFontSelector(FXComposite *p,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=0,FXint x=0,FXint y=0,FXint w=0,FXint h=0);
+  FXButton *acceptButton() const;
+  FXButton *cancelButton() const;
+  void setFontSelection(const FXFontDesc& fontdesc);
+
+  // void getFontSelection(FXFontDesc& fontdesc) const;
+  %addmethods {
+    %new FXFontDesc* getFontSelection() const {
+      FXFontDesc* fontdesc = new FXFontDesc;
+      self->getFontSelection(*fontdesc);
+      return fontdesc;
+    }
+  }
+};
+
+
+class FXPyFontSelector : public FXFontSelector {
+public:
+  FXPyFontSelector(FXComposite *p,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=0,FXint x=0,FXint y=0,FXint w=0,FXint h=0);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  };
+
+
+// Font selection dialog
+class FXFontDialog : public FXDialogBox {
+public:
+  FXFontDialog(FXWindow* owner,const FXString& name,FXuint opts=0,FXint x=0,FXint y=0,FXint w=600,FXint h=380);
+  void setFontSelection(const FXFontDesc& fontdesc);
+  // void getFontSelection(FXFontDesc& fontdesc) const;
+  %addmethods {
+    %new FXFontDesc* getFontSelection() const {
+      FXFontDesc* fontdesc = new FXFontDesc;
+      self->getFontSelection(*fontdesc);
+      return fontdesc;
+    }
+  }
+};
+
+
+class FXPyFontDialog : public FXFontDialog {
+public:
+  FXPyFontDialog(FXWindow* owner,const FXString& name,FXuint opts=0,FXint x=0,FXint y=0,FXint w=600,FXint h=380);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  TOPWINDOW_VIRTUALS
+  };
+
+
+/// Directory selection widget
+class FXDirSelector : public FXPacker {
+public:
+  long onCmdName(FXObject*,FXSelector,void*);
+  long onCmdOpened(FXObject*,FXSelector,void*);
+  long onCmdDriveChanged(FXObject*,FXSelector,void*);
+public:
+  enum {
+    ID_DIRNAME=FXPacker::ID_LAST,
+    ID_DIRLIST,
+    ID_DRIVEBOX,
+    ID_LAST
+    };
+public:
+  /// Constructor
+  FXDirSelector(FXComposite *p,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=0,FXint x=0,FXint y=0,FXint w=0,FXint h=0);
+
+  /// Return a pointer to the "Accept" button
+  FXButton *acceptButton() const { return accept; }
+
+  /// Return a pointer to the "Cancel" button
+  FXButton *cancelButton() const { return cancel; }
+  
+  /// Change directory
+  void setDirectory(const FXString& path);
+  
+  /// Return directory
+  FXString getDirectory() const;
+  
+  /// Change Directory List style
+  void setDirBoxStyle(FXuint style);
+
+  /// Return Directory List style
+  FXuint getDirBoxStyle() const;
+  };
+
+
+class FXPyDirSelector : public FXDirSelector {
+public:
+  FXPyDirSelector(FXComposite *p,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=0,FXint x=0,FXint y=0,FXint w=0,FXint h=0);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  };
+
+
+// Directory selection dialog
+class FXDirDialog : public FXDialogBox {
+public:
+  /// Construct Directory Dialog Box
+  FXDirDialog(FXWindow* owner,const FXString& name,FXuint opts=0,FXint x=0,FXint y=0,FXint w=500,FXint h=300);
+
+  /// Change directory
+  void setDirectory(const FXString& path);
+  
+  /// Return directory
+  FXString getDirectory() const;
+  
+  /// Change Directory List style
+  void setDirBoxStyle(FXuint style);
+
+  /// Return Directory List style
+  FXuint getDirBoxStyle() const;
+  };
+
+
+class FXPyDirDialog : public FXDirDialog {
+public:
+  FXPyDirDialog(FXWindow* owner,const FXString& name,FXuint opts=0,FXint x=0,FXint y=0,FXint w=500,FXint h=300);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  TOPWINDOW_VIRTUALS
+  };
+
+
+/// Printer selection dialog
+class FXPrintDialog : public FXDialogBox {
+public:
+  long onCmdToPrinter(FXObject*,FXSelector,void*);
+  long onUpdToPrinter(FXObject*,FXSelector,void*);
+  long onCmdToFile(FXObject*,FXSelector,void*);
+  long onUpdToFile(FXObject*,FXSelector,void*);
+  long onCmdBrowse(FXObject*,FXSelector,void*);
+  long onUpdBrowse(FXObject*,FXSelector,void*);
+  long onCmdProps(FXObject*,FXSelector,void*);
+  long onUpdProps(FXObject*,FXSelector,void*);
+  long onCmdPortrait(FXObject*,FXSelector,void*);
+  long onUpdPortrait(FXObject*,FXSelector,void*);
+  long onCmdLandscape(FXObject*,FXSelector,void*);
+  long onUpdLandscape(FXObject*,FXSelector,void*);
+  long onCmdPages(FXObject*,FXSelector,void*);
+  long onUpdPages(FXObject*,FXSelector,void*);
+  long onCmdColor(FXObject*,FXSelector,void*);
+  long onUpdColor(FXObject*,FXSelector,void*);
+  long onCmdGray(FXObject*,FXSelector,void*);
+  long onUpdGray(FXObject*,FXSelector,void*);
+  long onCmdNumCopies(FXObject*,FXSelector,void*);
+  long onUpdNumCopies(FXObject*,FXSelector,void*);
+  long onCmdFirstPage(FXObject*,FXSelector,void*);
+  long onUpdFirstPage(FXObject*,FXSelector,void*);
+  long onCmdLastPage(FXObject*,FXSelector,void*);
+  long onUpdLastPage(FXObject*,FXSelector,void*);
+  long onCmdCollateNormal(FXObject*,FXSelector,void*);
+  long onUpdCollateNormal(FXObject*,FXSelector,void*);
+  long onCmdCollateReversed(FXObject*,FXSelector,void*);
+  long onUpdCollateReversed(FXObject*,FXSelector,void*);
+  long onCmdFileName(FXObject*,FXSelector,void*);
+  long onUpdFileName(FXObject*,FXSelector,void*);
+  long onCmdPrinterName(FXObject*,FXSelector,void*);
+  long onUpdPrinterName(FXObject*,FXSelector,void*);
+  long onCmdAccept(FXObject*,FXSelector,void*);
+  long onCmdMedia(FXObject*,FXSelector,void*);
+  long onUpdMedia(FXObject*,FXSelector,void*);
+public:
+  enum{
+    ID_TO_PRINTER=FXDialogBox::ID_LAST,
+    ID_TO_FILE,
+    ID_PRINTER_NAME,
+    ID_FILE_NAME,
+    ID_LANDSCAPE,
+    ID_PORTRAIT,
+    ID_MEDIA,
+    ID_COLLATE_NORMAL,
+    ID_COLLATE_REVERSED,
+    ID_PAGES_ALL,
+    ID_PAGES_EVEN,
+    ID_PAGES_ODD,
+    ID_PAGES_RANGE,
+    ID_PAGES_FIRST,
+    ID_PAGES_LAST,
+    ID_BROWSE_FILE,
+    ID_PROPERTIES,
+    ID_COLOR_PRINTER,
+    ID_GRAY_PRINTER,
+    ID_NUM_COPIES
+    };
+public:
+  
+  /// Construct print dialog
+  FXPrintDialog(FXWindow* owner,const FXString& name,FXuint opts=0,FXint x=0,FXint y=0,FXint w=0,FXint h=0);
+
+  /// Set printer info
+  void setPrinter(const FXPrinter& pr);
+  
+  %addmethods {
+    /// Get printer info
+    %new FXPrinter* getPrinter() const {
+      FXPrinter* pr = new FXPrinter;
+      self->getPrinter(*pr);
+      return pr;
+    }
+  }
+  
+  /// Destructor
+  virtual ~FXPrintDialog();
+  };
+
+
+class FXPyPrintDialog : public FXPrintDialog {
+public:
+  FXPyPrintDialog(FXWindow* owner,const FXString& name,FXuint opts=0,FXint x=0,FXint y=0,FXint w=0,FXint h=0);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  TOPWINDOW_VIRTUALS
+  };
+
+
+// Message box buttons
+enum {
+  MBOX_OK               = 0x10000000,   /// Message box has a only an OK button
+  MBOX_OK_CANCEL        = 0x20000000,   /// Message box has OK and CANCEL buttons
+  MBOX_YES_NO           = 0x30000000,   /// Message box has YES and NO buttons
+  MBOX_YES_NO_CANCEL    = 0x40000000,   /// Message box has YES, NO, and CANCEL buttons
+  MBOX_QUIT_CANCEL      = 0x50000000,   /// Message box has QUIT and CANCEL buttons
+  MBOX_QUIT_SAVE_CANCEL = 0x60000000    /// Message box has QUIT, SAVE, and CANCEL buttons
+  };
+
+
+
+// Return values
+enum {
+  MBOX_CLICKED_YES      = 1,            /// The YES button was clicked
+  MBOX_CLICKED_NO       = 2,            /// The NO button was clicked
+  MBOX_CLICKED_OK       = 3,            /// The OK button was clicked
+  MBOX_CLICKED_CANCEL   = 4,            /// The CANCEL button was clicked
+  MBOX_CLICKED_QUIT     = 5,            /// The QUIT button was clicked
+  MBOX_CLICKED_SAVE     = 6             /// The SAVE button was clicked
+  };
+
+
+// Message box
+class FXMessageBox : public FXDialogBox {
+public:
+  long onCmdClicked(FXObject*,FXSelector,void*);
+  long onCmdCancel(FXObject*,FXSelector,void*);
+public:
+  enum{
+    ID_CLICKED_YES=FXDialogBox::ID_LAST,
+    ID_CLICKED_NO,
+    ID_CLICKED_OK,
+    ID_CLICKED_CANCEL,
+    ID_CLICKED_QUIT,
+    ID_CLICKED_SAVE,
+    ID_LAST
+    };
+public:
+  /// Make message box with given caption, icon, and message text
+  FXMessageBox(FXWindow* owner,const FXString& caption,const FXString& text,FXIcon* ic=NULL,FXuint opts=0,FXint x=0,FXint y=0);
+  };
+
+%inline %{
+  // Show a modal error message
+  FXuint showModalErrorBox(FXWindow* owner,FXuint opts,const char* caption,const char* message){
+    return FXMessageBox::error(owner,opts,caption,message);
+    }
+
+  // Show a modal warning message
+  FXuint showModalWarningBox(FXWindow* owner,FXuint opts,const char* caption,const char* message){
+    return FXMessageBox::warning(owner,opts,caption,message);
+    }
+
+  // Show a modal question dialog
+  FXuint showModalQuestionBox(FXWindow* owner,FXuint opts,const char* caption,const char* message){
+    return FXMessageBox::question(owner,opts,caption,message);
+    }
+
+  // Show a modal information dialog
+  FXuint showModalInformationBox(FXWindow* owner,FXuint opts,const char* caption,const char* message){
+    return FXMessageBox::information(owner,opts,caption,message);
+    }
+%}
+
+
+class FXPyMessageBox : public FXMessageBox {
+public:
+  FXPyMessageBox(FXWindow* owner,const FXString& caption,const FXString& text,FXIcon* ic=NULL,FXuint opts=0,FXint x=0,FXint y=0);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  TOPWINDOW_VIRTUALS
+  };
+
+
+// Registers stuff to know about the extension
+struct FXFileAssoc {
+  FXString   command;           // Command to execute
+  FXString   extension;         // Full extension name
+  FXString   mimetype;          // Mime type name
+  FXIcon  *bigicon;           // Full size normal icon
+  FXIcon  *bigiconopen;       // Full size open icon
+  FXIcon  *miniicon;          // Mini normal icon
+  FXIcon  *miniiconopen;      // Mini open icon
+  FXDragType dragtype;          // Registered drag type
+  FXuint     flags;             // Flags
+  };
+
+
+// Icon dictionary
+class FXIconDict : public FXDict {
+public:
+  // Construct an icon dictionary
+  FXIconDict(FXApp* a);
+
+  // Get application
+  FXApp* getApp() const;
+
+  /// Set icon search path
+  void setIconPath(const FXString& p){ path=p; }
+
+  /// Return current icon search path
+  FXString getIconPath() const { return path; }
+
+  // Insert unique icon loaded from filename into dictionary
+  FXIcon* insert(const FXchar* name);
+
+  // Remove icon from dictionary
+  FXIcon* remove(const FXchar* name);
+
+  // Find icon by name
+  FXIcon* find(const FXchar* name);
+  };
+
+
+class FXPyIconDict : public FXIconDict {
+public:
+  FXPyIconDict(FXApp* a);
+  OBJECT_VIRTUALS
+  };
+
+    
+// File Association dictionary
+class FXFileDict : public FXDict {
+public:
+  // Construct an file association table
+  FXFileDict(FXApp* a);
+
+  // Get application
+  FXApp* getApp() const;
+
+  /// Set icon search path
+  void setIconPath(const FXString& path);
+
+  /// Return current icon search path
+  FXString getIconPath() const;
+
+  // Replace file association
+  FXFileAssoc* replace(const FXchar* ext,const FXchar* str);
+
+  // Remove file association
+  FXFileAssoc* remove(const FXchar* ext);
+  
+  // Find file association already in dictionary
+  FXFileAssoc* find(const FXchar* ext);
+
+  // Find file association from registry
+  FXFileAssoc* associate(const FXchar* key);
+
+  // Determine binding for the given file
+  virtual FXFileAssoc* findFileBinding(const FXchar* pathname);
+
+  // Find file association from registry
+  virtual FXFileAssoc* findDirBinding(const FXchar* pathname);
+
+  // Determine binding for the given executable
+  virtual FXFileAssoc* findExecBinding(const FXchar* pathname);
+  };
+
+
+class FXPyFileDict : public FXFileDict {
+public:
+  FXPyFileDict(FXApp* a);
+  OBJECT_VIRTUALS
+  };
+
+
+/// Text replace dialog
+class FXReplaceDialog : public FXDialogBox {
+public:
+  long onCmdAll(FXObject*,FXSelector,void*);
+  long onCmdNext(FXObject*,FXSelector,void*);
+  long onUpdDir(FXObject*,FXSelector,void*);
+  long onCmdDir(FXObject*,FXSelector,void*);
+  long onUpdMode(FXObject*,FXSelector,void*);
+  long onCmdMode(FXObject*,FXSelector,void*);
+  long onSearchKey(FXObject*,FXSelector,void*);
+  long onReplaceKey(FXObject*,FXSelector,void*);
+  long onCmdSearchHist(FXObject*,FXSelector,void*);
+  long onCmdReplaceHist(FXObject*,FXSelector,void*);
+  long onCmdAccept(FXObject*,FXSelector,void*);
+public:
+  enum{
+    ID_NEXT=FXDialogBox::ID_LAST,
+    ID_PREV,
+    ID_SEARCH_UP,
+    ID_SEARCH_DN,
+    ID_REPLACE_UP,
+    ID_REPLACE_DN,
+    ID_ALL,
+    ID_DIR,
+    ID_SEARCH_TEXT,
+    ID_REPLACE_TEXT,
+    ID_MODE,
+    ID_LAST=ID_MODE+32
+    };
+public:
+  enum {
+    DONE          = 0,    /// Cancel search
+    SEARCH        = 1,    /// Search first occurrence
+    REPLACE       = 1,    /// Replace first occurrence
+    SEARCH_NEXT   = 2,    /// Search next occurrence
+    REPLACE_NEXT  = 2,    /// Replace next occurrence
+    REPLACE_ALL   = 3     /// Replace all occurrences
+    };
+public:
+  /// Construct Directory Dialog Box
+  FXReplaceDialog(FXWindow* owner,const FXString& caption,FXIcon* ic=NULL,FXuint opts=0,FXint x=0,FXint y=0,FXint w=0,FXint h=0);
+
+  /// Set text or pattern to search for
+  void setSearchText(const FXString& text);
+
+  /// Return text or pattern the user has entered
+  FXString getSearchText() const;
+
+  /// Set text or pattern to search with
+  void setReplaceText(const FXString& text);
+
+  /// Return text or pattern the user has entered
+  FXString getReplaceText() const;
+
+  /// Set search match mode
+  void setSearchMode(FXuint mode);
+
+  /// Return search mode the user has selected
+  FXuint getSearchMode() const;
+  };
+
+
+class FXPyReplaceDialog : public FXReplaceDialog {
+public:
+  FXPyReplaceDialog(FXWindow* owner,const FXString& caption,FXIcon* ic=NULL,FXuint opts=0,FXint x=0,FXint y=0,FXint w=0,FXint h=0);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  TOPWINDOW_VIRTUALS
+  };
+
+
+/// Text search dialog
+class FXSearchDialog : public FXReplaceDialog {
+public:
+  /// Construct dialog box
+  FXSearchDialog(FXWindow* owner,const FXString& caption,FXIcon* ic=NULL,FXuint opts=0,FXint x=0,FXint y=0,FXint w=0,FXint h=0);
+  };
+
+
+class FXPySearchDialog : public FXSearchDialog {
+public:
+  FXPySearchDialog(FXWindow* owner,const FXString& caption,FXIcon* ic=NULL,FXuint opts=0,FXint x=0,FXint y=0,FXint w=0,FXint h=0);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  TOPWINDOW_VIRTUALS
+  };
+
+
+/// Input dialog options
+enum {
+  INPUTDIALOG_STRING   = 0,             /// Ask for a string
+  INPUTDIALOG_INTEGER  = 0x01000000,    /// Ask for an integer number
+  INPUTDIALOG_REAL     = 0x02000000,    /// Ask for a real number
+  INPUTDIALOG_PASSWORD = 0x04000000     /// Do not reveal key-in
+  };
+
+
+/**
+* An Input Dialog is a simple dialog which is used
+* to obtain a text string, integer, or real number from the user.
+* A password mode allows the key-in to remain hidden.
+*/
+class FXInputDialog : public FXDialogBox {
+public:
+  long onCmdAccept(FXObject*,FXSelector,void*);
+public:
+
+  /// Construct input dialog box with given caption, icon, and prompt text
+  FXInputDialog(FXWindow* owner,const FXString& caption,const FXString& label,FXIcon* ic=NULL,FXuint opts=INPUTDIALOG_STRING,FXint x=0,FXint y=0,FXint w=0,FXint h=0);
+
+  /// Get input string
+  FXString getText() const;
+
+  /// Set input string
+  void setText(const FXString& text);
+
+  /// Change number of visible columns of text
+  void setNumColumns(FXint num);
+
+  /// Return number of visible columns of text
+  FXint getNumColumns() const;
+
+  /// Change limits
+  void setLimits(FXdouble lo,FXdouble hi);
+
+  /// Return limits
+  %addmethods {
+    PyObject* getLimits() const {
+      FXdouble lo,hi;
+      self->getLimits(lo,hi);
+      PyObject* obj=PyTuple_New(2);
+      if(obj){
+        PyTuple_SetItem(obj,0,PyFloat_FromDouble(lo));
+        PyTuple_SetItem(obj,1,PyFloat_FromDouble(hi));
+        }
+      return obj;
+    }
+  }
+
+  /// Run modal invocation of the dialog
+  virtual FXuint execute(FXuint placement=PLACEMENT_CURSOR);
+
+  /**
+  * Prompt for a string, start with the initial value.
+  * Return TRUE if the new value is accepted, and false otherwise.
+  */
+  static FXbool getString(FXString& result,FXWindow* owner,const FXString& caption,const FXString& label,FXIcon* ic=NULL);
+
+  /**
+  * Prompt for an integer number, start with the given initial value.
+  * Return TRUE if the new value is accepted, and false otherwise.
+  * The input is constrained between lo and hi, unless lo>hi, in which
+  * case the input can be any number.
+  */
+  static FXbool getInteger(FXint& result,FXWindow* owner,const FXString& caption,const FXString& label,FXIcon* ic=NULL,FXint lo=1,FXint hi=0);
+
+  /**
+  * Prompt for an real number, start with the given initial value.
+  * Return TRUE if the new value is accepted, and false otherwise.
+  * The input is constrained between lo and hi, unless lo>hi, in which
+  * case the input can be any number.
+  */
+  static FXbool getReal(FXdouble& result,FXWindow* owner,const FXString& caption,const FXString& label,FXIcon* ic=NULL,FXdouble lo=1.0,FXdouble hi=0.0);
+  };
+
+
+class FXPyInputDialog : public FXInputDialog {
+public:
+  // Constructor
+  FXPyInputDialog(FXWindow* owner,const FXString& caption,const FXString& label,FXIcon* ic=NULL,FXuint opts=INPUTDIALOG_STRING,FXint x=0,FXint y=0,FXint w=0,FXint h=0);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+public:
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  TOPWINDOW_VIRTUALS
+  };
+
+
+/**
+ * A Progress Dialog is a simple dialog which is used to
+ * keep a user informed of the progress of a lengthy operation
+ * in a program and that the program is in fact still working.
+ */
+class FXProgressDialog : public FXDialogBox {
+public:
+  long onCmdSetValue(FXObject*,FXSelector,void*);
+  long onCmdSetIntValue(FXObject*,FXSelector,void*);
+  long onCmdGetIntValue(FXObject*,FXSelector,void*);
+  long onCmdSetStringValue(FXObject*,FXSelector,void*);
+  long onCmdGetStringValue(FXObject*,FXSelector,void*);
+  long onCmdCancel(FXObject*,FXSelector,void*);
+public:
+
+  /// Construct input dialog box with given caption, icon, and prompt text
+  FXProgressDialog(FXWindow* owner,const FXString& caption,const FXString& label,FXuint opts=PROGRESSDIALOG_NORMAL,FXint x=0,FXint y=0,FXint w=0,FXint h=0);
+
+  /// Change the progress message
+  void setMessage(const FXString& msg);
+
+  /// Get progress message
+  FXString getMessage() const;
+  
+  /// Change the amount of progress
+  void setProgress(FXuint value);
+
+  /// Get current progress
+  FXuint getProgress() const;
+
+  /// Set total amount of progress
+  void setTotal(FXuint value);
+
+  /// Return total amount of progrss
+  FXuint getTotal() const;
+
+  /// Increment progress by given amount
+  void increment(FXuint value);
+
+  /// Has operation been cancelled?
+  FXbool isCancelled() const;
+
+  /// Destroy 
+  virtual ~FXProgressDialog();
+  };
+
+
+class FXPyProgressDialog : public FXProgressDialog {
+public:
+  /// Construct input dialog box with given caption, icon, and prompt text
+  FXPyProgressDialog(FXWindow* owner,const FXString& caption,const FXString& label,FXuint opts=PROGRESSDIALOG_NORMAL,FXint x=0,FXint y=0,FXint w=0,FXint h=0);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+public:
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  TOPWINDOW_VIRTUALS
+  };
+

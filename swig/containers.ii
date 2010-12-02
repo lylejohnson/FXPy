@@ -1,0 +1,994 @@
+/***********************************************************************
+ * $Id: containers.ii,v 1.25 2002/04/02 16:29:09 lyle Exp $
+ ***********************************************************************/
+
+%module containers
+
+%{
+#include "fx.h"
+#include "fx3d.h"
+#include "FXCURCursor.h"
+#include "FXJPGImage.h"
+#include "FXJPGIcon.h"
+#include "FXPNGIcon.h"
+#include "FXPNGImage.h"
+#include "FXTIFIcon.h"
+#include "FXTIFImage.h"
+#include "FXRGBIcon.h"
+#include "FXRGBImage.h"
+#include "FXICOIcon.h"
+#include "FXICOImage.h"
+#include "FXPyApp.h"
+#include "FXPy.h"
+%}
+
+%extern fxdefs.i
+
+%include typemaps.i
+%include my_typemaps.i
+
+%import misc.i
+%import windows.i
+
+%pragma(python) code = "import fox"
+
+/// Drawing (BITBLT) functions
+enum FXFunction {
+  BLT_CLR,                        /// D := 0
+  BLT_SRC_AND_DST,                /// D := S & D
+  BLT_SRC_AND_NOT_DST,            /// D := S & ~D
+  BLT_SRC,                        /// D := S
+  BLT_NOT_SRC_AND_DST,            /// D := ~S & D
+  BLT_DST,                        /// D := D
+  BLT_SRC_XOR_DST,                /// D := S ^ D
+  BLT_SRC_OR_DST,                 /// D := S | D
+  BLT_NOT_SRC_AND_NOT_DST,        /// D := ~S & ~D  ==  D := ~(S | D)
+  BLT_NOT_SRC_XOR_DST,            /// D := ~S ^ D
+  BLT_NOT_DST,                    /// D := ~D
+  BLT_SRC_OR_NOT_DST,             /// D := S | ~D
+  BLT_NOT_SRC,                    /// D := ~S
+  BLT_NOT_SRC_OR_DST,             /// D := ~S | D
+  BLT_NOT_SRC_OR_NOT_DST,         /// D := ~S | ~D  ==  ~(S & D)
+  BLT_SET                         /// D := 1
+  };
+
+
+/// Line Styles
+enum FXLineStyle {
+  LINE_SOLID,                     /// Solid lines
+  LINE_ONOFF_DASH,                /// On-off dashed lines
+  LINE_DOUBLE_DASH                /// Double dashed lines
+  };
+
+
+/// Line Cap Styles
+enum FXCapStyle {
+  CAP_NOT_LAST,                   /// Don't include last end cap
+  CAP_BUTT,                       /// Butting line end caps
+  CAP_ROUND,                      /// Round line end caps
+  CAP_PROJECTING                  /// Projecting line end caps
+  };
+
+
+/// Line Join Styles
+enum FXJoinStyle {
+  JOIN_MITER,                     /// Mitered or pointy joints
+  JOIN_ROUND,                     /// Round line joints
+  JOIN_BEVEL                      /// Beveled or flat joints
+  };
+
+
+/// Fill Styles
+enum FXFillStyle {
+  FILL_SOLID,                     /// Fill with solid color
+  FILL_TILED,                     /// Fill with tiled bitmap
+  FILL_STIPPLED,                  /// Fill where stipple mask is 1
+  FILL_OPAQUESTIPPLED             /// Fill with foreground where mask is 1, background otherwise
+  };
+
+
+/// Fill Rules
+enum FXFillRule {
+  RULE_EVEN_ODD,                  /// Even odd polygon filling
+  RULE_WINDING                    /// Winding rule polygon filling
+  };
+
+
+/// Stipple/dither patterns
+enum FXStipplePattern {
+  STIPPLE_0         = 0,
+  STIPPLE_NONE      = 0,
+  STIPPLE_BLACK     = 0,            /// All ones
+  STIPPLE_1         = 1,
+  STIPPLE_2         = 2,
+  STIPPLE_3         = 3,
+  STIPPLE_4         = 4,
+  STIPPLE_5         = 5,
+  STIPPLE_6         = 6,
+  STIPPLE_7         = 7,
+  STIPPLE_8         = 8,
+  STIPPLE_GRAY      = 8,            /// 50% gray
+  STIPPLE_9         = 9,
+  STIPPLE_10        = 10,
+  STIPPLE_11        = 11,
+  STIPPLE_12        = 12,
+  STIPPLE_13        = 13,
+  STIPPLE_14        = 14,
+  STIPPLE_15        = 15,
+  STIPPLE_16        = 16,
+  STIPPLE_WHITE     = 16,           /// All zeroes
+  STIPPLE_HORZ      = 17,           /// Horizontal hatch pattern
+  STIPPLE_VERT      = 18,           /// Vertical hatch pattern
+  STIPPLE_CROSS     = 19,           /// Cross-hatch pattern
+  STIPPLE_DIAG      = 20,           /// Diagonal // hatch pattern
+  STIPPLE_REVDIAG   = 21,           /// Reverse diagonal \\ hatch pattern
+  STIPPLE_CROSSDIAG = 22            /// Cross-diagonal hatch pattern
+  };
+
+
+/// Line segment
+struct FXSegment {
+  FXshort x1,y1,x2,y2;
+  };
+
+
+/// Arc
+struct FXArc {
+  FXshort x,y,w,h,a,b;
+  };
+  
+
+// Device Context
+class FXDC {
+public:
+  // Construct dummy DC
+  FXDC(FXApp* a);
+  
+  // Get application
+  FXApp* getApp() const;
+
+  // Read back pixel
+  virtual FXColor readPixel(FXint x, FXint y);
+
+  // Draw points
+  virtual void drawPoint(FXint x,FXint y);
+  void drawPoints(const FXPoint* points,FXuint npoints);
+  void drawPointsRel(const FXPoint* points,FXuint npoints);
+
+  // Draw lines
+  virtual void drawLine(FXint x1,FXint y1,FXint x2,FXint y2);
+  // virtual void drawLines(const FXPoint* points,FXuint npoints);
+  %addmethods {
+    // points is assumed to be a list of (x, y) tuples
+    void drawLines(PyObject* pointlist){
+      if(!PyList_Check(pointlist))
+        return;
+      FXint npoints=PyList_Size(pointlist);
+      FXPoint* points=new FXPoint[npoints];
+      for(FXint i=0;i<npoints;i++){
+        PyObject* tuple=PyList_GetItem(pointlist,i);
+        if(PyTuple_Check(tuple)){
+          PyObject* x=PyTuple_GetItem(tuple,0);
+          PyObject* y=PyTuple_GetItem(tuple,1);
+          points[i].x=(FXshort)PyInt_AsLong(x);
+          points[i].y=(FXshort)PyInt_AsLong(y);
+          }
+        else{
+          points[i].x=0;
+          points[i].y=0;
+          }
+        }
+      self->drawLines(points,npoints);
+      delete [] points;
+      }
+  }
+  virtual void drawLinesRel(const FXPoint* points,FXuint npoints);
+  virtual void drawLineSegments(const FXSegment* segments,FXuint nsegments);
+  
+  // Draw rectangles
+  virtual void drawRectangle(FXint x,FXint y,FXint w,FXint h);
+  virtual void drawRectangles(const FXRectangle* rectangles,FXuint nrectangles);
+
+  /**
+  * Draw arcs.
+  * The argument ang1 specifies the start of the arc relative to the 
+  * three-o'clock position from the center, in units of degrees*64.
+  * The argument ang2 specifies the path and extent of the arc relative 
+  * to the start of the arc, in units of degrees*64.
+  * The arguments x,y,w,h specify the bounding rectangle.
+  */
+  virtual void drawArc(FXint x,FXint y,FXint w,FXint h,FXint ang1,FXint ang2);
+  virtual void drawArcs(const FXArc* arcs,FXuint narcs);
+
+  // Filled rectangles
+  virtual void fillRectangle(FXint x,FXint y,FXint w,FXint h);
+  virtual void fillRectangles(const FXRectangle* rectangles,FXuint nrectangles);
+
+  // Draw arcs
+  virtual void fillArc(FXint x,FXint y,FXint w,FXint h,FXint ang1,FXint ang2);
+  virtual void fillArcs(const FXArc* arcs,FXuint narcs);
+
+  // Filled polygon
+  virtual void fillPolygon(const FXPoint* points,FXuint npoints);
+  virtual void fillConcavePolygon(const FXPoint* points,FXuint npoints);
+  virtual void fillComplexPolygon(const FXPoint* points,FXuint npoints);
+
+  // Filled polygon with relative points
+  virtual void fillPolygonRel(const FXPoint* points,FXuint npoints);
+  virtual void fillConcavePolygonRel(const FXPoint* points,FXuint npoints);
+  virtual void fillComplexPolygonRel(const FXPoint* points,FXuint npoints);
+
+  // Draw hashed box
+  virtual void drawHashBox(FXint x,FXint y,FXint w,FXint h,FXint b=1);
+  
+  /// Draw focus rectangle
+  virtual void drawFocusRectangle(FXint x,FXint y,FXint w,FXint h);
+
+  // Draw area from source
+  virtual void drawArea(const FXDrawable* source,FXint sx,FXint sy,FXint sw,FXint sh,FXint dx,FXint dy);
+
+  // Draw image 
+  virtual void drawImage(const FXImage* image,FXint dx,FXint dy);
+
+  // Draw bitmap
+  virtual void drawBitmap(const FXBitmap* bitmap,FXint dx,FXint dy);
+  
+  // Draw icon 
+  virtual void drawIcon(const FXIcon* icon,FXint dx,FXint dy);
+  virtual void drawIconShaded(const FXIcon* icon,FXint dx,FXint dy);
+  virtual void drawIconSunken(const FXIcon* icon,FXint dx,FXint dy);
+
+  // Draw string
+  virtual void drawText(FXint x,FXint y,const FXchar* string,FXuint length);
+  virtual void drawImageText(FXint x,FXint y,const FXchar* string,FXuint length);
+
+  // Set foreground/background drawing color
+  virtual void setForeground(FXColor clr);
+  virtual void setBackground(FXColor clr);
+
+  // Set dash pattern
+  virtual void setDashes(FXuint dashoffset,const FXchar *dashpattern,FXuint dashlength);
+
+  /// Get dash pattern
+  const FXchar* getDashPattern() const { return dashpat; }
+
+  /// Get dash offset
+  FXuint getDashOffset() const { return dashoff; }
+
+  /// Get dash length
+  FXuint getDashLength() const { return dashlen; }
+  
+  // Set line width:- 0 means thinnest/fastest possible
+  virtual void setLineWidth(FXuint linewidth=0);
+  FXuint getLineWidth() const;
+  
+  // Set line cap style
+  virtual void setLineCap(FXCapStyle capstyle=CAP_BUTT);
+  FXCapStyle getLineCap() const;
+  
+  // Set line join style
+  virtual void setLineJoin(FXJoinStyle joinstyle=JOIN_MITER);
+  FXJoinStyle getLineJoin() const;
+  
+  // Set line style
+  virtual void setLineStyle(FXLineStyle linestyle=LINE_SOLID);
+  FXLineStyle getLineStyle() const;
+  
+  // Set fill style
+  virtual void setFillStyle(FXFillStyle fillstyle=FILL_SOLID);
+  FXFillStyle getFillStyle() const;
+  
+  // Set fill rule
+  virtual void setFillRule(FXFillRule fillrule=RULE_EVEN_ODD);
+  FXFillRule getFillRule() const;
+  
+  // Set blit function
+  virtual void setFunction(FXFunction func=BLT_SRC);
+  FXFunction getFunction() const;
+  
+  // Set the tile
+  virtual void setTile(FXImage* tile,FXint dx=0,FXint dy=0);
+  FXImage* getTile() const;
+
+  // Stipple patterns and bitmaps
+  virtual void setStipple(FXBitmap *bitmap,FXint dx=0,FXint dy=0);
+  FXBitmap *getStippleBitmap() const;
+
+  %name(setStipple2) virtual void setStipple(FXStipplePattern pat,FXint dx=0,FXint dy=0);
+  FXStipplePattern getStipplePattern() const;
+  
+  // Set clip region
+  virtual void setClipRegion(const FXRegion& region);
+
+  // Change clip rectangle
+  %name(setClipRectangle2) virtual void setClipRectangle(const FXRectangle& rectangle);
+
+  // Return clip rectangle
+  const FXRectangle& getClipRectangle() const;
+
+  // Set clip rectangle
+  virtual void setClipRectangle(FXint x,FXint y,FXint w,FXint h);
+
+  /// Return clip x
+  FXint getClipX() const;
+  
+  /// Return clip y
+  FXint getClipY() const;
+  
+  /// Return clip width
+  FXint getClipWidth() const;
+  
+  /// Return clip height
+  FXint getClipHeight() const;
+   
+  // Clear clipping
+  virtual void clearClipRectangle();
+  
+  // Set clip mask
+  virtual void setClipMask(FXBitmap* mask,FXint dx=0,FXint dy=0);
+  
+  // Clear clip mask
+  virtual void clearClipMask();
+  
+  // Set font to draw text with
+  virtual void setTextFont(FXFont *font);
+  FXFont *getTextFont() const;
+  
+  // Clip against child windows
+  virtual void clipChildren(FXbool yes);
+
+  // Cleanup
+  virtual ~FXDC();
+  };
+
+
+class FXPyDC : public FXDC {
+public:
+  FXPyDC(FXApp* app);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  };
+
+
+// Device Context for Window
+class FXDCWindow : public FXDC {
+public:
+  /// This sets clip rectangle to the whole drawable
+  FXDCWindow(FXDrawable*);
+
+  /// Begin locks in a drawable surface
+  void begin(FXDrawable *);
+
+  /// End unlock the drawable surface
+  void end();
+
+  /// Destructor
+  virtual ~FXDCWindow();
+  };
+
+
+class FXPyDCWindow : public FXDCWindow {
+public:
+  FXPyDCWindow(FXDrawable*);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  };
+
+
+%inline %{
+  // Construct for normal drawing;
+  // This sets the clip rectangle to the whole drawable.
+  FXPyDCWindow* CreateDCWindow(FXDrawable* drawable) {
+    return new FXPyDCWindow(drawable);
+  }
+
+  // Construct for painting in response to expose;
+  // This sets the clip rectangle to the exposed rectangle
+  FXPyDCWindow* CreateClippedDCWindow(FXDrawable* drawable,FXEvent* event) {
+    return new FXPyDCWindow(drawable,event);
+  }
+%}
+
+
+/// Postscript Printer Device Context
+class FXDCPrint : public FXDC {
+public:
+
+  /// Construct
+  FXDCPrint(FXApp* a);
+
+  /// Generate print job prolog
+  FXbool beginPrint(FXPrinter& job);
+
+  /// Generate print job epilog
+  FXbool endPrint();
+
+  /// Generate begin of page
+  FXbool beginPage(FXuint page=1);
+
+  /// Generate end of page
+  FXbool endPage();
+
+  /// Cleanup
+  virtual ~FXDCPrint();
+  };
+
+
+class FXPyDCPrint : public FXDCPrint {
+public:
+  FXPyDCPrint(FXApp* app);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  };
+
+
+// Separator Options
+enum {
+  SEPARATOR_NONE       = 0,
+  SEPARATOR_GROOVE     = 0x00008000,
+  SEPARATOR_RIDGE      = 0x00010000,
+  SEPARATOR_LINE       = 0x00020000
+  };
+
+
+// Horizontal separator
+class FXHorizontalSeparator : public FXFrame {
+public:
+  FXHorizontalSeparator(FXComposite* p,FXuint opts=SEPARATOR_GROOVE|LAYOUT_FILL_X,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=1,FXint pr=1,FXint pt=0,FXint pb=0);
+  };
+
+
+class FXPyHorizontalSeparator : public FXHorizontalSeparator {
+public:
+  FXPyHorizontalSeparator(FXComposite* p,FXuint opts=SEPARATOR_GROOVE|LAYOUT_FILL_X,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=1,FXint pr=1,FXint pt=0,FXint pb=0);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  };
+
+
+// Vertical separator
+class FXVerticalSeparator : public FXFrame {
+public:
+  FXVerticalSeparator(FXComposite* p,FXuint opts=SEPARATOR_GROOVE|LAYOUT_FILL_Y,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=0,FXint pr=0,FXint pt=1,FXint pb=1);
+  };
+
+
+class FXPyVerticalSeparator : public FXVerticalSeparator {
+public:
+  FXPyVerticalSeparator(FXComposite* p,FXuint opts=SEPARATOR_GROOVE|LAYOUT_FILL_Y,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=0,FXint pr=0,FXint pt=1,FXint pb=1);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  };
+
+
+#define DEFAULT_SPACING 4
+
+
+class FXPacker : public FXComposite {
+public:
+  long onPaint(FXObject*,FXSelector,void*);
+  long onFocusUp(FXObject*,FXSelector,void*);
+  long onFocusDown(FXObject*,FXSelector,void*);
+  long onFocusLeft(FXObject*,FXSelector,void*);
+  long onFocusRight(FXObject*,FXSelector,void*);
+public:
+  FXPacker(FXComposite *p,FXuint opts=0,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=DEFAULT_SPACING,FXint pr=DEFAULT_SPACING,FXint pt=DEFAULT_SPACING,FXint pb=DEFAULT_SPACING,FXint hs=DEFAULT_SPACING,FXint vs=DEFAULT_SPACING);
+  void setFrameStyle(FXuint style);
+  FXuint getFrameStyle() const;
+  void setPackingHints(FXuint ph);
+  FXuint getPackingHints() const;
+  FXColor getHiliteColor() const;
+  FXColor getShadowColor() const;
+  FXColor getBorderColor() const;
+  FXColor getBaseColor() const;
+  void setHiliteColor(FXColor clr);
+  void setShadowColor(FXColor clr);
+  void setBorderColor(FXColor clr);
+  void setBaseColor(FXColor clr);
+  FXint getPadTop() const;
+  FXint getPadBottom() const;
+  FXint getPadLeft() const;
+  FXint getPadRight() const;
+  void setPadTop(FXint pt);
+  void setPadBottom(FXint pb);
+  void setPadLeft(FXint pl);
+  void setPadRight(FXint pr);
+  FXint getHSpacing() const;
+  FXint getVSpacing() const;
+  void setHSpacing(FXint hs);
+  void setVSpacing(FXint vs);
+  FXint getBorderWidth() const;
+  };
+
+
+class FXPyPacker : public FXPacker {
+public:
+  FXPyPacker(FXComposite *p,FXuint opts=0,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=DEFAULT_SPACING,FXint pr=DEFAULT_SPACING,FXint pt=DEFAULT_SPACING,FXint pb=DEFAULT_SPACING,FXint hs=DEFAULT_SPACING,FXint vs=DEFAULT_SPACING);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  };
+
+
+// Horizontal layout convenience class
+class FXHorizontalFrame : public FXPacker {
+public:
+  FXHorizontalFrame(FXComposite *p,FXuint opts=0,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=DEFAULT_SPACING,FXint pr=DEFAULT_SPACING,FXint pt=DEFAULT_SPACING,FXint pb=DEFAULT_SPACING,FXint hs=DEFAULT_SPACING,FXint vs=DEFAULT_SPACING);
+};
+
+
+class FXPyHorizontalFrame : public FXHorizontalFrame {
+public:
+  FXPyHorizontalFrame(FXComposite *p,FXuint opts=0,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=DEFAULT_SPACING,FXint pr=DEFAULT_SPACING,FXint pt=DEFAULT_SPACING,FXint pb=DEFAULT_SPACING,FXint hs=DEFAULT_SPACING,FXint vs=DEFAULT_SPACING);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  };
+
+
+// Vertical layout convenience class
+class FXVerticalFrame : public FXPacker {
+public:
+  FXVerticalFrame(FXComposite *p,FXuint opts=0,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=DEFAULT_SPACING,FXint pr=DEFAULT_SPACING,FXint pt=DEFAULT_SPACING,FXint pb=DEFAULT_SPACING,FXint hs=DEFAULT_SPACING,FXint vs=DEFAULT_SPACING);
+  };
+
+
+class FXPyVerticalFrame : public FXVerticalFrame {
+public:
+  FXPyVerticalFrame(FXComposite *p,FXuint opts=0,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=DEFAULT_SPACING,FXint pr=DEFAULT_SPACING,FXint pt=DEFAULT_SPACING,FXint pb=DEFAULT_SPACING,FXint hs=DEFAULT_SPACING,FXint vs=DEFAULT_SPACING);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  };
+
+
+// Matrix packing options
+enum {
+  MATRIX_BY_ROWS        = 0,
+  MATRIX_BY_COLUMNS     = 0x00020000
+  };
+  
+
+// Matrix packer
+class FXMatrix : public FXPacker {
+public:
+  long onFocusUp(FXObject*,FXSelector,void*);
+  long onFocusDown(FXObject*,FXSelector,void*);
+  long onFocusLeft(FXObject*,FXSelector,void*);
+  long onFocusRight(FXObject*,FXSelector,void*);
+public:
+  FXMatrix(FXComposite *p,FXint n=1,FXuint opts=MATRIX_BY_ROWS,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=DEFAULT_SPACING,FXint pr=DEFAULT_SPACING,FXint pt=DEFAULT_SPACING,FXint pb=DEFAULT_SPACING,FXint hs=DEFAULT_SPACING,FXint vs=DEFAULT_SPACING);
+  FXWindow* childAtRowCol(FXint r,FXint c) const;
+  FXint rowOfChild(FXWindow* child) const;
+  FXint colOfChild(FXWindow* child) const;
+  void setMatrixStyle(FXuint ph);
+  FXuint getMatrixStyle() const;
+  void setNumRows(FXint nr);
+  FXint getNumRows() const;
+  void setNumColumns(FXint nc);
+  FXint getNumColumns() const;
+  };
+
+
+class FXPyMatrix : public FXMatrix {
+public:
+  FXPyMatrix(FXComposite *p,FXint n=1,FXuint opts=MATRIX_BY_ROWS,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=DEFAULT_SPACING,FXint pr=DEFAULT_SPACING,FXint pt=DEFAULT_SPACING,FXint pb=DEFAULT_SPACING,FXint hs=DEFAULT_SPACING,FXint vs=DEFAULT_SPACING);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  };
+
+
+// Group box options
+enum {
+  GROUPBOX_TITLE_LEFT   = 0,	        /// Title is left-justified
+  GROUPBOX_TITLE_CENTER = 0x00020000,	/// Title is centered
+  GROUPBOX_TITLE_RIGHT  = 0x00040000,	/// Title is right-justified
+  GROUPBOX_NORMAL       = GROUPBOX_TITLE_LEFT
+  };
+
+
+// Group box 
+class FXGroupBox : public FXPacker {
+public:
+  long onPaint(FXObject*,FXSelector,void*);
+  long onUncheckOther(FXObject*,FXSelector,void*);
+public:
+  FXGroupBox(FXComposite* p,const FXString& text,FXuint opts=GROUPBOX_NORMAL,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=DEFAULT_SPACING,FXint pr=DEFAULT_SPACING,FXint pt=DEFAULT_SPACING,FXint pb=DEFAULT_SPACING,FXint hs=DEFAULT_SPACING,FXint vs=DEFAULT_SPACING);
+  void setText(const FXString& text);
+  FXString getText() const;
+  };
+
+
+class FXPyGroupBox : public FXGroupBox {
+public:
+  FXPyGroupBox(FXComposite* p,const FXString& text,FXuint opts=GROUPBOX_NORMAL,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=DEFAULT_SPACING,FXint pr=DEFAULT_SPACING,FXint pt=DEFAULT_SPACING,FXint pb=DEFAULT_SPACING,FXint hs=DEFAULT_SPACING,FXint vs=DEFAULT_SPACING);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  };
+
+
+/// Switcher options
+enum {
+  SWITCHER_HCOLLAPSE = 0x00020000,  /// Collapse horizontally to width of current child
+  SWITCHER_VCOLLAPSE = 0x00040000   /// Collapse vertically to height of current child
+  };
+ 
+// Switcher widget
+class FXSwitcher : public FXPacker {
+public:
+  long onPaint(FXObject*,FXSelector,void*);
+  long onCmdSetValue(FXObject*,FXSelector,void*);
+  long onCmdSetIntValue(FXObject*,FXSelector,void*);
+  long onCmdGetIntValue(FXObject*,FXSelector,void*);
+  long onCmdOpen(FXObject*,FXSelector,void*);
+  long onUpdOpen(FXObject*,FXSelector,void*);
+public:
+  enum {
+    ID_OPEN_FIRST=FXPacker::ID_LAST,
+    ID_OPEN_LAST=ID_OPEN_FIRST+1000,
+    ID_LAST
+    };
+public:
+  FXSwitcher(FXComposite *p,FXuint opts=0,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=DEFAULT_SPACING,FXint pr=DEFAULT_SPACING,FXint pt=DEFAULT_SPACING,FXint pb=DEFAULT_SPACING);
+  void setCurrent(FXint index,FXbool notify=FALSE);
+  FXint getCurrent() const;
+  /// Set the switcher style flags
+  void setSwitcherStyle(FXuint style);
+
+  /// Get the switcher style flags
+  FXuint getSwitcherStyle() const;
+  };
+
+
+class FXPySwitcher : public FXSwitcher {
+public:
+  FXPySwitcher(FXComposite *p,FXuint opts=0,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=DEFAULT_SPACING,FXint pr=DEFAULT_SPACING,FXint pt=DEFAULT_SPACING,FXint pb=DEFAULT_SPACING);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  };
+
+
+// Scrollbar options
+enum {
+  SCROLLERS_NORMAL     = 0,
+  HSCROLLER_ALWAYS     = 0x00008000,                        // Always show horizontal scrollers
+  HSCROLLER_NEVER      = 0x00010000,                        // Never show horizontal scrollers
+  VSCROLLER_ALWAYS     = 0x00020000,                        // Always show vertical scrollers
+  VSCROLLER_NEVER      = 0x00040000,                        // Never show vertical scrollers
+  HSCROLLING_ON        = 0,
+  HSCROLLING_OFF       = HSCROLLER_NEVER|HSCROLLER_ALWAYS,  // Horizontal scrolling turned off
+  VSCROLLING_ON        = 0,
+  VSCROLLING_OFF       = VSCROLLER_NEVER|VSCROLLER_ALWAYS,  // Vertical scrolling turned off
+  SCROLLERS_TRACK      = 0,
+  SCROLLERS_DONT_TRACK = 0x00080000                         // Scrollers don't track continuously
+  };
+
+
+// Base class for scrolled stuff
+class FXScrollArea : public FXComposite {
+public:
+  long onHMouseWheel(FXObject*,FXSelector,void*);
+  long onVMouseWheel(FXObject*,FXSelector,void*);
+  long onHScrollerChanged(FXObject*,FXSelector,void*);
+  long onVScrollerChanged(FXObject*,FXSelector,void*);
+  long onHScrollerDragged(FXObject*,FXSelector,void*);
+  long onVScrollerDragged(FXObject*,FXSelector,void*);
+  long onAutoScroll(FXObject*,FXSelector,void*);
+public:
+  void setScrollStyle(FXuint style);
+  FXuint getScrollStyle() const;
+  FXbool isHorizontalScrollable() const;
+  FXbool isVerticalScrollable() const;
+  FXScrollbar* horizontalScrollbar() const;
+  FXScrollbar* verticalScrollbar() const;
+  FXint getXPosition() const;
+  FXint getYPosition() const;
+  void setPosition(FXint x,FXint y);
+
+  // void getPosition(FXint& x,FXint& y) const;
+  %addmethods {
+    PyObject* getPosition() const {
+      FXint x, y;
+      self->getPosition(x, y);
+      FXbool doSave = FXPyRestoreThread();
+      PyObject* tuple = PyTuple_New(2);
+      if (tuple) {
+	PyObject *obj1 = PyInt_FromLong(x);
+	if (!obj1 || PyTuple_SetItem(tuple, 0, obj1) < 0) {
+	  Py_DECREF(tuple);
+          FXPySaveThread(doSave);
+	  return NULL;
+	}
+	PyObject *obj2 = PyInt_FromLong(y);
+	if (!obj2 || PyTuple_SetItem(tuple, 1, obj2) < 0) {
+	  Py_DECREF(tuple);
+          FXPySaveThread(doSave);
+	  return NULL;
+	}
+      }
+      FXPySaveThread(doSave);
+      return tuple;
+    }
+  }
+
+  // Virtual functions
+  virtual FXint getContentWidth();
+  virtual FXint getContentHeight();
+  virtual FXint getViewportWidth();
+  virtual FXint getViewportHeight();
+  virtual void moveContents(FXint x,FXint y);
+};
+
+
+class FXPyScrollArea : public FXScrollArea {
+public:
+  FXPyScrollArea(FXComposite* p,FXuint opts=0,FXint x=0,FXint y=0,FXint w=0,FXint h=0);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  SCROLLAREA_VIRTUALS
+  };
+
+
+// Automatic scroll area
+class FXScrollWindow : public FXScrollArea {
+public:
+  long onKeyPress(FXObject*,FXSelector,void*);
+  long onKeyRelease(FXObject*,FXSelector,void*);
+  long onFocusSelf(FXObject*,FXSelector,void*);
+public:
+  FXScrollWindow(FXComposite* p,FXuint opts=0,FXint x=0,FXint y=0,FXint w=0,FXint h=0);
+  FXWindow* contentWindow() const;
+  };
+
+
+class FXPyScrollWindow : public FXScrollWindow {
+public:
+  FXPyScrollWindow(FXComposite* p,FXuint opts=0,FXint x=0,FXint y=0,FXint w=0,FXint h=0);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  SCROLLAREA_VIRTUALS
+  };
+
+
+// Splitter options
+enum {
+  SPLITTER_HORIZONTAL = 0,		    /// Split horizontally
+  SPLITTER_VERTICAL   = 0x00008000,	    /// Split vertically
+  SPLITTER_REVERSED   = 0x00010000,         /// Reverse-anchored
+  SPLITTER_TRACKING   = 0x00020000,         /// Track continuous during split
+  SPLITTER_NORMAL     = SPLITTER_HORIZONTAL
+  };
+
+
+// Splitter window 
+class FXSplitter : public FXComposite {
+public:
+  long onLeftBtnPress(FXObject*,FXSelector,void*);
+  long onLeftBtnRelease(FXObject*,FXSelector,void*);
+  long onMotion(FXObject*,FXSelector,void*);
+  long onFocusNext(FXObject*,FXSelector,void*);
+  long onFocusPrev(FXObject*,FXSelector,void*);
+  long onFocusUp(FXObject*,FXSelector,void*);
+  long onFocusDown(FXObject*,FXSelector,void*);
+  long onFocusLeft(FXObject*,FXSelector,void*);
+  long onFocusRight(FXObject*,FXSelector,void*);
+public:
+  FXSplitter(FXComposite* p,FXuint opts=SPLITTER_NORMAL,FXint x=0,FXint y=0,FXint w=0,FXint h=0);
+  FXuint getSplitterStyle() const;
+  void setSplitterStyle(FXuint style);
+  void setBarSize(FXint bs);
+  FXint getBarSize() const;
+  };
+
+
+class FXPySplitter : public FXSplitter {
+public:
+  FXPySplitter(FXComposite* p,FXuint opts=SPLITTER_NORMAL,FXint x=0,FXint y=0,FXint w=0,FXint h=0);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  };
+
+
+// Overloaded constructors for FXSplitter
+%inline %{
+  FXPySplitter* CreateSplitter1(FXComposite* p,FXuint opts=SPLITTER_HORIZONTAL,FXint x=0,FXint y=0,FXint w=0,FXint h=0){
+    return new FXPySplitter(p,opts,x,y,w,h);
+    }
+
+  FXPySplitter* CreateSplitter2(FXComposite* p,FXObject* tgt,FXSelector sel,FXuint opts=SPLITTER_HORIZONTAL,FXint x=0,FXint y=0,FXint w=0,FXint h=0){
+    return new FXPySplitter(p,tgt,sel,opts,x,y,w,h);
+    }
+%}
+
+
+// Splitter options
+enum {
+  FOURSPLITTER_TRACKING = 0x00008000,   /// Track continuous during split
+  FOURSPLITTER_NORMAL   = 0
+  };
+
+
+// Splitter window 
+class FX4Splitter : public FXComposite {
+public:
+  long onLeftBtnPress(FXObject*,FXSelector,void*);
+  long onLeftBtnRelease(FXObject*,FXSelector,void*);
+  long onMotion(FXObject*,FXSelector,void*);
+  long onFocusNext(FXObject*,FXSelector,void*);
+  long onFocusPrev(FXObject*,FXSelector,void*);
+  long onFocusUp(FXObject*,FXSelector,void*);
+  long onFocusDown(FXObject*,FXSelector,void*);
+  long onFocusLeft(FXObject*,FXSelector,void*);
+  long onFocusRight(FXObject*,FXSelector,void*);
+  long onCmdExpand(FXObject*,FXSelector,void*);
+  long onUpdExpand(FXObject*,FXSelector,void*);
+public:
+  enum{
+    ID_EXPAND_ALL=FXComposite::ID_LAST,
+    ID_EXPAND_TOPLEFT,
+    ID_EXPAND_TOPRIGHT,
+    ID_EXPAND_BOTTOMLEFT,
+    ID_EXPAND_BOTTOMRIGHT,
+    ID_LAST
+    };
+public:
+  FX4Splitter(FXComposite* p,FXuint opts=FOURSPLITTER_NORMAL,FXint x=0,FXint y=0,FXint w=0,FXint h=0);
+  FXWindow *getTopLeft() const;
+  FXWindow *getTopRight() const;
+  FXWindow *getBottomLeft() const;
+  FXWindow *getBottomRight() const;
+  FXint getHSplit() const;
+  FXint getVSplit() const;
+  void setHSplit(FXint s);
+  void setVSplit(FXint s);
+  FXuint getSplitterStyle() const;
+  void setSplitterStyle(FXuint style);
+  void setBarSize(FXint bs);
+  FXint getBarSize() const;
+  void setExpanded(FXint ex);
+  FXint getExpanded() const;
+  };
+
+
+class FXPy4Splitter : public FX4Splitter {
+public:
+  FXPy4Splitter(FXComposite* p,FXuint opts=0,FXint x=0,FXint y=0,FXint w=0,FXint h=0);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  };
+
+
+// Overloaded constructors for FX4Splitter
+%inline %{
+  FXPy4Splitter* Create4Splitter1(FXComposite* p,FXuint opts=FOURSPLITTER_NORMAL,FXint x=0,FXint y=0,FXint w=0,FXint h=0){
+    return new FXPy4Splitter(p,opts,x,y,w,h);
+    }
+
+  FXPy4Splitter* Create4Splitter2(FXComposite* p,FXObject* tgt,FXuint sel,FXuint opts=FOURSPLITTER_NORMAL,FXint x=0,FXint y=0,FXint w=0,FXint h=0){
+    return new FXPy4Splitter(p,tgt,sel,opts,x,y,w,h);
+    }
+%}
+
+
+// Shutter Control
+class FXShutterItem : public FXVerticalFrame {
+public:
+  long onFocusUp(FXObject*,FXSelector,void*);
+  long onFocusDown(FXObject*,FXSelector,void*);
+  long onCmdButton(FXObject*,FXSelector,void*);
+public:
+  enum{
+    ID_SHUTTERITEM_BUTTON=FXVerticalFrame::ID_LAST,
+    ID_LAST
+    };
+public:
+  // Constructor
+  FXShutterItem(FXShutter *p,const FXString& text,FXIcon* ic=NULL,FXuint opts=0,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=DEFAULT_SPACING,FXint pr=DEFAULT_SPACING,FXint pt=DEFAULT_SPACING,FXint pb=DEFAULT_SPACING,FXint hs=DEFAULT_SPACING,FXint vs=DEFAULT_SPACING);
+
+  /// Return a pointer to the button for this item
+  FXButton* getButton() const;
+
+  /// Return a pointer to the contents for this item
+  FXVerticalFrame* getContent() const;
+
+  /// Set the status line help text for this item
+  void setHelpText(const FXString& text);
+
+  /// Get the status line help text for this item
+  FXString getHelpText() const;
+
+  /// Set the tool tip message for this item
+  void setTipText(const FXString&  text);
+
+  /// Get the tool tip message for this item
+  FXString getTipText() const;
+  };
+
+
+class FXPyShutterItem : public FXShutterItem {
+public:
+  FXPyShutterItem(FXShutter *p,const FXString text,FXIcon* ic=NULL,FXuint opts=0,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=DEFAULT_SPACING,FXint pr=DEFAULT_SPACING,FXint pt=DEFAULT_SPACING,FXint pb=DEFAULT_SPACING,FXint hs=DEFAULT_SPACING,FXint vs=DEFAULT_SPACING);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  };
+
+
+// Shutter Control
+class FXShutter : public FXVerticalFrame {
+public:
+  long onFocusUp(FXObject*,FXSelector,void*);
+  long onFocusDown(FXObject*,FXSelector,void*);
+  long onTimeout(FXObject*,FXSelector,void*);
+  long onOpenItem(FXObject*,FXSelector,void*);
+  long onCmdSetValue(FXObject*,FXSelector,void*);
+  long onCmdSetIntValue(FXObject*,FXSelector,void*);
+  long onCmdGetIntValue(FXObject*,FXSelector,void*);
+  long onCmdOpen(FXObject*,FXSelector,void*);
+  long onUpdOpen(FXObject*,FXSelector,void*);
+public:
+  enum{
+    ID_SHUTTER_TIMEOUT=FXVerticalFrame::ID_LAST,
+    ID_OPEN_SHUTTERITEM,
+    ID_OPEN_FIRST,
+    ID_OPEN_LAST=ID_OPEN_FIRST+1000,
+    ID_LAST
+    };
+public:
+  // Constructor
+  FXShutter(FXComposite *p,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=0,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=DEFAULT_SPACING,FXint pr=DEFAULT_SPACING,FXint pt=DEFAULT_SPACING,FXint pb=DEFAULT_SPACING,FXint hs=DEFAULT_SPACING,FXint vs=DEFAULT_SPACING);
+
+  // Set the current panel
+  virtual void setCurrent(FXint panel);
+
+  // Returns the current panel
+  FXint getCurrent() const;
+  };
+
+
+class FXPyShutter : public FXShutter {
+public:
+  // Constructor
+  FXPyShutter(FXComposite *p,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=0,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=DEFAULT_SPACING,FXint pr=DEFAULT_SPACING,FXint pt=DEFAULT_SPACING,FXint pb=DEFAULT_SPACING,FXint hs=DEFAULT_SPACING,FXint vs=DEFAULT_SPACING);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+
+public:
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  FXSHUTTER_VIRTUALS
+  };
+

@@ -1,0 +1,19 @@
+<chapter id="examples">
+  <title>Running the Example Programs</title>
+  <para>The example programs are located in the <filename class="directory">examples</filename> subdirectory. Many of these are the FXPy equivalents of the original FOX test programs and should give an idea of how FXPy applications are constructed. For example, to try the <filename>window.py</filename> example, just type:</para>
+  <programlisting>python window.py</programlisting>
+  <para>If you're running Python 2.0 or later you can instead run the demo browser program (<filename>demo.py</filename>) to get a menu of the available examples as well as some description of their purpose.</para>
+  <para>Screenshots of two of my personal favorites are shown below. Note that these were for FXPy running under Windows, but they should look very similar running under X windows on Unix platforms.</para>
+  <screenshot>
+    <mediaobject>
+      <imageobject><imagedata fileref="neko.png" format="png" align="center"/></imageobject>
+    </mediaobject>
+  </screenshot>
+  <para>I've seen various versions of this one (<filename>neko.py</filename>) for X-windows and Microsoft Windows; even one version as a Java applet. I always loved that little cat and so I knew that eventually I'd have to port this one to FOX!</para>
+  <screenshot>
+    <mediaobject>
+      <imageobject><imagedata fileref="glviewer.png" format="png" align="center"/></imageobject>
+    </mediaobject>
+  </screenshot>
+  <para>The <filename>glviewer.py</filename> example demonstrates most of the elements of a full-blown application: a menu bar with pulldown menus, tool bar, multiple document interface (<acronym>MDI</acronym>) area, and OpenGL viewers. For another fairly complete application, see the text editor (<filename>textedit.py</filename>) example.</para>
+</chapter>

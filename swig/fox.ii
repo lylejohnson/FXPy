@@ -1,0 +1,221 @@
+/***********************************************************************
+ * $Id: fox.ii,v 1.9 2002/02/11 09:58:54 calvin Exp $
+ ***********************************************************************/
+
+%module fox
+
+%{
+#include "fx.h"
+#include "fx3d.h"
+#include "FXCURCursor.h"
+#include "FXJPGImage.h"
+#include "FXJPGIcon.h"
+#include "FXPNGIcon.h"
+#include "FXPNGImage.h"
+#include "FXTIFIcon.h"
+#include "FXTIFImage.h"
+#include "FXRGBIcon.h"
+#include "FXRGBImage.h"
+#include "FXICOIcon.h"
+#include "FXICOImage.h"
+#include "FXPyApp.h"
+#include "FXPy.h"
+
+static PyObject* messageTypeNames = NULL;
+
+/* Adds a new list object, containing the names of FOX message types */
+void FXPy_InitLists(PyObject* dict) {
+  if(!messageTypeNames){
+    /* Create the list */
+    messageTypeNames = PyList_New(SEL_LAST);
+    for (int i = 0; i < SEL_LAST; i++) {
+      PyList_SetItem(messageTypeNames, i, PyString_FromString(FXDebugTarget::messageTypeName[i]));
+      }
+    }
+  }
+%}
+
+// Create a NULL object
+%pragma(python) code = "
+class NullObj:
+    this = 'NULL'
+
+NULL = NullObj()
+"
+
+// FOX defines & SWIG typemaps
+%include fxdefs.i
+%include typemaps.i
+%include my_typemaps.i
+
+// The import directive tells SWIG to import all of the type information
+// and definitions from another SWIG module. Does not generate wrappers
+// for any of the declarations in the imported file.
+%import misc.i
+%import graphics.i
+%import windows.i
+%import containers.i
+%import controls.i
+%import mdi.i
+%import menus.i
+%import dialogs.i
+%import fox3d.i
+%import dirlist.i
+%import table.i
+%import treelist.i
+%import iconlist.i
+%import text.i
+
+
+/* This is exposed as a global variable */
+PyObject* messageTypeNames;
+
+%native(FXPySetDict) FXPySetDict;
+
+%inline %{
+void setErrorObject(PyObject *errorObject) {
+	FXbool doSave = FXPyRestoreThread();
+	Py_INCREF(errorObject);
+	FXPySaveThread(doSave);
+	FXPyApp::errorObject = errorObject;
+}
+%}
+
+// Make int out of two shorts
+%{
+unsigned int
+_MKUINT(unsigned short l, unsigned short h) {
+  return MKUINT(l, h);
+}
+%}
+%name(MKUINT) unsigned int _MKUINT(unsigned short l, unsigned short h);
+
+// Get type from selector
+%{
+unsigned int
+_SELTYPE(unsigned int s) {
+    return SELTYPE(s);
+}
+%}
+%name(SELTYPE) unsigned int _SELTYPE(unsigned int);
+
+// Get ID from selector
+%{
+unsigned int
+_SELID(unsigned int s) {
+    return SELID(s);
+}
+%}
+%name(SELID) unsigned int _SELID(unsigned int s);
+
+// Reverse bits in byte
+%{
+FXuchar
+_FXBITREVERSE(FXuchar b) {
+    return FXBITREVERSE(b);
+}
+%}
+%name(FXBITREVERSE) FXuchar _FXBITREVERSE(FXuchar b);
+
+// Make RGBA color
+%{
+unsigned long
+_FXRGBA(unsigned int r, unsigned int g, unsigned int b, unsigned int a) {
+    return FXRGBA(r,g,b,a);
+}
+%}
+%name(FXRGBA) unsigned long _FXRGBA(unsigned int r, unsigned int g, unsigned int b, unsigned int a);
+
+// Make RGB color
+%{
+FXColor _FXRGB(unsigned int r,unsigned int g,unsigned int b) {
+  return FXRGB(r,g,b);
+  }
+%}
+%name(FXRGB) FXColor _FXRGB(unsigned int r, unsigned int g, unsigned int b);
+
+// Get red value from RGBA color
+%{
+FXuchar _FXREDVAL(FXColor rgba) {
+  return FXREDVAL(rgba);
+  }
+%}
+%name(FXREDVAL) FXuchar _FXREDVAL(FXColor rgba);
+
+// Get green value from RGBA color
+%{
+FXuchar _FXGREENVAL(FXColor rgba) {
+  return FXGREENVAL(rgba);
+  }
+%}
+%name(FXGREENVAL) FXuchar _FXGREENVAL(FXColor rgba);
+
+// Get blue value from RGBA color
+%{
+FXuchar _FXBLUEVAL(FXColor rgba) {
+  return FXBLUEVAL(rgba);
+  }
+%}
+%name(FXBLUEVAL) FXuchar _FXBLUEVAL(FXColor rgba);
+
+// Get alpha value from RGBA color
+%{
+FXuchar _FXALPHAVAL(FXColor rgba) {
+  return FXALPHAVAL(rgba);
+  }
+%}
+%name(FXALPHAVAL) FXuchar _FXALPHAVAL(FXColor rgba);
+
+// Get component value of RGBA color
+%{
+FXuchar _FXRGBACOMPVAL(FXColor rgba, FXuchar comp) {
+  return FXRGBACOMPVAL(rgba, comp);
+  }
+%}
+%name(FXRGBACOMPVAL) FXuchar _FXRGBACOMPVAL(FXColor rgba, FXuchar comp);
+
+
+// This code gets added to the module initialization function
+%{
+extern "C" SWIGEXPORT(void initcontainersc());
+extern "C" SWIGEXPORT(void initcontrolsc());
+extern "C" SWIGEXPORT(void initdialogsc());
+extern "C" SWIGEXPORT(void initdirlistc());
+extern "C" SWIGEXPORT(void initfox3dc());
+extern "C" SWIGEXPORT(void initgraphicsc());
+extern "C" SWIGEXPORT(void initiconlistc());
+extern "C" SWIGEXPORT(void initmdic());
+extern "C" SWIGEXPORT(void initmenusc());
+extern "C" SWIGEXPORT(void initmiscc());
+extern "C" SWIGEXPORT(void inittablec());
+extern "C" SWIGEXPORT(void inittextc());
+extern "C" SWIGEXPORT(void inittreelistc());
+extern "C" SWIGEXPORT(void initwindowsc());
+%}
+
+%init %{
+#ifdef FXPy_WITH_THREADS
+    PyEval_InitThreads();
+    extern PyThreadState *g_FXPyEventThreadState;
+    g_FXPyEventThreadState = PyThreadState_Get();
+#endif
+    initcontainersc();
+    initcontrolsc();
+    initdialogsc();
+    initdirlistc();
+    initfox3dc();
+    initgraphicsc();
+    initiconlistc();
+    initmdic();
+    initmenusc();
+    initmiscc();
+    inittablec();
+    inittextc();
+    inittreelistc();
+    initwindowsc();
+
+    /* Register the array of message type names */
+    FXPy_InitLists(d);
+%}
+
+%pragma(python) include = "_extras.py"

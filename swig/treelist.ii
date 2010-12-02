@@ -1,0 +1,415 @@
+/***********************************************************************
+ * $Id: treelist.ii,v 1.19 2002/02/11 09:58:54 calvin Exp $
+ ***********************************************************************/
+
+%module treelist
+
+%{
+#include "fx.h"
+#include "fx3d.h"
+#include "FXCURCursor.h"
+#include "FXJPGImage.h"
+#include "FXJPGIcon.h"
+#include "FXPNGIcon.h"
+#include "FXPNGImage.h"
+#include "FXTIFIcon.h"
+#include "FXTIFImage.h"
+#include "FXRGBIcon.h"
+#include "FXRGBImage.h"
+#include "FXICOIcon.h"
+#include "FXICOImage.h"
+#include "FXPyApp.h"
+#include "FXPy.h"
+%}
+
+%extern fxdefs.i
+%include typemaps.i
+%include my_typemaps.i
+
+%import misc.i
+%import windows.i
+%import containers.i
+
+
+%pragma(python) code = "import fox"
+
+
+// Tree List options
+enum {
+  TREELIST_EXTENDEDSELECT = 0,
+  TREELIST_SINGLESELECT   = 0x00100000,   /// Single selection mode
+  TREELIST_BROWSESELECT   = 0x00200000,   /// Browse selection mode
+  TREELIST_MULTIPLESELECT = 0x00300000,   /// Multiple selection mode is used for selection of individual items
+  TREELIST_AUTOSELECT     = 0x00400000,   /// Automatically select under cursor
+  TREELIST_SHOWS_LINES    = 0x00800000,   /// Lines shown
+  TREELIST_SHOWS_BOXES    = 0x01000000,   /// Boxes to expand shown
+  TREELIST_ROOT_BOXES     = 0x02000000,   /// Display root boxes also
+  TREELIST_NORMAL         = TREELIST_EXTENDEDSELECT
+  };
+
+
+// Tree List Item
+class FXTreeItem : public FXObject {
+public:
+  // Constructor
+  FXTreeItem(const FXString& text,FXIcon* oi=NULL,FXIcon* ci=NULL,void* ptr=NULL);
+
+  FXTreeItem* getParent() const;
+  FXTreeItem* getNext() const;
+  FXTreeItem* getPrev() const;
+  FXTreeItem* getFirst() const;
+  FXTreeItem* getLast() const;
+  FXTreeItem* getBelow() const;
+  FXTreeItem* getAbove() const;
+
+  virtual FXint getWidth(const FXTreeList* list) const;
+  virtual FXint getHeight(const FXTreeList* list) const;
+
+  virtual void create();
+  virtual void detach();
+  virtual void destroy();
+
+  FXint getNumChildren() const;
+  FXString getText() const;
+  virtual void setText(const FXString& text);
+  FXIcon* getOpenIcon() const;
+  virtual void setOpenIcon(FXIcon* ic);
+  FXIcon* getClosedIcon() const;
+  virtual void setClosedIcon(FXIcon* ic);
+  %addmethods {
+    void setData(PyObject* ptr) {
+      FXPySetData(self, ptr);
+    }
+    PyObject* getData() const {
+      return FXPyGetData(self);
+    }
+  }
+  FXbool hasFocus() const;
+  virtual void setFocus(FXbool focus);
+
+  FXbool isSelected() const;
+  virtual void setSelected(FXbool selected);
+
+  FXbool isOpened() const;
+  virtual void setOpened(FXbool opened);
+
+  FXbool isExpanded() const;
+  virtual void setExpanded(FXbool expanded);
+
+  FXbool isEnabled() const;
+  virtual void setEnabled(FXbool enabled);
+
+  FXbool isDraggable() const;
+  virtual void setDraggable(FXbool draggable);
+
+  FXuint isIconOwned() const;
+  // virtual void setIconOwned(FXuint owned=(OPENICONOWNED|CLOSEDICONOWNED));
+  virtual void setIconOwned(FXuint owned=384);
+  };
+
+
+class FXPyTreeItem : public FXTreeItem {
+public:
+  FXPyTreeItem(const FXString& text,FXIcon* oi=NULL,FXIcon* ci=NULL,void* ptr=NULL);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  TREEITEM_VIRTUALS
+  };
+
+
+// Item collate function
+typedef FXint (*FXTreeListSortFunc)(const FXTreeItem*,const FXTreeItem*);
+
+
+// Tree List
+class FXTreeList : public FXScrollArea {
+public:
+  long onPaint(FXObject*,FXSelector,void*);
+  long onEnter(FXObject*,FXSelector,void*);
+  long onLeave(FXObject*,FXSelector,void*);
+  long onUngrabbed(FXObject*,FXSelector,void*);
+  long onMotion(FXObject*,FXSelector,void*);
+  long onKeyPress(FXObject*,FXSelector,void*);
+  long onKeyRelease(FXObject*,FXSelector,void*);
+  long onLeftBtnPress(FXObject*,FXSelector,void*);
+  long onLeftBtnRelease(FXObject*,FXSelector,void*);
+  long onRightBtnPress(FXObject*,FXSelector,void*);
+  long onRightBtnRelease(FXObject*,FXSelector,void*);
+  long onQueryTip(FXObject*,FXSelector,void*);
+  long onQueryHelp(FXObject*,FXSelector,void*);
+  long onTipTimer(FXObject*,FXSelector,void*);
+  long onFocusIn(FXObject*,FXSelector,void*);
+  long onFocusOut(FXObject*,FXSelector,void*);
+  long onAutoScroll(FXObject*,FXSelector,void*);
+  long onClicked(FXObject*,FXSelector,void*);
+  long onDoubleClicked(FXObject*,FXSelector,void*);
+  long onTripleClicked(FXObject*,FXSelector,void*);
+  long onCommand(FXObject*,FXSelector,void*);
+  long onSelected(FXObject*,FXSelector,void*);
+  long onDeselected(FXObject*,FXSelector,void*);
+  long onOpened(FXObject*,FXSelector,void*);
+  long onClosed(FXObject*,FXSelector,void*);
+  long onExpanded(FXObject*,FXSelector,void*);
+  long onCollapsed(FXObject*,FXSelector,void*);
+  long onLookupTimer(FXObject*,FXSelector,void*);
+public:
+  enum {
+    ID_TIPTIMER=FXScrollArea::ID_LAST,
+    ID_LOOKUPTIMER,
+    ID_LAST
+    };
+public:
+  /// Construct a tree list with nvis visible items. The list is initially empty
+  FXTreeList(FXComposite *p,FXint nvis,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=TREELIST_NORMAL,FXint x=0,FXint y=0,FXint w=0,FXint h=0);
+
+  /// Return number of items
+  FXint getNumItems() const;
+
+  /// Return number of visible items
+  FXint getNumVisible() const;
+
+  /// Change number of visible items
+  void setNumVisible(FXint nvis);
+
+  /// Return first root item
+  FXTreeItem* getFirstItem() const;
+
+  /// Return last root item
+  FXTreeItem* getLastItem() const;
+
+  %addmethods {
+    FXTreeItem* addItemFirst(PyObject* treeItem, const FXString& text,
+		FXIcon* oi=NULL, FXIcon* ci=NULL, void* ptr=NULL, FXbool notify=FALSE) {
+	FXTreeItem *item = NULL;
+	if (treeItem != Py_None)
+	    item = (FXTreeItem*) FXPyGetFXObject(treeItem);
+	return (FXTreeItem*) self->addItemFirst(item, text, oi, ci, ptr, notify);
+      }
+
+    FXTreeItem* addItemFirst2(PyObject* treeItem, FXTreeItem* item, FXbool notify=FALSE) {
+	FXTreeItem *parentItem = NULL;
+	if (treeItem != Py_None)
+	    parentItem = (FXTreeItem*) FXPyGetFXObject(treeItem);
+	return (FXTreeItem*) self->addItemFirst(parentItem,item,notify);
+      }
+
+    FXTreeItem* addItemLast(PyObject* treeItem, const FXString& text,
+		FXIcon* oi=NULL, FXIcon* ci=NULL, void* ptr=NULL, FXbool notify=FALSE) {
+	FXTreeItem *item = NULL;
+	if (treeItem != Py_None)
+	    item = (FXTreeItem*) FXPyGetFXObject(treeItem);
+	return (FXTreeItem*) self->addItemLast(item, text, oi, ci, ptr, notify);
+      }
+
+    FXTreeItem* addItemLast2(PyObject* treeItem, FXTreeItem* item, FXbool notify=FALSE) {
+	FXTreeItem *parentItem = NULL;
+	if (treeItem != Py_None)
+	    parentItem = (FXTreeItem*) FXPyGetFXObject(treeItem);
+	return (FXTreeItem*) self->addItemLast(parentItem,item,notify);
+      }
+  }
+  FXTreeItem* addItemBefore(FXTreeItem* other,const FXString& text,FXIcon* oi=NULL,FXIcon* ci=NULL,void* ptr=NULL,FXbool notify=FALSE);
+  FXTreeItem* addItemAfter(FXTreeItem* other,const FXString& text,FXIcon* oi=NULL,FXIcon* ci=NULL,void* ptr=NULL,FXbool notify=FALSE);
+  %name(addItemBefore2) FXTreeItem* addItemBefore(FXTreeItem* other,FXTreeItem* item,FXbool notify=FALSE);
+  %name(addItemAfter2) FXTreeItem* addItemAfter(FXTreeItem* other,FXTreeItem* item,FXbool notify=FALSE);
+  void removeItem(FXTreeItem* item,FXbool notify=FALSE);
+  void removeItems(FXTreeItem* fm,FXTreeItem* to,FXbool notify=FALSE);
+  void clearItems(FXbool notify=FALSE);
+  FXint getItemWidth(const FXTreeItem* item) const;
+  FXint getItemHeight(const FXTreeItem* item) const;
+  virtual FXTreeItem* getItemAt(FXint x,FXint y) const;
+  FXTreeItem* findItem(const FXString& text,FXTreeItem* start=NULL,FXuint flags=SEARCH_FORWARD|SEARCH_WRAP) const;
+  void makeItemVisible(FXTreeItem* item);
+  void setItemText(FXTreeItem* item,const FXString& text);
+  FXString getItemText(const FXTreeItem* item) const;
+  void setItemOpenIcon(FXTreeItem* item,FXIcon* icon);
+  FXIcon* getItemOpenIcon(const FXTreeItem* item) const;
+  void setItemClosedIcon(FXTreeItem* item,FXIcon* icon);
+  FXIcon* getItemClosedIcon(const FXTreeItem* item) const;
+  void setItemData(FXTreeItem* item,void* ptr) const;
+  void* getItemData(const FXTreeItem* item) const;
+  FXbool isItemSelected(const FXTreeItem* item) const;
+  FXbool isItemCurrent(const FXTreeItem* item) const;
+  FXbool isItemVisible(const FXTreeItem* item) const;
+  FXbool isItemOpened(const FXTreeItem* item) const;
+  FXbool isItemExpanded(const FXTreeItem* item) const;
+  FXbool isItemLeaf(const FXTreeItem* item) const;
+  FXbool isItemEnabled(const FXTreeItem* item) const;
+  FXint hitItem(const FXTreeItem* item,FXint x,FXint y) const;
+  void updateItem(FXTreeItem* item);
+  FXbool enableItem(FXTreeItem* item);
+  FXbool disableItem(FXTreeItem* item);
+  FXbool selectItem(FXTreeItem* item,FXbool notify=FALSE);
+  FXbool deselectItem(FXTreeItem* item,FXbool notify=FALSE);
+  FXbool toggleItem(FXTreeItem* item,FXbool notify=FALSE);
+  FXbool openItem(FXTreeItem* item,FXbool notify=FALSE);
+  FXbool closeItem(FXTreeItem* item,FXbool notify=FALSE);
+  FXbool collapseTree(FXTreeItem* tree,FXbool notify=FALSE);
+  FXbool expandTree(FXTreeItem* tree,FXbool notify=FALSE);
+  void reparentItem(FXTreeItem* item,FXTreeItem* p);
+  void setCurrentItem(FXTreeItem* item,FXbool notify=FALSE);
+  FXTreeItem* getCurrentItem() const;
+  void setAnchorItem(FXTreeItem* item);
+  FXTreeItem* getAnchorItem() const;
+  FXTreeItem* getCursorItem() const;
+  FXbool extendSelection(FXTreeItem* item,FXbool notify=FALSE);
+  FXbool killSelection(FXbool notify=FALSE);
+  void sortItems();
+  void sortChildItems(FXTreeItem* item);
+  void setFont(FXFont* fnt);
+  FXFont* getFont() const;
+  FXColor getTextColor() const;
+  void setTextColor(FXColor clr);
+  FXColor getSelBackColor() const;
+  void setSelBackColor(FXColor clr);
+  FXColor getSelTextColor() const;
+  void setSelTextColor(FXColor clr);
+  FXColor getLineColor() const;
+  void setLineColor(FXColor clr);
+
+  /// Change parent-child indent amount
+  void setIndent(FXint in);
+
+  /// Return parent-child indent amount
+  FXint getIndent() const;
+
+  /// Set the status line help text for this list
+  void setHelpText(const FXString& text);
+
+  /// Get the status line help text for this list
+  FXString getHelpText() const;
+
+  FXTreeListSortFunc getSortFunc() const;
+  void setSortFunc(FXTreeListSortFunc func);
+  FXuint getListStyle() const;
+  void setListStyle(FXuint style);
+  };
+
+
+class FXPyTreeList : public FXTreeList {
+public:
+  FXPyTreeList(FXComposite *p,FXint nvis,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=TREELIST_NORMAL,FXint x=0,FXint y=0,FXint w=0,FXint h=0);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  SCROLLAREA_VIRTUALS
+  };
+
+
+// Tree List Box styles
+enum {
+  TREELISTBOX_NORMAL         = 0          // Normal style
+  };
+
+  
+// Tree List Box
+class FXTreeListBox : public FXPacker {
+public:
+  long onFocusUp(FXObject*,FXSelector,void*);
+  long onFocusDown(FXObject*,FXSelector,void*);
+  long onChanged(FXObject*,FXSelector,void*);
+  long onCommand(FXObject*,FXSelector,void*);
+  long onFieldButton(FXObject*,FXSelector,void*);
+  long onTreeChanged(FXObject*,FXSelector,void*);
+  long onTreeClicked(FXObject*,FXSelector,void*);
+  long onUpdFmTree(FXObject*,FXSelector,void*);
+public:
+  enum{
+    ID_TREE=FXPacker::ID_LAST,
+    ID_FIELD,
+    ID_LAST
+    };
+public:
+  FXTreeListBox(FXComposite *p,FXint nvis,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=FRAME_SUNKEN|FRAME_THICK|TREELISTBOX_NORMAL,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=DEFAULT_PAD,FXint pr=DEFAULT_PAD,FXint pt=DEFAULT_PAD,FXint pb=DEFAULT_PAD);
+  FXint getNumItems() const;
+  FXint getNumVisible() const;
+  void setNumVisible(FXint nvis);
+  FXTreeItem* getFirstItem() const;
+  FXTreeItem* getLastItem() const;
+  %addmethods {
+    FXTreeItem* addItemFirst(PyObject* treeItem, const FXString& text,
+	FXIcon* oi=NULL, FXIcon* ci=NULL, void* ptr=NULL) {
+      FXTreeItem *item = 0;
+      if (treeItem != Py_None)
+	item = (FXTreeItem*) FXPyGetFXObject(treeItem);
+      return (FXTreeItem*) self->addItemFirst(item, text, oi, ci, ptr);
+      }
+
+    FXTreeItem* addItemFirst2(PyObject* treeItem, FXTreeItem* item) {
+      FXTreeItem *parentItem = NULL;
+      if (treeItem != Py_None)
+        parentItem = (FXTreeItem*) FXPyGetFXObject(treeItem);
+      return (FXTreeItem*) self->addItemFirst(parentItem, item);
+      }
+
+    FXTreeItem* addItemLast(PyObject* treeItem, const FXString& text,
+	FXIcon* oi=NULL, FXIcon* ci=NULL, void* ptr=NULL) {
+      FXTreeItem *item = 0;
+      if (treeItem != Py_None)
+	item = (FXTreeItem*) FXPyGetFXObject(treeItem);
+      return (FXTreeItem*) self->addItemLast(item, text, oi, ci, ptr);
+    }
+
+    FXTreeItem* addItemLast2(PyObject* treeItem, FXTreeItem* item) {
+      FXTreeItem *parentItem = NULL;
+      if (treeItem != Py_None)
+        parentItem = (FXTreeItem*) FXPyGetFXObject(treeItem);
+      return (FXTreeItem*) self->addItemLast(parentItem, item);
+      }
+  }
+  FXTreeItem* addItemAfter(FXTreeItem* other,const FXString& text,FXIcon* oi=NULL,FXIcon* ci=NULL,void* ptr=NULL);
+  FXTreeItem* addItemBefore(FXTreeItem* other,const FXString& text,FXIcon* oi=NULL,FXIcon* ci=NULL,void* ptr=NULL);
+  %name(addItemAfter2) FXTreeItem* addItemAfter(FXTreeItem* other,FXTreeItem* item);
+  %name(addItemBefore2) FXTreeItem* addItemBefore(FXTreeItem* other,FXTreeItem* item);
+  void removeItem(FXTreeItem* item);
+  void removeItems(FXTreeItem* fm,FXTreeItem* to);
+  void clearItems();
+  /**
+  * Search items for item by name, starting from start item; the
+  * flags argument controls the search direction, and case sensitivity.
+  */
+  FXTreeItem* findItem(const FXString& text,FXTreeItem* start=NULL,FXuint flags=SEARCH_FORWARD|SEARCH_WRAP) const;
+  FXbool isItemCurrent(const FXTreeItem* item) const;
+  FXbool isItemLeaf(const FXTreeItem* item) const;
+  void sortChildItems(FXTreeItem* item);
+  void sortItems();
+  void setCurrentItem(FXTreeItem* item,FXbool notify=FALSE);
+  FXTreeItem* getCurrentItem() const;
+  void setItemText(FXTreeItem* item,const FXString& text);
+  FXString getItemText(const FXTreeItem* item) const;
+  void setItemOpenIcon(FXTreeItem* item,FXIcon* icon);
+  FXIcon* getItemOpenIcon(const FXTreeItem* item) const;
+  void setItemClosedIcon(FXTreeItem* item,FXIcon* icon);
+  FXIcon* getItemClosedIcon(const FXTreeItem* item) const;
+  void setItemData(FXTreeItem* item,void* ptr) const;
+  void* getItemData(const FXTreeItem* item) const;
+  FXTreeListSortFunc getSortFunc() const;
+  void setSortFunc(FXTreeListSortFunc func);
+
+  /// Is the pane shown
+  FXbool isPaneShown() const;
+
+   /// Change font
+  void setFont(FXFont* fnt);
+  FXFont* getFont() const;
+  FXuint getListStyle() const;
+  void setListStyle(FXuint style);
+  void setHelpText(const FXString& txt);
+  FXString getHelpText() const;
+  void setTipText(const FXString& txt);
+  FXString getTipText() const;
+  };
+
+
+class FXPyTreeListBox : public FXTreeListBox {
+public:
+  FXPyTreeListBox(FXComposite *p,FXint nvis,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=FRAME_SUNKEN|FRAME_THICK|TREELISTBOX_NORMAL,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=DEFAULT_PAD,FXint pr=DEFAULT_PAD,FXint pt=DEFAULT_PAD,FXint pb=DEFAULT_PAD);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  };
+

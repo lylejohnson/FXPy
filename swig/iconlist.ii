@@ -1,0 +1,265 @@
+/***********************************************************************
+ * $Id: iconlist.ii,v 1.19 2002/02/11 09:58:54 calvin Exp $
+ ***********************************************************************/
+
+%module iconlist
+
+%{
+#include "fx.h"
+#include "fx3d.h"
+#include "FXCURCursor.h"
+#include "FXJPGImage.h"
+#include "FXJPGIcon.h"
+#include "FXPNGIcon.h"
+#include "FXPNGImage.h"
+#include "FXTIFIcon.h"
+#include "FXTIFImage.h"
+#include "FXRGBIcon.h"
+#include "FXRGBImage.h"
+#include "FXICOIcon.h"
+#include "FXICOImage.h"
+#include "FXPyApp.h"
+#include "FXPy.h"
+%}
+
+%extern fxdefs.i
+%include typemaps.i
+%include my_typemaps.i
+
+%import misc.i
+%import windows.i
+%import containers.i
+
+
+%pragma(python) code = "import fox"
+
+
+// Icon List options
+enum {
+  ICONLIST_EXTENDEDSELECT = 0,                /// Extended selection mode
+  ICONLIST_SINGLESELECT   = 0x00100000,       /// At most one selected item
+  ICONLIST_BROWSESELECT   = 0x00200000,       /// Always exactly one selected item
+  ICONLIST_MULTIPLESELECT = 0x00300000,       /// Multiple selection mode
+  ICONLIST_AUTOSIZE       = 0x00400000,       /// Automatically size item spacing
+  ICONLIST_DETAILED       = 0,                /// List mode
+  ICONLIST_MINI_ICONS     = 0x00800000,       /// Mini Icon mode
+  ICONLIST_BIG_ICONS      = 0x01000000,       /// Big Icon mode
+  ICONLIST_ROWS           = 0,                /// Row-wise mode
+  ICONLIST_COLUMNS        = 0x02000000,       /// Column-wise mode
+  ICONLIST_NORMAL         = ICONLIST_EXTENDEDSELECT
+  };
+
+
+// Icon item
+class FXIconItem : public FXObject {
+public:
+  FXIconItem(const FXString& text,FXIcon* bi=NULL,FXIcon* mi=NULL,void* ptr=NULL);
+  FXString getText() const;
+  virtual void setText(const FXString& text);
+  FXIcon* getBigIcon() const;
+  virtual void setBigIcon(FXIcon* ic);
+  FXIcon* getMiniIcon() const;
+  virtual void setMiniIcon(FXIcon* ic);
+  %addmethods {
+    void setData(PyObject* ptr) {
+      FXPySetData(self, ptr);
+    }
+    PyObject* getData() const {
+      return FXPyGetData(self);
+    }
+  }
+  FXbool hasFocus() const;
+  virtual void setFocus(FXbool focus);
+  FXbool isSelected() const;
+  virtual void setSelected(FXbool selected);
+  FXbool isEnabled() const;
+  virtual void setEnabled(FXbool enabled);
+
+  FXbool isDraggable() const;
+  virtual void setDraggable(FXbool draggable);
+
+  // virtual void setIconOwned(FXuint owned=(BIGICONOWNED|MINIICONOWNED));
+  virtual void setIconOwned(FXuint owned=48);
+  FXuint isIconOwned() const;
+
+  virtual FXint getWidth(const FXIconList* list) const;
+  virtual FXint getHeight(const FXIconList* list) const;
+
+  virtual void create();
+  virtual void detach();
+  virtual void destroy();
+  };
+
+
+class FXPyIconItem : public FXIconItem {
+public:
+  FXPyIconItem(const FXString& text,FXIcon* bi=NULL,FXIcon* mi=NULL,void* ptr=NULL);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ICONITEM_VIRTUALS
+  };
+
+
+// Item collate function
+typedef FXint (*FXIconListSortFunc)(const FXIconItem**,const FXIconItem**);
+
+
+// Icon List object
+class FXIconList : public FXScrollArea {
+public:
+  long onPaint(FXObject*,FXSelector,void*);
+  long onEnter(FXObject*,FXSelector,void*);
+  long onLeave(FXObject*,FXSelector,void*);
+  long onUngrabbed(FXObject*,FXSelector,void*);
+  long onKeyPress(FXObject*,FXSelector,void*);
+  long onKeyRelease(FXObject*,FXSelector,void*);
+  long onLeftBtnPress(FXObject*,FXSelector,void*);
+  long onLeftBtnRelease(FXObject*,FXSelector,void*);
+  long onRightBtnPress(FXObject*,FXSelector,void*);
+  long onRightBtnRelease(FXObject*,FXSelector,void*);
+  long onMotion(FXObject*,FXSelector,void*);
+  long onQueryTip(FXObject*,FXSelector,void*);
+  long onQueryHelp(FXObject*,FXSelector,void*);
+  long onTipTimer(FXObject*,FXSelector,void*);
+  long onCmdSelectAll(FXObject*,FXSelector,void*);
+  long onCmdDeselectAll(FXObject*,FXSelector,void*);
+  long onCmdSelectInverse(FXObject*,FXSelector,void*);
+  long onCmdArrangeByRows(FXObject*,FXSelector,void*);
+  long onUpdArrangeByRows(FXObject*,FXSelector,void*);
+  long onCmdArrangeByColumns(FXObject*,FXSelector,void*);
+  long onUpdArrangeByColumns(FXObject*,FXSelector,void*);
+  long onCmdShowDetails(FXObject*,FXSelector,void*);
+  long onUpdShowDetails(FXObject*,FXSelector,void*);
+  long onCmdShowBigIcons(FXObject*,FXSelector,void*);
+  long onUpdShowBigIcons(FXObject*,FXSelector,void*);
+  long onCmdShowMiniIcons(FXObject*,FXSelector,void*);
+  long onUpdShowMiniIcons(FXObject*,FXSelector,void*);
+  long onHeaderChanged(FXObject*,FXSelector,void*);
+  long onFocusIn(FXObject*,FXSelector,void*);
+  long onFocusOut(FXObject*,FXSelector,void*);
+  long onClicked(FXObject*,FXSelector,void*);
+  long onDoubleClicked(FXObject*,FXSelector,void*);
+  long onTripleClicked(FXObject*,FXSelector,void*);
+  long onCommand(FXObject*,FXSelector,void*);
+  long onAutoScroll(FXObject*,FXSelector,void*);
+  long onLookupTimer(FXObject*,FXSelector,void*);
+  long onCmdSetValue(FXObject*,FXSelector,void*);public:
+  long onCmdGetIntValue(FXObject*,FXSelector,void*);
+  long onCmdSetIntValue(FXObject*,FXSelector,void*);
+public:
+  enum {
+    ID_SHOW_DETAILS=FXScrollArea::ID_LAST,
+    ID_SHOW_MINI_ICONS,
+    ID_SHOW_BIG_ICONS,
+    ID_ARRANGE_BY_ROWS,
+    ID_ARRANGE_BY_COLUMNS,
+    ID_HEADER_CHANGE,
+    ID_TIPTIMER,
+    ID_LOOKUPTIMER,
+    ID_SELECT_ALL,
+    ID_DESELECT_ALL,
+    ID_SELECT_INVERSE,
+    ID_LAST
+    };
+public:
+  FXIconList(FXComposite *p,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=ICONLIST_NORMAL,FXint x=0,FXint y=0,FXint w=0,FXint h=0);
+  FXint getNumItems() const;
+  FXint getNumRows() const;
+  FXint getNumCols() const;
+  FXHeader* getHeader() const;
+  void appendHeader(const FXString& text,FXIcon *icon=NULL,FXint size=1);
+  void removeHeader(FXint index);
+  void setHeaderText(FXint index,const FXString& text);
+  FXString getHeaderText(FXint index) const;
+  void setHeaderIcon(FXint index,FXIcon *icon);
+  FXIcon* getHeaderIcon(FXint index) const;
+  void setHeaderSize(FXint index,FXint size);
+  FXint getHeaderSize(FXint index) const;
+  FXint getNumHeaders() const;
+  FXIconItem *retrieveItem(FXint index) const;
+
+  FXint insertItem(FXint index,FXIconItem* item,FXbool notify=FALSE);
+  %name(insertItemStr) FXint insertItem(FXint index,const FXString& text,FXIcon *big=NULL,FXIcon* mini=NULL,void* ptr=NULL,FXbool notify=FALSE);
+
+  FXint replaceItem(FXint index,FXIconItem* item,FXbool notify=FALSE);
+  %name(replaceItemStr) FXint replaceItem(FXint index,const FXString& text,FXIcon *big=NULL,FXIcon* mini=NULL,void* ptr=NULL,FXbool notify=FALSE);
+
+  FXint appendItem(FXIconItem* item,FXbool notify=FALSE);
+  %name(appendItemStr) FXint appendItem(const FXString& text,FXIcon *big=NULL,FXIcon* mini=NULL,void* ptr=NULL,FXbool notify=FALSE);
+
+  FXint prependItem(FXIconItem* item,FXbool notify=FALSE);
+  %name(prependItemStr) FXint prependItem(const FXString& text,FXIcon *big=NULL,FXIcon* mini=NULL,void* ptr=NULL,FXbool notify=FALSE);
+
+  void removeItem(FXint index,FXbool notify=FALSE);
+  void clearItems(FXbool notify=FALSE);
+
+  // Return item width
+  FXint getItemWidth() const;
+
+  // Return item height
+  FXint getItemHeight() const;
+
+  // Return index of item at x,y or -1 if none
+  FXint getItemAt(FXint x,FXint y) const;
+
+  FXint findItem(const FXString& text,FXint start=-1,FXuint flags=SEARCH_FORWARD|SEARCH_WRAP) const;
+
+  void makeItemVisible(FXint index);
+  void setItemText(FXint index,const FXString& text);
+  FXString getItemText(FXint index) const;
+  void setItemBigIcon(FXint index,FXIcon* icon);
+  FXIcon* getItemBigIcon(FXint index) const;
+  void setItemMiniIcon(FXint index,FXIcon* icon);
+  FXIcon* getItemMiniIcon(FXint index) const;
+  void setItemData(FXint index,void* ptr);
+  void* getItemData(FXint index) const;
+  FXbool isItemSelected(FXint index) const;
+  FXbool isItemCurrent(FXint index) const;
+  FXbool isItemVisible(FXint index) const;
+  FXbool isItemEnabled(FXint index) const;
+  FXbool enableItem(FXint index);
+  FXbool disableItem(FXint index);
+  FXint hitItem(FXint index,FXint x,FXint y,FXint ww=1,FXint hh=1) const;
+  void updateItem(FXint index);
+  FXbool selectInRectangle(FXint x,FXint y,FXint w,FXint h,FXbool notify=FALSE);
+  FXbool selectItem(FXint index,FXbool notify=FALSE);
+  FXbool deselectItem(FXint index,FXbool notify=FALSE);
+  FXbool toggleItem(FXint index,FXbool notify=FALSE);
+  void setCurrentItem(FXint index,FXbool notify=FALSE);
+  FXint getCurrentItem() const;
+  void setAnchorItem(FXint index);
+  FXint getAnchorItem() const;
+  FXbool extendSelection(FXint index,FXbool notify=FALSE);
+  FXbool killSelection(FXbool notify=FALSE);
+  void sortItems();
+  void setFont(FXFont* fnt);
+  FXFont* getFont() const;
+  FXColor getTextColor() const;
+  void setTextColor(FXColor clr);
+  FXColor getSelBackColor() const;
+  void setSelBackColor(FXColor clr);
+  FXColor getSelTextColor() const;
+  void setSelTextColor(FXColor clr);
+  void setItemSpace(FXint s);
+  FXint getItemSpace() const;
+  FXIconListSortFunc getSortFunc() const;
+  void setSortFunc(FXIconListSortFunc func);
+  FXuint getListStyle() const;
+  void setListStyle(FXuint style);
+  void setHelpText(const FXString& text);
+  FXString getHelpText() const;
+  };
+
+
+class FXPyIconList : public FXIconList {
+public:
+  FXPyIconList(FXComposite *p,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=ICONLIST_NORMAL,FXint x=0,FXint y=0,FXint w=0,FXint h=0);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  SCROLLAREA_VIRTUALS
+  };
+
+

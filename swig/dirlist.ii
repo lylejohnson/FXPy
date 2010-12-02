@@ -1,0 +1,156 @@
+/***********************************************************************
+ * $Id: dirlist.ii,v 1.12 2002/02/11 09:58:54 calvin Exp $
+ ***********************************************************************/
+
+%module dirlist
+
+%{
+#include "fx.h"
+#include "fx3d.h"
+#include "FXCURCursor.h"
+#include "FXJPGImage.h"
+#include "FXJPGIcon.h"
+#include "FXPNGIcon.h"
+#include "FXPNGImage.h"
+#include "FXTIFIcon.h"
+#include "FXTIFImage.h"
+#include "FXRGBIcon.h"
+#include "FXRGBImage.h"
+#include "FXICOIcon.h"
+#include "FXICOImage.h"
+#include "FXPyApp.h"
+#include "FXPy.h"
+%}
+
+%extern fxdefs.i
+%include typemaps.i
+%include my_typemaps.i
+
+%import misc.i
+%import windows.i
+%import containers.i
+%import treelist.i
+
+%pragma(python) code = "import fox"
+
+
+// Directory item
+class FXDirItem : public FXTreeItem {
+public:
+  FXDirItem(const FXString& text,FXIcon* oi=NULL,FXIcon* ci=NULL,void* ptr=NULL);
+  FXbool isDirectory() const;
+  FXbool isExecutable() const;
+  FXbool isSymlink() const;
+  FXbool isChardev() const;
+  FXbool isBlockdev() const;
+  FXbool isFifo() const;
+  FXbool isSocket() const;
+  FXFileAssoc* getAssoc() const;
+  unsigned long getSize() const;
+  FXTime getDate() const;
+};
+
+
+class FXPyDirItem : public FXDirItem {
+public:
+  FXPyDirItem(const FXString& text,FXIcon* oi=NULL,FXIcon* ci=NULL,void* ptr=NULL);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  TREEITEM_VIRTUALS
+  };
+
+
+// Directory List options
+enum {
+  DIRLIST_SHOWFILES     = 0x08000000,           // Show files as well as directories
+  DIRLIST_SHOWHIDDEN    = 0x10000000,           // Show hidden files or directories
+  DIRLIST_NO_OWN_ASSOC  = 0x20000000  /// Do not create associations for files
+  };
+
+
+// Directory list
+class FXDirList : public FXTreeList {
+public:
+  long onRefresh(FXObject*,FXSelector,void*);
+  long onBeginDrag(FXObject*,FXSelector,void*);
+  long onEndDrag(FXObject*,FXSelector,void*);
+  long onDragged(FXObject*,FXSelector,void*);
+  long onDNDEnter(FXObject*,FXSelector,void*);
+  long onDNDLeave(FXObject*,FXSelector,void*);
+  long onDNDMotion(FXObject*,FXSelector,void*);
+  long onDNDDrop(FXObject*,FXSelector,void*);
+  long onDNDRequest(FXObject*,FXSelector,void*);
+  long onOpened(FXObject*,FXSelector,void*);
+  long onClosed(FXObject*,FXSelector,void*);
+  long onExpanded(FXObject*,FXSelector,void*);
+  long onCollapsed(FXObject*,FXSelector,void*);
+  long onCmdSetValue(FXObject*,FXSelector,void*);
+  long onCmdSetStringValue(FXObject*,FXSelector,void*);
+  long onCmdGetStringValue(FXObject*,FXSelector,void*);
+  long onCmdToggleHidden(FXObject*,FXSelector,void*);
+  long onUpdToggleHidden(FXObject*,FXSelector,void*);
+  long onCmdShowHidden(FXObject*,FXSelector,void*);
+  long onUpdShowHidden(FXObject*,FXSelector,void*);
+  long onCmdHideHidden(FXObject*,FXSelector,void*);
+  long onUpdHideHidden(FXObject*,FXSelector,void*);
+  long onCmdToggleFiles(FXObject*,FXSelector,void*);
+  long onUpdToggleFiles(FXObject*,FXSelector,void*);
+  long onCmdShowFiles(FXObject*,FXSelector,void*);
+  long onUpdShowFiles(FXObject*,FXSelector,void*);
+  long onCmdHideFiles(FXObject*,FXSelector,void*);
+  long onUpdHideFiles(FXObject*,FXSelector,void*);
+  long onCmdSetPattern(FXObject*,FXSelector,void*);
+  long onUpdSetPattern(FXObject*,FXSelector,void*);
+  long onCmdSortReverse(FXObject*,FXSelector,void*);
+  long onUpdSortReverse(FXObject*,FXSelector,void*);
+public:
+  static FXint cmpFName(const FXTreeItem* a,const FXTreeItem* b);
+  static FXint cmpRName(const FXTreeItem* pa,const FXTreeItem* pb);
+public:
+  enum {
+    ID_REFRESH=FXTreeList::ID_LAST,
+    ID_SHOW_FILES,
+    ID_HIDE_FILES,
+    ID_TOGGLE_FILES,
+    ID_SHOW_HIDDEN,
+    ID_HIDE_HIDDEN,
+    ID_TOGGLE_HIDDEN,
+    ID_SET_PATTERN,
+    ID_SORT_REVERSE,
+    ID_LAST
+    };
+public:
+  FXDirList(FXComposite *p,FXint nvis,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=0,FXint x=0,FXint y=0,FXint w=0,FXint h=0);
+  FXbool isItemDirectory(const FXTreeItem* item) const;
+  FXbool isItemFile(const FXTreeItem* item) const;
+  FXbool isItemExecutable(const FXTreeItem* item) const;
+  void setCurrentFile(const FXString& file);
+  FXString getCurrentFile() const;
+  void setDirectory(const FXString& path);
+  FXString getDirectory() const;
+  FXString getItemFilename(const FXTreeItem* item) const;
+  FXString getItemPathname(const FXTreeItem* item) const;
+  void setPattern(const FXString& ptrn);
+  FXString getPattern() const { return pattern; }
+  FXuint getMatchMode() const { return matchmode; }
+  void setMatchMode(FXuint mode);
+  FXbool showFiles() const;
+  %name(showFiles2) void showFiles(FXbool showing);
+  FXbool showHiddenFiles() const;
+  %name(showHiddenFiles2) void showHiddenFiles(FXbool showing);
+  void setAssociations(FXFileDict* assoc);
+  FXFileDict* getAssociations() const;
+  };
+
+
+class FXPyDirList : public FXDirList {
+public:
+  FXPyDirList(FXComposite *p,FXint nvis,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=0,FXint x=0,FXint y=0,FXint w=0,FXint h=0);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  SCROLLAREA_VIRTUALS
+  };
+

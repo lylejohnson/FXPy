@@ -1,0 +1,15 @@
+<chapter id="todo-list">
+  <title>To-do List</title>
+  <para>These are some things that I intend to do with FXPy in upcoming releases. If you are interested in using FXPy and would like to nudge the priority of one of these items, let me know; otherwise, I'll probably visit them in no particular order.</para>
+  <itemizedlist mark="bullet">
+    <listitem><para>Documentation is sorely needed. Since the API is so similar to that for the C++ FOX library it's probably more important for the FXPy documentation to be in a tutorial style, showing how to set up a simple FXPy application and then building on it.</para></listitem>
+    <listitem><para>I'd like to come up with more original example programs that show off Python's unique capabilities, instead of just porting the C++ FOX examples to Python.</para></listitem>
+    <listitem><para>Along those lines, investigate how we can make use of the <ulink url="http://www.pythonware.com/products/pil/index.htm">Python Imaging Library (PIL)</ulink> with FXPy.</para></listitem>
+    <listitem><para>We need an example of how to subclass an existing FOX widget to create a new widget. One easy way out would be to take the C++ source code an existing FOX widget (like <classname>FXProgressBar</classname>) and do a Python "port" of it; but that's not very compelling. Better to come up with a new kind of widget altogether.</para></listitem>
+    <listitem><para>We need to see what it would take to be able to embed Python in an existing FOX-based C++ application and then allow the user to augment the GUI using FXPy; e.g. using a Python script, called from the C++ application code, to add a new menu command to an existing pulldown menu and then have that menu command launch a dialog box constructed in the Python layer. This would be pretty cool.</para></listitem>
+    <listitem><para>If it weren't so darned easy to build FOX and FXPy from the source code under Linux I'd probably feel more guilty about not providing Linux RPMs.</para></listitem>
+    <listitem><para>Add support for overriding the virtual functions declared in <classname>FXApp</classname>, <classname>FXDC</classname> and <classname>FXTopWindow</classname>.</para></listitem>
+    <listitem><para>The home page should probably be reorganized so that the important bits stand out. Most notably, the availability of binary installers for Windows should be highlighted so that people aren't misled into believing that they have to build from source code on Windows if they don't want to.</para></listitem>
+    <listitem><para>The <filename>setup.py</filename> script should be more intelligent about detecting the presence or absence of optional libraries (like OpenGL, PNG and JPEG) and the locations of header and library files for the same. This kind of functionality is not built-in to the Distutils but I think some other package maintainers have come up with workarounds and those should be investigated so that building FXPy from source is easier.</para></listitem>
+  </itemizedlist>
+</chapter>

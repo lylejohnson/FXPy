@@ -1,0 +1,96 @@
+<chapter id="diffs">
+  <title>How is FXPy Different From FOX?</title>
+  <para>The FXPy API follows the standard FOX API very closely and for the most part you can use FOX documentation as a reference. But of course, Python isn't C++ and so here are some differences of which you should be aware.</para>
+  <simplesect>
+    <title>Strings</title>
+    <para>Any function which usually takes an <type>FXString</type> as an input instead takes a Python string. Similarly, functions which usually return an <type>FXString</type> will instead return a Python string. For functions which would accept a <constant>NULL</constant> or empty string argument, just pass an empty string ("") or <constant>None</constant>.</para>
+  </simplesect>
+  <simplesect>
+    <title>Functions which return values by reference</title>
+    <para>Many FOX class member functions return values by reference. For example, the <methodname>FXWindow::getCursorPosition()</methodname> function returns the (x, y) position as well as the current mouse buttons state:</para>
+    <programlisting><![CDATA[FXint x, y;
+FXuint buttons;
+
+if (window->getCursorPosition(x, y, buttons))
+  fprintf(stderr, "Current position is (%d, %d)\n", x, y);]]>
+    </programlisting>
+    <para>Obviously these functions must work a little differently in Python. The following table documents how such functions are implemented in FXPy:</para>
+    <informaltable>
+      <tgroup cols="2">
+        <thead>
+          <row>
+            <entry align="center">Class Method</entry>
+            <entry align="center">Return Value</entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry><methodname>FXWindow.getCursorPosition()</methodname></entry>
+            <entry>Returns a tuple of integers (x, y, buttons)</entry>
+          </row>
+          <row>
+            <entry><methodname>FXWindow.translateCoordinatesFrom(window, x, y)</methodname></entry>
+            <entry>Returns the translated coordinates as a tuple (x, y)</entry>
+          </row>
+          <row>
+            <entry><methodname>FXWindow.translateCoordinatesTo(window, x, y)</methodname></entry>
+            <entry>Returns the translated coordinates as a tuple (x, y)</entry>
+          </row>
+          <row>
+            <entry><methodname>FXGLViewer.getViewport()</methodname></entry>
+            <entry>Returns an <classname>FXViewport</classname> instance.</entry>
+          </row>
+          <row>
+            <entry><methodname>FXGLViewer.eyeToScreen(eye)</methodname></entry>
+            <entry>Returns the screen point coordinate as a tuple (sx, sy)</entry>
+          </row>
+          <row>
+            <entry><methodname>FXGLViewer.getBoreVector(sx, sy)</methodname></entry>
+            <entry>Returns the endpoint and direction vector as a tuple of vectors (point, dir)</entry>
+          </row>
+          <row>
+            <entry><methodname>FXGLViewer.getLight()</methodname></entry>
+            <entry>Returns a <classname>FXLight</classname> instance</entry>
+          </row>
+          <row>
+            <entry><methodname>FXGLObject.bounds(range)</methodname></entry>
+            <entry>Takes an <classname>FXRange</classname> instance as its input and returns a (possibly different) <classname>FXRange</classname> instance.</entry>
+          </row>
+          <row>
+            <entry><methodname>FXFontSelector.getFontSelection()</methodname></entry>
+            <entry>Returns the <classname>FXFontDesc</classname> instance</entry>
+          </row>
+          <row>
+            <entry><methodname>FXFontDialog.getFontSelection()</methodname></entry>
+            <entry>Returns the <classname>FXFontDesc</classname> instance</entry>
+          </row>
+          <row>
+            <entry><methodname>FXPrinterDialog.getPrinter()</methodname></entry>
+            <entry>Returns the <classname>FXPrinter</classname> instance</entry>
+          </row>
+          <row>
+            <entry><methodname>FXScrollArea.getPosition()</methodname></entry>
+            <entry>Returns the position as a tuple (x, y)</entry>
+          </row>
+          <row>
+            <entry><methodname>FXSpinner.getMinMax()</methodname></entry>
+            <entry>Returns the minimum and maximum values as a tuple</entry>
+          </row>
+          <row>
+            <entry><methodname>FXSlider.getRange()</methodname></entry>
+            <entry>Returns the low and high values as a tuple</entry>
+          </row>
+          <row>
+            <entry><methodname>FXText.extractText(pos, n)</methodname></entry>
+            <entry>Extracts <emphasis>n</emphasis> characters from the buffer beginning at position <emphasis>pos</emphasis> and returns the result as a string.</entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </informaltable>
+  </simplesect>
+  <simplesect>
+    <title>Message Passing</title>
+    <para>In FOX, message maps are defined as static class members. In FXPy, you just associate messages with message handlers in the class constructor using the <methodname>FXMAPFUNC()</methodname>, <methodname>FXMAPTYPE()</methodname>, <methodname>FXMAPTYPES()</methodname> or <methodname>FXMAPFUNCS()</methodname> methods. See almost any of the example programs for examples of how this is done.</para>
+    <para>As in C++ FOX, the last argument passed to your message handler functions contains message-specific data. For instance, all <constant>SEL_PAINT</constant> messages pass an <classname>FXEvent</classname> object through this argument to give you some information about the size of the exposed rectangle. On the other hand, a <constant>SEL_COMMAND</constant> message from an <classname>FXHeader</classname> object passes the index of the selected header item through this argument. Instead of guessing what's in this last argument, your best bet is to instead invoke a member function on the sending object to find out what you need, instead of relying on the data passed through this pointer. For example, if you get a <constant>SEL_COMMAND</constant> message from an <classname>FXColorWell</classname> object, the data passed through that last argument is supposed to be the new RGB color value. Instead of trying to interpret the argument's contents, just turn around and call the color well's <methodname>getRGBA()</methodname> member function to retrieve its color. Similarly, if you get a <constant>SEL_COMMAND</constant> message from a tree list, call its <methodname>getCurrentItem()</methodname> method to find out which item was selected.</para>
+  </simplesect>
+</chapter>

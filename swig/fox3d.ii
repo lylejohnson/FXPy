@@ -1,0 +1,1176 @@
+/***********************************************************************
+ * $Id: fox3d.ii,v 1.23 2002/03/29 00:01:52 lyle Exp $
+ ***********************************************************************/
+
+%module fox3d
+
+%{
+#include "fx.h"
+#include "fx3d.h"
+#include "FXCURCursor.h"
+#include "FXJPGImage.h"
+#include "FXJPGIcon.h"
+#include "FXPNGIcon.h"
+#include "FXPNGImage.h"
+#include "FXTIFIcon.h"
+#include "FXTIFImage.h"
+#include "FXRGBIcon.h"
+#include "FXRGBImage.h"
+#include "FXICOIcon.h"
+#include "FXICOImage.h"
+#include "FXPyApp.h"
+#include "FXPy.h"
+
+FXPy_IMPLEMENT(FXPyGLCanvas,FXGLCanvas,NULL,0)
+FXPy_IMPLEMENT(FXPyGLCone,FXGLCone,NULL,0)
+FXPy_IMPLEMENT(FXPyGLCube,FXGLCube,NULL,0)
+FXPy_IMPLEMENT(FXPyGLCylinder,FXGLCylinder,NULL,0)
+FXPy_IMPLEMENT(FXPyGLGroup,FXGLGroup,NULL,0)
+FXPy_IMPLEMENT(FXPyGLLine,FXGLLine,NULL,0)
+FXPy_IMPLEMENT(FXPyGLObject,FXGLObject,NULL,0)
+FXPy_IMPLEMENT(FXPyGLPoint,FXGLPoint,NULL,0)
+FXPy_IMPLEMENT(FXPyGLShape,FXGLShape,NULL,0)
+FXPy_IMPLEMENT(FXPyGLSphere,FXGLSphere,NULL,0)
+FXPy_IMPLEMENT(FXPyGLTriangleMesh,FXGLTriangleMesh,NULL,0)
+FXPy_IMPLEMENT(FXPyGLViewer,FXGLViewer,NULL,0)
+FXPy_IMPLEMENT(FXPyGLVisual,FXGLVisual,NULL,0)
+FXPy_IMPLEMENT(FXPyGLContext,FXGLContext,NULL,0)
+%}
+
+%extern fxdefs.i
+%include my_typemaps.i
+
+%import misc.i
+%import windows.i
+%import containers.i
+
+%pragma(python) code = "import fox"
+
+// Feedback buffer sort routine
+//typedef FXbool (*FXZSortFunc)(FXfloat*& buffer,FXint& used,FXint& size);
+
+class FXGLContext : public FXObject {
+public:
+  /// Return TRUE if it is sharing display lists
+  FXbool isShared() const;
+  
+  /// Get the visual
+  FXGLVisual* getVisual() const;
+
+  /// Create context 
+  virtual void create();
+  
+  /// Detach the server-side resources for this window 
+  virtual void detach();
+  
+  /// Destroy the server-side resources for this window 
+  virtual void destroy();
+    
+  /// Make OpenGL context current prior to performing OpenGL commands
+  FXbool begin(FXDrawable *drawable);
+  
+  /// Make OpenGL context non current 
+  FXbool end();
+  
+  /// Swap front and back buffer
+  void swapBuffers();
+  
+  /// Copy part of backbuffer to front buffer [Mesa]
+  void swapSubBuffers(FXint x,FXint y,FXint w,FXint h);
+  };
+
+
+class FXPyGLContext : public FXGLContext {
+public:
+  // Constructor
+  FXPyGLContext(FXApp* a,FXGLVisual *vis);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+
+public:
+  OBJECT_VIRTUALS
+  FXGLCONTEXT_VIRTUALS
+  };
+
+%inline %{
+  /**
+  * Construct an OpenGL context with its own private display list.
+  */
+  FXPyGLContext* CreateGLContext1(FXApp* a, FXGLVisual *vis) {
+    return new FXPyGLContext(a, vis);
+  }
+
+  /**
+  * Construct an OpenGL context sharing display lists with an existing GL context.
+  */
+  FXPyGLContext* CreateGLContext2(FXApp* a, FXGLVisual* vis, FXGLContext *s) {
+    return new FXPyGLContext(a, vis, s);
+  }
+%}
+
+
+// Visual describes pixel format of a drawable
+class FXGLVisual : public FXVisual {
+protected:
+  FXint        redSize;             // Desired #bits for red
+  FXint        greenSize;           // Desired #bits for green  
+  FXint        blueSize;            // Desired #bits for blue
+  FXint        alphaSize;           // Desired #bits for alpha
+  FXint        depthSize;           // Desired #bits for Z
+  FXint        stencilSize;         // Desired #bits for stencil
+  FXint        accumRedSize;        // Desired #bits for accum red
+  FXint        accumGreenSize;      // Desired #bits for accum green
+  FXint        accumBlueSize;       // Desired #bits for accum blue
+  FXint        accumAlphaSize;      // Desired #bits for accum alpha
+public:
+
+  // Construct default visual
+  FXGLVisual(FXApp* a,FXuint flags);
+
+  // Get sizes for bit-planes
+  FXint getRedSize() const;
+  FXint getGreenSize() const;
+  FXint getBlueSize() const;
+  FXint getAlphaSize() const;
+  FXint getDepthSize() const;
+  FXint getStencilSize() const;
+  FXint getAccumRedSize() const;
+  FXint getAccumGreenSize() const;
+  FXint getAccumBlueSize() const;
+  FXint getAccumAlphaSize() const;
+
+  // Set sizes for bit-planes
+  void setRedSize(FXint rs);
+  void setGreenSize(FXint gs);
+  void setBlueSize(FXint bs);
+  void setAlphaSize(FXint as);
+  void setDepthSize(FXint ds);
+  void setStencilSize(FXint ss);
+  void setAccumRedSize(FXint rs);
+  void setAccumGreenSize(FXint gs);
+  void setAccumBlueSize(FXint bs);
+  void setAccumAlphaSize(FXint as);
+
+  // Get ACTUAL sizes for bit-planes
+  FXint getActualRedSize() const;
+  FXint getActualGreenSize() const;
+  FXint getActualBlueSize() const;
+  FXint getActualAlphaSize() const;
+  FXint getActualDepthSize() const;
+  FXint getActualStencilSize() const;
+  FXint getActualAccumRedSize() const;
+  FXint getActualAccumGreenSize() const;
+  FXint getActualAccumBlueSize() const;
+  FXint getActualAccumAlphaSize() const;
+
+  // Is it double buffer
+  FXbool isDoubleBuffer() const;
+
+  // Is it stereo
+  FXbool isStereo() const;
+
+  // Is it hardware-accelerated?
+  FXbool isAccelerated() const;
+
+  // Create visual
+  virtual void create();
+
+  // Detach visual
+  virtual void detach();
+
+  // Destroy visual
+  virtual void destroy();
+  };
+
+
+class FXPyGLVisual : public FXGLVisual {
+public:
+  FXPyGLVisual(FXApp* a,FXuint flags);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  };
+
+
+/// GLCanvas, an area drawn by another object
+class FXGLCanvas : public FXCanvas {
+public:
+  /// Return TRUE if it is sharing display lists
+  FXbool isShared() const;
+
+  /// Return TRUE if context is current
+  virtual FXbool isCurrent() const;
+
+  /// Make OpenGL context current prior to performing OpenGL commands
+  virtual FXbool makeCurrent();
+
+  /// Get GL context handle
+  void* getContext() const;
+
+  /// Make OpenGL context non current
+  virtual FXbool makeNonCurrent();
+
+  /// Swap front and back buffer
+  virtual void swapBuffers();
+  };
+
+
+/// GLCanvas, an area drawn by another object
+class FXPyGLCanvas : public FXGLCanvas {
+public:
+  // Constructor
+  FXPyGLCanvas(FXComposite* p,FXGLVisual *vis,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=0,FXint x=0,FXint y=0,FXint w=0,FXint h=0);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+
+public:
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  FXGLCANVAS_VIRTUALS
+  };
+
+
+%inline %{
+  FXPyGLCanvas* CreateGLCanvas1(FXComposite* p,FXGLVisual *vis,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=0,FXint x=0,FXint y=0,FXint w=0,FXint h=0) {
+    return new FXPyGLCanvas(p,vis,tgt,sel,opts,x,y,w,h);
+  }
+  
+  FXPyGLCanvas* CreateGLCanvas2(FXComposite* p,FXGLVisual *vis,FXGLCanvas *sharegroup,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=0,FXint x=0,FXint y=0,FXint w=0,FXint h=0) {
+    return new FXPyGLCanvas(p,vis,sharegroup,tgt,sel,opts,x,y,w,h);
+  }
+%}
+
+// Pick tolerance
+#define PICK_TOL  3
+
+
+// GL Viewer options
+enum {
+  VIEWER_LOCKED   = 0x00008000,    /// Mouse based view manipulation is locked
+  VIEWER_LIGHTING = 0x00010000,    /// Lighting is on
+  VIEWER_FOG      = 0x00020000,    /// Fog mode on
+  VIEWER_DITHER   = 0x00040000     /// Dithering
+  };
+
+  
+/*******************************  Viewer  Structs  *****************************/
+  
+
+struct FXViewport {
+  FXint      w,h;               // Viewport dimensions
+  FXdouble   left,right;        // World box
+  FXdouble   bottom,top;
+  FXdouble   hither,yon;
+  };
+
+struct FXLight {
+  FXHVec     ambient;           // Ambient light color
+  FXHVec     diffuse;           // Diffuse light color
+  FXHVec     specular;          // Specular light color
+  FXHVec     position;          // Light position
+  FXVec      direction;         // Spot direction
+  FXfloat    exponent;          // Spotlight exponent
+  FXfloat    cutoff;            // Spotlight cutoff angle
+  FXfloat    c_attn;            // Constant attenuation factor
+  FXfloat    l_attn;            // Linear attenuation factor
+  FXfloat    q_attn;            // Quadratic attenuation factor
+  };
+
+struct FXMaterial {
+  FXHVec     ambient;           // Ambient material color
+  FXHVec     diffuse;           // Diffuse material color
+  FXHVec     specular;          // Specular material color
+  FXHVec     emission;          // Emissive material color
+  FXfloat    shininess;         // Specular shininess
+  };
+
+  
+/********************************  Viewer  Class  ******************************/
+
+// Canvas, an area drawn by another object
+class FXGLViewer : public FXGLCanvas {
+public:
+
+  // Common DND types
+  static FXDragType objectType;     // GL Object type
+
+public:
+
+  // Events
+  long onPaint(FXObject*,FXSelector,void*);
+  long onEnter(FXObject*,FXSelector,void*);
+  long onLeave(FXObject*,FXSelector,void*);
+  long onMotion(FXObject*,FXSelector,void*);
+  long onMouseWheel(FXObject*,FXSelector,void*);
+  long onChanged(FXObject*,FXSelector,void*);
+  long onPick(FXObject*,FXSelector,void*);
+  long onClicked(FXObject*,FXSelector,void*);
+  long onDoubleClicked(FXObject*,FXSelector,void*);
+  long onTripleClicked(FXObject*,FXSelector,void*);
+  long onLassoed(FXObject*,FXSelector,void*);
+  long onSelected(FXObject*,FXSelector,void*);
+  long onDeselected(FXObject*,FXSelector,void*);
+  long onInserted(FXObject*,FXSelector,void*);
+  long onDeleted(FXObject*,FXSelector,void*);
+  long onLeftBtnPress(FXObject*,FXSelector,void*);
+  long onLeftBtnRelease(FXObject*,FXSelector,void*);
+  long onMiddleBtnPress(FXObject*,FXSelector,void*);
+  long onMiddleBtnRelease(FXObject*,FXSelector,void*);
+  long onRightBtnPress(FXObject*,FXSelector,void*);
+  long onRightBtnRelease(FXObject*,FXSelector,void*);
+  long onUngrabbed(FXObject*,FXSelector,void*);
+  long onKeyPress(FXObject*,FXSelector,void*);
+  long onKeyRelease(FXObject*,FXSelector,void*);
+  long onFocusIn(FXObject*,FXSelector,void*);
+  long onFocusOut(FXObject*,FXSelector,void*);
+  long onClipboardLost(FXObject*,FXSelector,void*);
+  long onClipboardGained(FXObject*,FXSelector,void*);
+  long onClipboardRequest(FXObject*,FXSelector,void*);
+
+  // Commands
+  long onCmdPerspective(FXObject*,FXSelector,void*);
+  long onUpdPerspective(FXObject*,FXSelector,void*);
+  long onCmdParallel(FXObject*,FXSelector,void*);
+  long onUpdParallel(FXObject*,FXSelector,void*);
+  long onCmdFront(FXObject*,FXSelector,void*);
+  long onUpdFront(FXObject*,FXSelector,void*);
+  long onCmdBack(FXObject*,FXSelector,void*);
+  long onUpdBack(FXObject*,FXSelector,void*);
+  long onCmdLeft(FXObject*,FXSelector,void*);
+  long onUpdLeft(FXObject*,FXSelector,void*);
+  long onCmdRight(FXObject*,FXSelector,void*);
+  long onUpdRight(FXObject*,FXSelector,void*);
+  long onCmdTop(FXObject*,FXSelector,void*);
+  long onUpdTop(FXObject*,FXSelector,void*);
+  long onCmdBottom(FXObject*,FXSelector,void*);
+  long onUpdBottom(FXObject*,FXSelector,void*);
+  long onCmdResetView(FXObject*,FXSelector,void*);
+  long onCmdFitView(FXObject*,FXSelector,void*);
+  long onDNDEnter(FXObject*,FXSelector,void*);
+  long onDNDLeave(FXObject*,FXSelector,void*);
+  long onDNDMotion(FXObject*,FXSelector,void*);
+  long onDNDDrop(FXObject*,FXSelector,void*);
+  long onTipTimer(FXObject*,FXSelector,void*);
+  long onQueryHelp(FXObject*,FXSelector,void*);
+  long onQueryTip(FXObject*,FXSelector,void*);
+  long onCmdXYZDial(FXObject*,FXSelector,void*);
+  long onUpdXYZDial(FXObject*,FXSelector,void*);
+  long onCmdRollPitchYaw(FXObject*,FXSelector,void*);
+  long onUpdRollPitchYaw(FXObject*,FXSelector,void*);
+  long onCmdXYZScale(FXObject*,FXSelector,void*);
+  long onUpdXYZScale(FXObject*,FXSelector,void*);
+  long onUpdCurrent(FXObject*,FXSelector,void*);
+  long onCmdCutSel(FXObject*,FXSelector,void*);
+  long onCmdCopySel(FXObject*,FXSelector,void*);
+  long onCmdPasteSel(FXObject*,FXSelector,void*);
+  long onCmdDeleteSel(FXObject*,FXSelector,void*);
+  long onUpdDeleteSel(FXObject*,FXSelector,void*);
+  long onCmdBackColor(FXObject*,FXSelector,void*);
+  long onUpdBackColor(FXObject*,FXSelector,void*);
+  long onCmdAmbientColor(FXObject*,FXSelector,void*);
+  long onUpdAmbientColor(FXObject*,FXSelector,void*);
+  long onCmdLock(FXObject*,FXSelector,void*);
+  long onUpdLock(FXObject*,FXSelector,void*);
+  long onCmdLighting(FXObject*,FXSelector,void*);
+  long onUpdLighting(FXObject*,FXSelector,void*);
+  long onCmdFog(FXObject*,FXSelector,void*);
+  long onUpdFog(FXObject*,FXSelector,void*);
+  long onCmdDither(FXObject*,FXSelector,void*);
+  long onUpdDither(FXObject*,FXSelector,void*);
+  long onCmdFov(FXObject*,FXSelector,void*);
+  long onUpdFov(FXObject*,FXSelector,void*);
+  long onCmdZoom(FXObject*,FXSelector,void*);
+  long onUpdZoom(FXObject*,FXSelector,void*);
+  long onCmdLightAmbient(FXObject*,FXSelector,void*);
+  long onUpdLightAmbient(FXObject*,FXSelector,void*);
+  long onCmdLightDiffuse(FXObject*,FXSelector,void*);
+  long onUpdLightDiffuse(FXObject*,FXSelector,void*);
+  long onCmdLightSpecular(FXObject*,FXSelector,void*);
+  long onUpdLightSpecular(FXObject*,FXSelector,void*);
+  long onCmdTurbo(FXObject*,FXSelector,void*);
+  long onUpdTurbo(FXObject*,FXSelector,void*);
+  long onCmdPrintImage(FXObject*,FXSelector,void*);
+  long onCmdPrintVector(FXObject*,FXSelector,void*);
+  long onCmdLassoZoom(FXObject*,FXSelector,void*);
+  long onCmdLassoSelect(FXObject*,FXSelector,void*);
+
+public:
+  
+  // Projection modes
+  enum {
+    PARALLEL,
+    PERSPECTIVE
+    };
+
+  // Precompiled display lists
+  enum {
+    OFFSETPROJECTION  = 1,
+    SURFACEPROJECTION = 2
+    };
+    
+  // Messages
+  enum {
+    ID_PERSPECTIVE=FXGLCanvas::ID_LAST,
+    ID_PARALLEL,
+    ID_FRONT,
+    ID_BACK,
+    ID_LEFT,
+    ID_RIGHT,
+    ID_TOP,
+    ID_BOTTOM,
+    ID_RESETVIEW,
+    ID_FITVIEW,
+    ID_TIPTIMER,
+    ID_BACK_COLOR,    
+    ID_AMBIENT_COLOR,
+    ID_LIGHT_AMBIENT,
+    ID_LIGHT_DIFFUSE,
+    ID_LIGHT_SPECULAR,
+    ID_LIGHTING,
+    ID_TURBO,
+    ID_FOG,
+    ID_DITHER,
+    ID_SCALE_X,
+    ID_SCALE_Y,
+    ID_SCALE_Z,
+    ID_DIAL_X,
+    ID_DIAL_Y,
+    ID_DIAL_Z,
+    ID_ROLL,
+    ID_PITCH,
+    ID_YAW,
+    ID_FOV,
+    ID_ZOOM,
+    ID_LOCK,
+    ID_CUT_SEL,
+    ID_COPY_SEL,
+    ID_PASTE_SEL,
+    ID_DELETE_SEL,
+    ID_PRINT_IMAGE,
+    ID_PRINT_VECTOR,
+    ID_LASSO_ZOOM,
+    ID_LASSO_SELECT,
+    ID_LAST
+    };
+
+public:
+
+  // Common DND type names
+  // static const FXchar objectTypeName[];
+
+public:
+
+  FXdouble worldPix() const;
+  FXdouble modelPix() const;
+
+  %addmethods {
+    // FXGLObject** lasso(FXint x,FXint y,FXint x2,FXint y2)
+    PyObject* lasso(FXint x1,FXint y1,FXint x2,FXint y2) {
+      FXGLObject **items = self->lasso(x1,y1,x2,y2);
+      int size = 0;
+      if (items) {
+        while (items[size])
+          size++;
+      }
+
+      FXbool doSave = FXPyRestoreThread();
+      PyObject *obj = PyList_New(size);
+      if (!obj) {
+	if (items) FXFREE(&items);
+        FXPySaveThread(doSave);
+	return NULL;
+      }
+
+      for (FXint i=0; i<size; i++) {
+	PyObject *listitem = FXPyMakeShadowObject(items[i]);
+	if (!listitem || PyList_SetItem(obj, i, listitem) < 0) {
+	  FXFREE(&items);
+	  Py_DECREF(obj);
+          FXPySaveThread(doSave);
+	  return NULL;
+	}
+      }
+
+      // Clean up local copy
+      if (items) FXFREE(&items);
+      FXPySaveThread(doSave);
+      return obj;
+    }
+
+    // FXGLObject** select(FXint x,FXint y,FXint w,FXint h)
+    PyObject* select(FXint x,FXint y,FXint w,FXint h) {
+      FXGLObject **items = self->select(x,y,w,h);
+      int size = 0;
+      if (items) {
+        while (items[size])
+          size++;
+      }
+      FXbool doSave = FXPyRestoreThread();
+      PyObject *obj = PyList_New(size);
+      if (!obj) {
+	if (items) FXFREE(&items);
+        FXPySaveThread(doSave);
+	return NULL;
+      }
+
+      for (FXint i=0; i<size; i++) {
+	char _ptemp[128];
+	SWIG_MakePtr(_ptemp,(char*)items[i],"_FXGLObject_p");
+	PyObject *listitem = Py_BuildValue("s",_ptemp);
+	if (!listitem || PyList_SetItem(obj,i,listitem) < 0) {
+	  Py_DECREF(obj);
+	  FXFREE(&items);
+          FXPySaveThread(doSave);
+	  return NULL;
+	}
+      }
+
+      // Clean up local copy
+      if (items) FXFREE(&items);
+      FXPySaveThread(doSave);
+      return obj;
+    }
+  }
+
+  virtual FXGLObject* pick(FXint x,FXint y);
+
+  FXbool setBounds(const FXRange& box);
+  FXbool fitToBounds(const FXRange& box);
+
+  %addmethods {
+    // void getViewport(FXViewport& v) const;
+    %new FXViewport* getViewport() const {
+      FXViewport *viewport = new FXViewport;
+      self->getViewport(*viewport);
+      return viewport;
+    }
+
+    // void eyeToScreen(FXint& sx,FXint& sy,const FXVec& e);
+    PyObject* eyeToScreen(const FXVec& e) {
+      FXint sx,sy;
+      self->eyeToScreen(sx,sy,e);
+      FXbool doSave = FXPyRestoreThread();
+      PyObject* tuple = PyTuple_New(2);
+      if (tuple) {
+        PyObject *obj1 = PyInt_FromLong(sx);
+	if (!obj1 || PyTuple_SetItem(tuple, 0, obj1) < 0) {
+	  Py_DECREF(tuple);
+          FXPySaveThread(doSave);
+	  return NULL;
+	}
+        PyObject *obj2 = PyInt_FromLong(sy);
+	if (!obj2 || PyTuple_SetItem(tuple, 1, obj2) < 0) {
+	  Py_DECREF(tuple);
+          FXPySaveThread(doSave);
+	  return NULL;
+	}
+      }
+      FXPySaveThread(doSave);
+      return tuple;
+    }
+  }
+
+  FXVec screenToEye(FXint sx,FXint sy,FXfloat eyez=0.0);
+  FXVec screenToTarget(FXint sx,FXint sy);
+  FXVec worldToEye(const FXVec& w);
+  FXfloat worldToEyeZ(const FXVec& w);
+  FXVec eyeToWorld(const FXVec& e); 
+  FXVec worldVector(FXint fx,FXint fy,FXint tx,FXint ty);
+  void setMaterial(const FXMaterial& mtl);
+
+  %addmethods {
+    // void getMaterial(FXMaterial& mtl) const;
+    %new FXMaterial* getMaterial() const {
+      FXMaterial *mtl = new FXMaterial;
+      self->getMaterial(*mtl);
+      return mtl;
+    }
+  }
+
+  void setFieldOfView(FXdouble fv);
+  FXdouble getFieldOfView() const;
+  void setZoom(FXdouble zm);
+  FXdouble getZoom() const;
+  void setDistance(FXdouble ed);
+  FXdouble getDistance() const;
+  void setOrientation(const FXQuat& rot);
+  const FXQuat& getOrientation() const;
+  void setCenter(const FXVec& cntr);
+  const FXVec& getCenter() const;
+  void translate(const FXVec& vec);
+
+  %addmethods {
+    // FXbool getBoreVector(FXint sx,FXint sy,FXVec& point,FXVec& dir);
+    PyObject* getBoreVector(FXint sx,FXint sy) {
+      FXVec point,dir;
+      self->getBoreVector(sx,sy,point,dir);
+      FXbool doSave = FXPyRestoreThread();
+      PyObject* tuple = PyTuple_New(2);
+      if (!tuple) {
+        FXPySaveThread(doSave);
+	return NULL;
+      }
+
+      PyObject* pointList = PyList_New(3);
+      if (!pointList) {
+	Py_DECREF(tuple);
+        FXPySaveThread(doSave);
+	return NULL;
+      }
+
+      PyObject* dirList = PyList_New(3);
+      if (!dirList) {
+	Py_DECREF(pointList);
+	Py_DECREF(tuple);
+        FXPySaveThread(doSave);
+	return NULL;
+      }
+
+      for (int i=0; i<3; i++) {
+        if (PyList_SetItem(pointList,i,Py_BuildValue("f",point[i])) < 0) {
+	  Py_DECREF(pointList);
+	  Py_DECREF(dirList);
+	  Py_DECREF(tuple);
+          FXPySaveThread(doSave);
+	  return NULL;
+	}
+        if (PyList_SetItem(dirList,i,Py_BuildValue("f",dir[i])) < 0) {
+	  Py_DECREF(pointList);
+	  Py_DECREF(dirList);
+	  Py_DECREF(tuple);
+          FXPySaveThread(doSave);
+	  return NULL;
+	}
+      }
+      if (PyTuple_SetItem(tuple, 0, pointList) < 0) {
+	Py_DECREF(dirList);
+	Py_DECREF(tuple);
+        FXPySaveThread(doSave);
+	return NULL;
+      }
+      if (PyTuple_SetItem(tuple, 1, dirList) < 0) {
+	Py_DECREF(tuple);
+        FXPySaveThread(doSave);
+	return NULL;
+      }
+      FXPySaveThread(doSave);
+      return tuple;
+    }
+  }
+
+  FXVec getEyeVector() const;
+  FXVec getEyePosition() const;
+  void setHelpText(const FXString& text);
+  FXString getHelpText() const;
+  void setTipText(const FXString&  text);
+  FXString getTipText() const;
+  const FXHMat& getTransform() const;
+  const FXHMat& getInvTransform() const;
+  void setScene(FXGLObject* sc);
+  FXGLObject* getScene() const;
+  void setSelection(FXGLObject* sel);
+  FXGLObject* getSelection() const;
+  void setProjection(FXuint proj);
+  FXuint getProjection() const;
+  void setViewLock(FXbool lock=TRUE);
+  FXbool getViewLock() const;
+  void setBackgroundColor(const FXHVec& clr);
+  FXHVec getBackgroundColor() const;
+  void setAmbientColor(const FXHVec& clr);
+  FXHVec getAmbientColor() const;
+
+  %addmethods {
+    PyObject *readPixels(FXint x,FXint y,FXint w,FXint h) {
+      FXuchar *buffer;
+      if(self->readPixels(buffer,x,y,w,h)){
+	char *charBuffer;
+	FXint nbytes=3*w*h;
+	if(FXMALLOC(&charBuffer,char,nbytes)){
+	  memcpy((void*)charBuffer,(void*)buffer,nbytes);
+	  FXFREE(&buffer);
+          FXbool doSave=FXPyRestoreThread();
+	  PyObject *result=PyString_FromString(charBuffer);
+          FXPySaveThread(doSave);
+	  FXFREE(&charBuffer);
+	  return result;
+          }
+	else{
+	  FXFREE(&buffer);
+          FXbool doSave=FXPyRestoreThread();
+          PyErr_SetString(PyExc_MemoryError,"out of memory");
+          FXPySaveThread(doSave);
+	  return NULL;
+	  }
+        }
+      else{
+        FXbool doSave=FXPyRestoreThread();
+        PyErr_SetString(PyExc_MemoryError,"out of memory");
+        FXPySaveThread(doSave);
+	return NULL;
+        }
+      }
+
+    PyObject *readFeedback(FXint x,FXint y,FXint w,FXint h) {
+      FXfloat *buffer;
+      FXint used,size;
+      if(self->readFeedback(buffer,used,size,x,y,w,h)){
+        FXbool doSave=FXPyRestoreThread();
+	PyObject *list=PyList_New(used);
+	if(!list){
+	  FXFREE(&buffer);
+          FXPySaveThread(doSave);
+	  return NULL;
+	  }
+	for(FXint i=0;i<used;i++){
+	  PyObject *flt=PyFloat_FromDouble(buffer[i]);
+	  if(!flt){
+	    FXFREE(&buffer);
+	    Py_DECREF(list);
+            FXPySaveThread(doSave);
+	    return NULL;
+	    }
+	  PyList_SetItem(list,i,flt);
+	  }
+        FXPySaveThread(doSave);
+	FXFREE(&buffer);
+	return list;
+	}
+      else{
+        PyErr_SetString(PyExc_MemoryError,"out of memory");
+	return NULL;
+	}
+      }
+  }
+  //void setZSortFunc(FXZSortFunc func);
+  //FXZSortFunc getZSortFunc() const;
+  void setMaxHits(FXuint maxh);
+  FXuint getMaxHits() const;
+  FXbool doesTurbo() const;
+  FXbool getTurboMode() const;
+  void setTurboMode(FXbool turbo=TRUE);
+
+  void setLight(const FXLight& lite);
+  %addmethods {
+    // void getLight(FXLight& lite) const;
+    %new FXLight* getLight() const {
+      FXLight *lite = new FXLight;
+      self->getLight(*lite);
+      return lite;
+    }
+  }
+
+  /// Change line offset
+  void setOffset(FXdouble offs);
+
+  /// Return line offset
+  FXdouble getOffset() const;
+  };
+
+
+class FXPyGLViewer : public FXGLViewer {
+public:
+  // Constructor
+  FXPyGLViewer(FXComposite* p,FXGLVisual *vis,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=0,FXint x=0,FXint y=0,FXint w=0,FXint h=0);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+
+public:
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  FXGLCANVAS_VIRTUALS
+  FXGLVIEWER_VIRTUALS
+  };
+
+
+%inline %{
+  FXPyGLViewer *CreateGLViewer1(FXComposite* p,FXGLVisual *vis,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=0,FXint x=0,FXint y=0,FXint w=0,FXint h=0) {
+    return new FXPyGLViewer(p,vis,tgt,sel,opts,x,y,w,h);
+  }
+
+  FXPyGLViewer* CreateGLViewer2(FXComposite* p,FXGLVisual *vis,FXGLViewer *sharegroup,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=0,FXint x=0,FXint y=0,FXint w=0,FXint h=0) {
+    return new FXPyGLViewer(p,vis,sharegroup,tgt,sel,opts,x,y,w,h);
+  }
+%}
+
+
+// Basic OpenGL object
+class FXGLObject : public FXObject {
+public:
+  enum{
+    ID_LAST=10000       // Leaving ample room for FXGLViewer subclasses
+    };
+public:
+  // Constructor
+  FXGLObject();
+
+  %addmethods {
+    // Called by the viewer to get bounds for this object
+    FXRange* bounds(FXRange& box) {
+      self->bounds(box);
+      return &box;
+    }
+  }
+
+  /// Draw this object in a viewer
+  virtual void draw(FXGLViewer* viewer);
+
+  /// Draw this object for hit-testing purposes
+  virtual void hit(FXGLViewer* viewer);
+
+  /// Copy this object
+  virtual FXGLObject* copy();
+
+  /// Identify sub-object given path
+  virtual FXGLObject* identify(FXuint* path);
+
+  /// Return true if this object can be dragged around
+  virtual FXbool canDrag();
+
+  /// Return true if this object can be deleted from the scene
+  virtual FXbool canDelete();
+
+  /// Drag this object from one position to another
+  virtual FXbool drag(FXGLViewer* viewer,FXint fx,FXint fy,FXint tx,FXint ty);
+};
+
+
+class FXPyGLObject : public FXGLObject {
+public:
+  // Constructor
+  FXPyGLObject();
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+
+public:
+  OBJECT_VIRTUALS
+  GLOBJECT_VIRTUALS
+  };
+
+
+// Group object
+class FXGLGroup : public FXGLObject {
+public:
+  // Constructor
+  FXGLGroup();
+
+  /// Return list of children
+  FXGLObjectList& getList();
+
+  /// Return number of children
+  FXuint no() const;
+
+  /// Child at position
+  FXGLObject* child(FXint pos) const;
+
+  /// Insert child object at given position
+  void insert(FXint pos,FXGLObject* obj);
+
+  /// Prepend child object
+  void prepend(FXGLObject* obj);
+
+  /// Append child object
+  void append(FXGLObject* obj);
+
+  /// Replace child object
+  void replace(FXint pos,FXGLObject* obj);
+
+  /// Remove child object
+  %name(removeObj) void remove(FXGLObject* obj);
+
+  /// Remove child object at given position
+  %name(removePos) void remove(FXint pos);
+
+  /// Remove all children
+  void clear();
+  };
+
+
+class FXPyGLGroup : public FXGLGroup {
+public:
+  FXPyGLGroup();
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  GLOBJECT_VIRTUALS
+  };
+
+
+// Shape drawing options
+enum {
+  SURFACE_SINGLESIDED   = 0,              // Single-sided [both sides same]
+  SURFACE_DUALSIDED     = 0x00000001,     // Dual-sided surface
+  SHADING_NONE          = 0,              // No light source
+  SHADING_SMOOTH        = 0x00000002,     // Smooth shaded
+  SHADING_FLAT          = 0x00000004,     // Flag shaded
+  FACECULLING_OFF       = 0,              // No face culling
+  FACECULLING_ON        = 0x00000008,     // Cull backward facing surfaces
+  STYLE_SURFACE         = 0x00000010,     // Draw filled surfaces
+  STYLE_WIREFRAME       = 0x00000020,     // Draw wire frame
+  STYLE_POINTS          = 0x00000040,     // Draw as points
+  STYLE_BOUNDBOX        = 0x00000080      // Draw bounding box
+  };
+
+  
+// Base class for shapes
+class FXGLShape : public FXGLObject {
+public:
+  long onDNDDrop(FXObject*,FXSelector,void*);
+  long onDNDMotion(FXObject*,FXSelector,void*);
+  long onQueryTip(FXObject*,FXSelector,void*);
+  long onCmdShadeOff(FXObject*,FXSelector,void*);
+  long onUpdShadeOff(FXObject*,FXSelector,void*);
+  long onCmdShadeOn(FXObject*,FXSelector,void*);
+  long onUpdShadeOn(FXObject*,FXSelector,void*);
+  long onCmdShadeSmooth(FXObject*,FXSelector,void*);
+  long onUpdShadeSmooth(FXObject*,FXSelector,void*);
+  long onCmdFrontMaterial(FXObject*,FXSelector,void*);
+  long onUpdFrontMaterial(FXObject*,FXSelector,void*);
+  long onCmdBackMaterial(FXObject*,FXSelector,void*);
+  long onUpdBackMaterial(FXObject*,FXSelector,void*);
+  long onCmdDrawingStyle(FXObject*,FXSelector,void*);
+  long onUpdDrawingStyle(FXObject*,FXSelector,void*);
+public:
+  enum {
+    ID_SHADEOFF=FXGLObject::ID_LAST,
+    ID_SHADEON,
+    ID_SHADESMOOTH,
+    ID_TOGGLE_SIDED,
+    ID_TOGGLE_CULLING,
+    ID_STYLE_POINTS,
+    ID_STYLE_WIREFRAME,
+    ID_STYLE_SURFACE,
+    ID_STYLE_BOUNDINGBOX,
+    ID_FRONT_MATERIAL,
+    ID_BACK_MATERIAL,
+    ID_LAST
+    };
+public:
+  // Constructor
+  FXGLShape(FXfloat x,FXfloat y,FXfloat z,FXuint opts);
+
+  void setTipText(const FXString& text);
+  FXString getTipText() const;
+
+  void setMaterial(FXint side,const FXMaterial &mtl);
+  %addmethods {
+    %new FXMaterial* getMaterial(FXint side) const {
+      FXMaterial *mtl = new FXMaterial;
+      self->getMaterial(side,*mtl);
+      return mtl;
+    }
+  }
+};
+
+
+class FXPyGLShape : public FXGLShape {
+public:
+  FXPyGLShape(FXfloat x,FXfloat y,FXfloat z,FXuint opts);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  GLOBJECT_VIRTUALS
+  };
+
+
+// Point
+class FXGLPoint : public FXGLObject {
+public:
+  FXVec  pos;
+public:
+  FXGLPoint(FXfloat x,FXfloat y,FXfloat z);
+  };
+
+
+class FXPyGLPoint : public FXGLPoint {
+public:
+  FXPyGLPoint(FXfloat x,FXfloat y,FXfloat z);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  GLOBJECT_VIRTUALS
+  };
+
+  
+// Line
+class FXGLLine : public FXGLObject {
+public:
+  FXGLPoint fm,to;
+public:
+  // Constructor
+  FXGLLine(FXfloat fx,FXfloat fy,FXfloat fz,FXfloat tx,FXfloat ty,FXfloat tz);
+  };
+
+
+class FXPyGLLine : public FXGLLine {
+public:
+  // Constructor
+  FXPyGLLine(FXfloat fx,FXfloat fy,FXfloat fz,FXfloat tx,FXfloat ty,FXfloat tz);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+
+public:
+  OBJECT_VIRTUALS
+  GLOBJECT_VIRTUALS
+  };
+
+  
+// Cube
+class FXGLCube : public FXGLShape {
+public:
+  FXfloat width;
+  FXfloat height;
+  FXfloat depth;
+public:
+  // Constructor
+  FXGLCube(FXfloat x,FXfloat y,FXfloat z,FXfloat w=1.0,FXfloat h=1.0,FXfloat d=1.0);
+
+  /// Change width
+  void setWidth(FXfloat w){ width=w; }
+  FXfloat getWidth() const { return width; }
+
+  /// Change height
+  void setHeight(FXfloat h){ height=h; }
+  FXfloat getHeight() const { return height; }
+
+  /// Change depth
+  void setDepth(FXfloat d){ depth=d; }
+  FXfloat getDepth() const { return depth; }
+  };
+
+
+class FXPyGLCube : public FXGLCube {
+public:
+  // Constructor
+  FXPyGLCube(FXfloat x,FXfloat y,FXfloat z,FXfloat w=1.0,FXfloat h=1.0,FXfloat d=1.0);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+
+public:
+  OBJECT_VIRTUALS
+  GLOBJECT_VIRTUALS
+  };
+
+  
+// Sphere
+class FXGLSphere : public FXGLShape {
+public:
+  FXfloat radius;
+public:
+  // Constructor
+  FXGLSphere(FXfloat x,FXfloat y,FXfloat z,FXfloat r=1.0);
+
+  /// Change radius
+  void setRadius(FXfloat r);
+  FXfloat getRadius() const;
+
+  /// Change slices
+  void setSlices(FXint s);
+  FXint getSlices() const;
+
+  /// Change stacks
+  void setStacks(FXint s);
+  FXint getStacks() const;
+  }; 
+
+
+class FXPyGLSphere : public FXGLSphere {
+public:
+  // Constructor
+  FXPyGLSphere(FXfloat x,FXfloat y,FXfloat z,FXfloat r=1.0);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+
+public:
+  OBJECT_VIRTUALS
+  GLOBJECT_VIRTUALS
+  };
+
+
+// Cylinder
+class FXGLCylinder : public FXGLShape {
+public:
+  FXfloat height;
+  FXfloat radius;
+public:
+  // Constructor
+  FXGLCylinder(FXfloat x,FXfloat y,FXfloat z,FXfloat h=1.0,FXfloat r=1.0);
+
+  /// Change radius
+  void setRadius(FXfloat r){ radius=r; }
+  FXfloat getRadius() const { return radius; }
+
+  /// Change height
+  void setHeight(FXfloat h){ height=h; }
+  FXfloat getHeight() const { return height; }
+  };
+
+
+class FXPyGLCylinder : public FXGLCylinder {
+public:
+  // Constructor
+  FXPyGLCylinder(FXfloat x,FXfloat y,FXfloat z,FXfloat h=1.0,FXfloat r=1.0);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+
+public:
+  OBJECT_VIRTUALS
+  GLOBJECT_VIRTUALS
+  };
+
+
+// Cone
+class FXGLCone : public FXGLShape {
+public:
+  FXfloat height;
+  FXfloat radius;
+public:
+  // Constructor
+  FXGLCone(FXfloat x,FXfloat y,FXfloat z,FXfloat h=1.0,FXfloat r=1.0);
+
+  /// Change radius
+  void setRadius(FXfloat r);
+  FXfloat getRadius() const;
+
+  /// Change height
+  void setHeight(FXfloat h);
+  FXfloat getHeight() const;
+  };
+
+
+class FXPyGLCone : public FXGLCone {
+public:
+  // Constructor
+  FXPyGLCone(FXfloat x,FXfloat y,FXfloat z,FXfloat h=1.0,FXfloat r=1.0);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+
+public:
+  OBJECT_VIRTUALS
+  GLOBJECT_VIRTUALS
+  };
+
+
+// Triangle Mesh
+class FXGLTriangleMesh : public FXGLShape {
+public:
+  // Constructor
+  FXGLTriangleMesh(FXfloat x,FXfloat y,FXfloat z,FXint nv,FXfloat *v,FXfloat *n=NULL,FXfloat *c=NULL,FXfloat *t=NULL);
+
+  void setVertexNumber(FXint nvertices);
+  FXint getVertexNumber() const;
+
+  void setVertexBuffer(FXfloat *vertices);
+  void setColorBuffer(FXfloat *colors);
+  void setNormalBuffer(FXfloat *normals);
+  void setTextureCoordBuffer(FXfloat *textures);
+
+  FXfloat* getVertexBuffer() const;
+  FXfloat* getColorBuffer() const;
+  FXfloat* getNormalBuffer() const;
+  FXfloat* getTextureCoordBuffer() const;
+  };
+
+
+class FXPyGLTriangleMesh : public FXGLTriangleMesh {
+public:
+  // Constructor
+  FXPyGLTriangleMesh(FXfloat x,FXfloat y,FXfloat z,FXint nv,FXfloat *v,FXfloat *n=NULL,FXfloat *c=NULL,FXfloat *t=NULL);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+
+public:
+  OBJECT_VIRTUALS
+  GLOBJECT_VIRTUALS
+  };
+
+

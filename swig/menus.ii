@@ -1,0 +1,385 @@
+/***********************************************************************
+ * $Id: menus.ii,v 1.19 2002/02/11 09:58:54 calvin Exp $
+ ***********************************************************************/
+
+%module menus
+
+%{
+#include "fx.h"
+#include "fx3d.h"
+#include "FXCURCursor.h"
+#include "FXJPGImage.h"
+#include "FXJPGIcon.h"
+#include "FXPNGIcon.h"
+#include "FXPNGImage.h"
+#include "FXTIFIcon.h"
+#include "FXTIFImage.h"
+#include "FXRGBIcon.h"
+#include "FXRGBImage.h"
+#include "FXICOIcon.h"
+#include "FXICOImage.h"
+#include "FXPyApp.h"
+#include "FXPy.h"
+%}
+
+%extern fxdefs.i
+
+%include typemaps.i
+%include my_typemaps.i
+
+%import windows.i
+%import containers.i
+%import controls.i
+
+%pragma(python) code = "import fox"
+
+// Button masks for menu buttons
+enum {
+  MENU_AUTOGRAY  = 0x00008000,
+  MENU_AUTOHIDE = 0x00010000,
+  };
+
+// Menu item separator
+class FXMenuSeparator : public FXWindow {
+public:
+  long onPaint(FXObject*,FXSelector,void*);
+public:
+  /// Constructor
+  FXMenuSeparator(FXComposite* p,FXuint opts=0);
+
+  /// Change highlight color
+  void setHiliteColor(FXColor clr);
+
+  /// Get highlight color
+  FXColor getHiliteColor() const { return hiliteColor; }
+
+  /// Change shadow color
+  void setShadowColor(FXColor clr);
+
+  /// Get shadow color
+  FXColor getShadowColor() const { return shadowColor; }
+  };
+
+
+class FXPyMenuSeparator : public FXMenuSeparator {
+public:
+  FXPyMenuSeparator(FXComposite* p,FXuint opts=0);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  };
+
+
+// Text menu item
+class FXMenuCaption : public FXWindow {
+public:
+  long onPaint(FXObject*,FXSelector,void*);
+  long onQueryHelp(FXObject*,FXSelector,void*);
+  long onUpdate(FXObject*,FXSelector,void*);
+  long onCmdGetStringValue(FXObject*,FXSelector,void*);
+  long onCmdSetStringValue(FXObject*,FXSelector,void*);
+public:
+  FXMenuCaption(FXComposite* p,const FXString& text,FXIcon* ic=NULL,FXuint opts=0);
+  void setText(const FXString& text);
+  FXString getText() const;
+  void setIcon(FXIcon* ic);
+  FXIcon* getIcon() const;
+  void setFont(FXFont* fnt);
+  FXFont* getFont() const;
+  FXColor getTextColor() const;
+  void setTextColor(FXColor clr);
+  FXColor getSelBackColor() const;
+  void setSelBackColor(FXColor clr);
+  FXColor getSelTextColor() const;
+  void setSelTextColor(FXColor clr);
+
+  /// Change highlight color
+  void setHiliteColor(FXColor clr);
+
+  /// Get highlight color
+  FXColor getHiliteColor() const { return hiliteColor; }
+
+  /// Change shadow color
+  void setShadowColor(FXColor clr);
+
+  /// Get shadow color
+  FXColor getShadowColor() const { return shadowColor; }
+
+  void setHelpText(const FXString& text);
+  FXString getHelpText() const;
+  };
+
+
+class FXPyMenuCaption : public FXMenuCaption {
+public:
+  FXPyMenuCaption(FXComposite* p,const FXString& text,FXIcon* ic=NULL,FXuint opts=0);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  };
+
+
+// Popup menu pane
+class FXMenuPane : public FXPopup {
+public:
+  FXMenuPane(FXWindow* owner,FXuint opts=0);
+  };
+
+
+class FXPyMenuPane : public FXMenuPane {
+public:
+  // Constructor
+  FXPyMenuPane(FXWindow* owner,FXuint opts=0);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+
+public:
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  FXPOPUP_VIRTUALS
+  };
+
+
+// Menu bar 
+class FXMenubar : public FXToolbar {
+public:
+  long onFocusLeft(FXObject*,FXSelector,void*);
+  long onFocusRight(FXObject*,FXSelector,void*);
+  long onEnter(FXObject*,FXSelector,void*);
+  long onLeave(FXObject*,FXSelector,void*);
+  long onMotion(FXObject*,FXSelector,void*);
+  long onButtonPress(FXObject*,FXSelector,void*);
+  long onButtonRelease(FXObject*,FXSelector,void*);
+  long onCmdUnpost(FXObject*,FXSelector,void*);
+  };
+
+
+class FXPyMenubar : public FXMenubar {
+public:
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  TOOLBAR_VIRTUALS
+  };
+
+
+%inline %{
+  FXPyMenubar* CreateFloatingMenubar(FXComposite* p,FXComposite* q,FXuint opts=LAYOUT_TOP|LAYOUT_LEFT|LAYOUT_FILL_X,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=3,FXint pr=3,FXint pt=2,FXint pb=2,FXint hs=DEFAULT_SPACING,FXint vs=DEFAULT_SPACING) {
+    return new FXPyMenubar(p,q,opts,x,y,w,h,pl,pr,pt,pb,hs,vs);
+  }
+
+  FXPyMenubar* CreateNonFloatingMenubar(FXComposite* p,FXuint opts=LAYOUT_TOP|LAYOUT_LEFT|LAYOUT_FILL_X,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=3,FXint pr=3,FXint pt=2,FXint pb=2,FXint hs=DEFAULT_SPACING,FXint vs=DEFAULT_SPACING) {
+    return new FXPyMenubar(p,opts,x,y,w,h,pl,pr,pt,pb,hs,vs);
+  }
+%}
+
+
+// Menu button options
+enum {
+  MENUBUTTON_AUTOGRAY      = 0x00800000,
+  MENUBUTTON_AUTOHIDE      = 0x01000000,
+  MENUBUTTON_TOOLBAR       = 0x02000000,
+  MENUBUTTON_DOWN          = 0,
+  MENUBUTTON_UP            = 0x04000000,
+  MENUBUTTON_LEFT          = 0x08000000,
+  MENUBUTTON_RIGHT         = MENUBUTTON_LEFT|MENUBUTTON_UP,
+  MENUBUTTON_NOARROWS      = 0x10000000,
+  MENUBUTTON_ATTACH_LEFT   = 0,
+  MENUBUTTON_ATTACH_TOP    = MENUBUTTON_ATTACH_LEFT,
+  MENUBUTTON_ATTACH_RIGHT  = 0x20000000,
+  MENUBUTTON_ATTACH_BOTTOM = MENUBUTTON_ATTACH_RIGHT,
+  MENUBUTTON_ATTACH_CENTER = 0x40000000,
+  MENUBUTTON_ATTACH_BOTH   = MENUBUTTON_ATTACH_CENTER|MENUBUTTON_ATTACH_RIGHT 
+  };
+
+// Menu button
+class FXMenuButton : public FXLabel {
+public:
+  long onPaint(FXObject*,FXSelector,void*);
+  long onUpdate(FXObject*,FXSelector,void*);
+  long onEnter(FXObject*,FXSelector,void*);
+  long onLeave(FXObject*,FXSelector,void*);
+  long onFocusIn(FXObject*,FXSelector,void*);
+  long onFocusOut(FXObject*,FXSelector,void*);
+  long onUngrabbed(FXObject*,FXSelector,void*);
+  long onMotion(FXObject*,FXSelector,void*);
+  long onLeftBtnPress(FXObject*,FXSelector,void*);
+  long onLeftBtnRelease(FXObject*,FXSelector,void*);
+  long onKeyPress(FXObject*,FXSelector,void*);
+  long onKeyRelease(FXObject*,FXSelector,void*);
+  long onHotKeyPress(FXObject*,FXSelector,void*);
+  long onHotKeyRelease(FXObject*,FXSelector,void*);
+  long onCmdPost(FXObject*,FXSelector,void*);
+  long onCmdUnpost(FXObject*,FXSelector,void*);
+public:
+  FXMenuButton(FXComposite* p,const FXString& text,FXIcon* ic=NULL,FXPopup* pup=NULL,FXuint opts=JUSTIFY_NORMAL|ICON_BEFORE_TEXT|MENUBUTTON_DOWN,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=DEFAULT_PAD,FXint pr=DEFAULT_PAD,FXint pt=DEFAULT_PAD,FXint pb=DEFAULT_PAD);
+  void setMenu(FXPopup *pup);
+  FXPopup* getMenu() const;
+  void setXOffset(FXint offx);
+  FXint getXOffset() const;
+  void setYOffset(FXint offy);
+  FXint getYOffset() const;
+  void setButtonStyle(FXuint style);
+  FXuint getButtonStyle() const;
+  void setPopupStyle(FXuint style);
+  FXuint getPopupStyle() const;
+  void setAttachment(FXuint att);
+  FXuint getAttachment() const;
+  };
+
+
+class FXPyMenuButton : public FXMenuButton {
+public:
+  FXPyMenuButton(FXComposite* p,const FXString& text,FXIcon* ic=NULL,FXPopup* pup=NULL,FXuint opts=JUSTIFY_NORMAL|ICON_BEFORE_TEXT|MENUBUTTON_DOWN,FXint x=0,FXint y=0,FXint w=0,FXint h=0,FXint pl=DEFAULT_PAD,FXint pr=DEFAULT_PAD,FXint pt=DEFAULT_PAD,FXint pb=DEFAULT_PAD);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  };
+
+
+// Cascade menu item
+class FXMenuCascade : public FXMenuCaption {
+public:
+  long onPaint(FXObject*,FXSelector,void*);
+  long onEnter(FXObject*,FXSelector,void*);
+  long onLeave(FXObject*,FXSelector,void*);
+  long onTimeout(FXObject*,FXSelector,void*);
+  long onButtonPress(FXObject*,FXSelector,void*);
+  long onButtonRelease(FXObject*,FXSelector,void*);
+  long onKeyPress(FXObject*,FXSelector,void*);
+  long onKeyRelease(FXObject*,FXSelector,void*);
+  long onHotKeyPress(FXObject*,FXSelector,void*);
+  long onHotKeyRelease(FXObject*,FXSelector,void*);
+  long onCmdPost(FXObject*,FXSelector,void*);
+  long onCmdUnpost(FXObject*,FXSelector,void*);
+public:
+  enum {
+    ID_MENUTIMER=FXMenuCaption::ID_LAST,
+    ID_LAST
+    };
+public:
+  FXMenuCascade(FXComposite* p,const FXString& text,FXIcon* ic=NULL,FXMenuPane* pup=NULL,FXuint opts=0);
+
+  /// Set popup menu to pop up
+  void setMenu(FXPopup *pup);
+
+  /// Return popup menu
+  FXPopup* getMenu() const;
+  };
+
+
+class FXPyMenuCascade : public FXMenuCascade {
+public:
+  FXPyMenuCascade(FXComposite* p,const FXString& text,FXIcon* ic=NULL,FXMenuPane* pup=NULL,FXuint opts=0);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  };
+
+
+/// States the menu can be in
+enum {
+  MENUSTATE_NORMAL   = 0,           /// Normal, unchecked state
+  MENUSTATE_CHECKED  = 1,           /// Checked with a checkmark
+  MENUSTATE_RCHECKED = 2            /// Checked with a bullit
+  };
+ 
+
+/**
+* The menu command widget is used to invoke a command in the
+* application from a menu.  Menu commands may reflect
+* the state of the application by graying out, becoming hidden,
+* or by a check mark or bullit.
+*/
+class FXMenuCommand : public FXMenuCaption {
+public:
+  long onPaint(FXObject*,FXSelector,void*);
+  long onEnter(FXObject*,FXSelector,void*);
+  long onLeave(FXObject*,FXSelector,void*);
+  long onButtonPress(FXObject*,FXSelector,void*);
+  long onButtonRelease(FXObject*,FXSelector,void*);
+  long onKeyPress(FXObject*,FXSelector,void*);
+  long onKeyRelease(FXObject*,FXSelector,void*);
+  long onHotKeyPress(FXObject*,FXSelector,void*);
+  long onHotKeyRelease(FXObject*,FXSelector,void*);
+  long onCheck(FXObject*,FXSelector,void*);
+  long onUncheck(FXObject*,FXSelector,void*);
+  long onCmdSetValue(FXObject*,FXSelector,void*);
+  long onCmdSetIntValue(FXObject*,FXSelector,void*);
+  long onCmdGetIntValue(FXObject*,FXSelector,void*);
+  long onCmdAccel(FXObject*,FXSelector,void*);
+public:
+  FXMenuCommand(FXComposite* p,const FXString& text,FXIcon* ic=NULL,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=0);
+  void check();
+  void uncheck();
+  FXint isChecked() const;
+  void checkRadio();
+  void uncheckRadio();
+  FXint isRadioChecked() const;
+  void setAccelText(const FXString& text);
+  FXString getAccelText() const;
+  };
+
+
+class FXPyMenuCommand : public FXMenuCommand {
+public:
+  FXPyMenuCommand(FXComposite* p,const FXString& text,FXIcon* ic=NULL,FXObject* tgt=NULL,FXSelector sel=0,FXuint opts=0);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  };
+
+
+// Menu title button
+class FXMenuTitle : public FXMenuCaption {
+public:
+  long onPaint(FXObject*,FXSelector,void*);
+  long onEnter(FXObject*,FXSelector,void*);
+  long onLeave(FXObject*,FXSelector,void*);
+  long onLeftBtnPress(FXObject*,FXSelector,void*);
+  long onLeftBtnRelease(FXObject*,FXSelector,void*);
+  long onKeyPress(FXObject*,FXSelector,void*);
+  long onKeyRelease(FXObject*,FXSelector,void*);
+  long onHotKeyPress(FXObject*,FXSelector,void*);
+  long onHotKeyRelease(FXObject*,FXSelector,void*);
+  long onFocusUp(FXObject*,FXSelector,void*);
+  long onFocusDown(FXObject*,FXSelector,void*);
+  long onFocusIn(FXObject*,FXSelector,void*);
+  long onFocusOut(FXObject*,FXSelector,void*);
+  long onCmdPost(FXObject*,FXSelector,void*);
+  long onCmdUnpost(FXObject*,FXSelector,void*);
+public:
+  // Constructor
+  FXMenuTitle(FXComposite* p,const FXString& text,FXIcon* ic=NULL,FXPopup* pup=NULL,FXuint opts=LAYOUT_LEFT);
+
+  // Set popup menu to pop up
+  void setMenu(FXPopup *menu);
+
+  // Return popup menu
+  FXPopup* getMenu() const;
+  };
+
+
+class FXPyMenuTitle : public FXMenuTitle {
+public:
+  FXPyMenuTitle(FXComposite* p,const FXString& text,FXIcon* ic=NULL,FXPopup* pup=NULL,FXuint opts=LAYOUT_LEFT);
+  %pragma(python) addtomethod = "__init__:FXPyRegister(self)"
+  OBJECT_VIRTUALS
+  ID_VIRTUALS
+  DRAWABLE_VIRTUALS
+  WINDOW_VIRTUALS
+  };
+
